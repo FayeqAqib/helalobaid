@@ -1,0 +1,42 @@
+import mongoose from "mongoose";
+import jalaliMoment from 'moment-jalaali';
+
+
+
+
+const externalProceedSchema = new mongoose.Schema({
+    date: {
+        type: Date, // Example: "2024/5/3"
+        required: true,
+        default:new Date()
+    },
+    afgDate: {
+    type: String,
+  },
+    externalProceedTitle: {
+        type: String,
+        required: true,
+    },
+    amount: {
+        type: Number,
+        required: true,
+        min: [1, "Amount must be greater than 0"],
+    },
+    details: {
+        type: String,
+        required: false,
+    },
+});
+
+
+
+externalProceedSchema.pre("save", function (next) {
+
+  if (this.date) {
+     this.afgDate = jalaliMoment(this.date).format('jYYYY/jM');
+  }
+  next();
+});
+
+
+export const ExternalProceed = mongoose.models.ExternalProceed || mongoose.model("ExternalProceed", externalProceedSchema);
