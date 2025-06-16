@@ -31,7 +31,7 @@ export default function Page() {
           "2xl:w-1/4 w-full flex flex-col sm:flex-row 2xl:flex-col  2xl:max-w-2xl gap-4"
         }
       >
-        <LoanAccount company={result[0]} />
+        <LoanAccount company={result?.[0]} />
         <BuyerCard />
       </div>
 
@@ -39,23 +39,23 @@ export default function Page() {
         <div className="w-full grid xl:grid-cols-[0.5fr_1fr_1fr_1fr] md:grid-cols-2 grid-cols-1 items-center xs:justify-center md:justify-around  gap-4 p-1 ">
           <SmallShowCard
             tital={"METU"}
-            balance={result[0].METUbalance}
-            buy={buySixMonthData.result?.slice(-1)[0]?.totalMETU}
-            sale={SaleSixMonthData.result?.slice(-1)[0]?.totalMETU}
+            balance={result?.[0].METUbalance}
+            buy={buySixMonthData.result?.slice(-1)?.[0]?.totalMETU}
+            sale={SaleSixMonthData.result?.slice(-1)?.[0]?.totalMETU}
           />
           <ShowCard
             tital={"مجموع خرید"}
             cent={buyCent}
-            amount={buySixMonthData.result?.slice(-1)[0]?.totalBuy}
-            count={buySixMonthData.result?.slice(-1)[0]?.count}
+            amount={buySixMonthData.result?.slice(-1)?.[0]?.totalBuy}
+            count={buySixMonthData.result?.slice(-1)?.[0]?.count}
           />
           <ShowCard
             tital={"مجموع فروش "}
             cent={saleCent}
-            amount={SaleSixMonthData.result?.slice(-1)[0]?.totalSale}
-            count={SaleSixMonthData.result?.slice(-1)[0]?.count}
+            amount={SaleSixMonthData.result?.slice(-1)?.[0]?.totalSale}
+            count={SaleSixMonthData.result?.slice(-1)?.[0]?.count}
           />
-          <ShowCard tital={"موجودی سرمایه"} amount={result[0].balance} />
+          <ShowCard tital={"موجودی سرمایه"} amount={result?.[0].balance} />
         </div>
         <ChartContiner
           buyData={buySixMonthData.result}

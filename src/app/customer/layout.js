@@ -3,13 +3,11 @@ import "../globals.css";
 import { AppSidebar } from "@/components/myUI/appSideBar";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/myUI/Header";
-import { use } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
 export default async function RootLayout({ children }) {
   const session = await auth();
-
   if (!session) {
     redirect("/login");
   }

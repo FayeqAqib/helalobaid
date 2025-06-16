@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { signIn, useSession } from "next-auth/react";
 import {
   Form,
@@ -37,7 +37,12 @@ export default function SignInPage() {
   const form = useForm({
     resolver: zodResolver(loginSchema),
   });
-  if (session.data?.user) redirect("/customer/home");
+
+  useEffect(() => {
+    if (session.data) {
+      router.push("/customer/home");
+    }
+  }, []);
   const onSubmit = async (data) => {
     startTransition(async () => {
       setLoginError(null);
