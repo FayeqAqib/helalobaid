@@ -15,15 +15,15 @@ export default function Page() {
   const SaleSixMonthData = use(getSixMonthSaleData());
 
   const saleCent =
-    ((Number(SaleSixMonthData.result.slice(-1)[0]?.totalSale || 0) -
-      Number(SaleSixMonthData.result.slice(-2)[0]?.totalSale || 0)) *
+    ((Number(SaleSixMonthData.result?.slice(-1)[0]?.totalSale || 0) -
+      Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 0)) *
       100) /
-    Number(SaleSixMonthData.result.slice(-2)[0]?.totalSale || 1);
+    Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 1);
   const buyCent =
-    ((Number(buySixMonthData.result.slice(-1)[0]?.totalBuy || 0) -
-      Number(buySixMonthData.result.slice(-2)[0]?.totalBuy || 0)) *
+    ((Number(buySixMonthData.result?.slice(-1)[0]?.totalBuy || 0) -
+      Number(buySixMonthData.result?.slice(-2)[0]?.totalBuy || 0)) *
       100) /
-    Number(buySixMonthData.result.slice(-2)[0]?.totalBuy || 1);
+    Number(buySixMonthData.result?.slice(-2)[0]?.totalBuy || 1);
   return (
     <div className="flex w-full flex-col-reverse 2xl:flex-row  items-start justify-center gap-4 p-1">
       <div
@@ -40,20 +40,20 @@ export default function Page() {
           <SmallShowCard
             tital={"METU"}
             balance={result[0].METUbalance}
-            buy={buySixMonthData.result.slice(-1)[0]?.totalMETU}
-            sale={SaleSixMonthData.result.slice(-1)[0]?.totalMETU}
+            buy={buySixMonthData.result?.slice(-1)[0]?.totalMETU}
+            sale={SaleSixMonthData.result?.slice(-1)[0]?.totalMETU}
           />
           <ShowCard
             tital={"مجموع خرید"}
             cent={buyCent}
-            amount={buySixMonthData.result.slice(-1)[0]?.totalBuy}
-            count={buySixMonthData.result.slice(-1)[0]?.count}
+            amount={buySixMonthData.result?.slice(-1)[0]?.totalBuy}
+            count={buySixMonthData.result?.slice(-1)[0]?.count}
           />
           <ShowCard
             tital={"مجموع فروش "}
             cent={saleCent}
-            amount={SaleSixMonthData.result.slice(-1)[0]?.totalSale}
-            count={SaleSixMonthData.result.slice(-1)[0]?.count}
+            amount={SaleSixMonthData.result?.slice(-1)[0]?.totalSale}
+            count={SaleSixMonthData.result?.slice(-1)[0]?.count}
           />
           <ShowCard tital={"موجودی سرمایه"} amount={result[0].balance} />
         </div>
