@@ -15,10 +15,8 @@ const authConfig = {
       // ...
       async authorize(credentials) {
         try {
-          const protocol =
-            process.env.NODE_ENV === "production" ? "https" : "http";
           const baseUrl = process.env.NEXTAUTH_URL || `http://localhost:3000`;
-          const res = await fetch(`${protocol}://${baseUrl}/api/checkUser`, {
+          const res = await fetch(`${baseUrl}/api/checkUser`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(credentials),
