@@ -33,11 +33,11 @@ export default function SignInPage() {
   const [loginError, setLoginError] = useState(null);
   const router = useRouter();
   const session = useSession();
-  if (session.status === "authenticated") redirect("/customer/home");
+
   const form = useForm({
     resolver: zodResolver(loginSchema),
   });
-
+  if (session.data?.user) redirect("/customer/home");
   const onSubmit = async (data) => {
     startTransition(async () => {
       setLoginError(null);
