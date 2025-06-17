@@ -6,6 +6,7 @@ import Credentials from "next-auth/providers/credentials";
 // import { checkUserAction } from "@/actions/user";
 
 const authConfig = {
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
@@ -15,25 +16,25 @@ const authConfig = {
       // ...
       async authorize(credentials) {
         try {
-          // const baseUrl = process.env.NEXTAUTH_URL || `http://localhost:3000`;
-          // const res = await fetch(`${baseUrl}/api/checkUser`, {
-          //   method: "POST",
-          //   headers: { "Content-Type": "application/json" },
-          //   body: JSON.stringify(credentials),
-          // });
+          const baseUrl = process.env.NEXTAUTH_URL || `http://localhost:3000`;
+          const res = await fetch(`${baseUrl}/api/checkUser`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(credentials),
+          });
 
-          // if (!res.ok) throw new Error("Failed to fetch user");
-          // const user = await res.json();
+          if (!res.ok) throw new Error("Failed to fetch user");
+          const user = await res.json();
 
-          // if (user) {
-          //   // Set user data in session
-          //   return {
-          //     id: user.id,
-          //     username: user.username,
-          //     role: user.role, // Include the user role
-          //     // Add other user properties as needed
-          //   };
-          // }
+          if (user) {
+            // Set user data in session
+            return {
+              id: user.id,
+              username: user.username,
+              role: user.role, // Include the user role
+              // Add other user properties as needed
+            };
+          }
 
           return { mame: "fayeq", password: "1234456" };
         } catch (err) {
