@@ -326,7 +326,7 @@ export function DataTableApplecation({ data, count }) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
-
+  console.log(data);
   const router = useRouter();
   const pathname = usePathname();
 

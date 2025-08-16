@@ -17,6 +17,7 @@ const authConfig = {
       async authorize(credentials) {
         try {
           const baseUrl = process.env.NEXTAUTH_URL || `http://localhost:3000`;
+          console.log(baseUrl);
           const res = await fetch(`${baseUrl}/api/checkUser`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
