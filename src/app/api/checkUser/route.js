@@ -23,7 +23,7 @@ export async function POST(req) {
       headers: { "Content-Type": "application/json" },
     });
   }
-  console.log(isValid, user);
+
   // Return user data as JSON, excluding sensitive fields like password
   const { password, ...userWithoutPassword } = user;
   return new Response(JSON.stringify(userWithoutPassword), {

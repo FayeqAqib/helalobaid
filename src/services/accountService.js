@@ -1,6 +1,6 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
-import jalaliMoment from "moment-jalaali";
+
 import { Account } from "@/models/account";
 import { Buy } from "@/models/Buy";
 import { Sale } from "@/models/Sale";
@@ -39,7 +39,11 @@ export const createAccount = catchAsync(async (data) => {
 //
 //
 export const getAllAccount = catchAsync(async (filter) => {
-  const count = await Account.countDocuments();
+  if (filter.name) {
+    filter.name = filter?.name?.length > 0 ? filter?.name?.split("_")?.[0] : "";
+  }
+
+  const count = await Account.countDocuments(filter);
   const features = new APIFeatures(Account.find(), filter)
     .filter()
     .sort()
@@ -63,12 +67,13 @@ export const getAllAccount = catchAsync(async (filter) => {
 
 export const deleteAccount = catchAsync(async (data) => {
   let company;
-  const account = [];
-  account.push(await Sale.findById(data._id, { _id: 1 }));
-  account.push(await Buy.findById(data._id, { _id: 1 }));
-  account.push(await Pay.findById(data._id, { _id: 1 }));
-  account.push(await Receive.findById(data._id, { _id: 1 }));
-  if (account.length > 0) {
+
+  const sale = await Sale.findById(data._id, { _id: 1 });
+  const buy = await Buy.findById(data._id, { _id: 1 });
+  const pay = await Pay.findById(data._id, { _id: 1 });
+  const receive = await Receive.findById(data._id, { _id: 1 });
+
+  if (sale || buy || pay || receive) {
     return {
       message:
         "حساب ذیل با شرکت معاملاتی انجام داده لذا حذف این حساب ممکن نیست",
@@ -78,9 +83,14 @@ export const deleteAccount = catchAsync(async (data) => {
     company = await Account.findById(process.env.COMPANY_ID, {
       borrow: 1,
       lend: 1,
+      balance: 1,
     });
+    if (data.borrow > company.balance) {
+      return {
+        message: "برای پرداخت قرض این کاربر پول کافی ندارین",
+      };
+    }
   }
-  const result = await Account.findByIdAndDelete(data._id);
 
   if (data.borrow >= 1 || data.lend >= 1) {
     const newData = {
@@ -89,6 +99,9 @@ export const deleteAccount = catchAsync(async (data) => {
     };
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, newData);
   }
+
+  const result = await Account.findByIdAndDelete(data._id);
+
   return result;
 });
 
@@ -109,7 +122,7 @@ export const getAllSallerAndBuyer = catchAsync(
   async ({ type = "", lend = false, borrow = false }) => {
     const filter = {};
     if (type !== "") {
-      filter.accountType = type;
+      filter.accountType = type?.split("-");
     }
     if (lend) {
       filter.lend = { $gt: 0 };
@@ -185,7 +198,7 @@ export const getTopThreeAccountsBylend = catchAsync(async () => {
     { lend: 1, name: 1 }
   )
     .sort({ lend: -1 }) // Sort in descending order by balance
-    .limit(3) // Limit the result to the top 3
+    .limit(10) // Limit the result to the top 3
     .lean(); // Get plain JavaScript objects
 
   return accounts;

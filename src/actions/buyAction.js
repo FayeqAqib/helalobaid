@@ -9,6 +9,7 @@ export default async function CreateBuyAction(data) {
     revalidatePath("/buy");
     revalidatePath("/home");
   }
+
   return result;
 }
 

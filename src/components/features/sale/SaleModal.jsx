@@ -1,4 +1,3 @@
-import { AutoComplete } from "@/components/myUI/AutoComplete";
 import { DatePickerWithPresets } from "@/components/myUI/datePacker";
 
 import { Button } from "@/components/ui/button";
@@ -23,14 +22,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import createSaleAction, { updateSaleAction } from "@/actions/saleAction";
 import { Loader2Icon } from "lucide-react";
+import { SwitchDemo } from "@/components/myUI/Switch";
+
+import { useReactToPrint } from "react-to-print";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 const schema = z.object({
-  date: z.date({ required_error: "تاریخ الزامی میباشد" }),
-  buyer: z.string().min(1, "خریدار الزامی است"),
+  date: z
+    .date({ required_error: "تاریخ الزامی میباشد" })
+    .default(() => new Date()),
+  income: z.string({ required_error: "دریافت کننده الزامی میباشد" }),
+  buyer: z.string({ required_error: "نام خریدار الزامی می‌باشد" }), // مثلاً آیدی اختیاری,
   cashAmount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
     .min(0, "مقدار پول الزامی است")
@@ -41,7 +47,7 @@ const schema = z.object({
     .default(0),
   totalAmount: z
     .number({ invalid_type_error: "مجموع پول الزامی می باشد" })
-    .min(0),
+    .min(1, { required_error: "مجموع پول الزامی می باشد" }),
 
   cent: z
     .number({ invalid_type_error: "فیصدی الزامی می باشد" })
@@ -50,6 +56,17 @@ const schema = z.object({
   metuAmount: z
     .number({ invalid_type_error: "مقدار METU الزامی می باشد" })
     .min(0),
+  image: z
+    .any()
+
+    .refine(
+      (files) =>
+        !files ||
+        typeof files === "string" ||
+        files[0]?.size <= 2.5 * 1024 * 1024,
+      "حجم عکس نباید بیشتر از ۲.۵ مگابایت باشد"
+    )
+    .optional(),
   details: z.string().optional(),
 });
 
@@ -60,27 +77,39 @@ export function SaleModal({
   open,
   onOpen,
 }) {
+  const [dateType, setDateType] = useState(false);
+  const [countByCash, setCountByCash] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const contentRef = useRef(null);
+  const handlePrint = useReactToPrint({ contentRef });
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues:
       type === "update"
         ? {
             ...data,
-            date: data.date,
-            buyer: data.buyer._id,
+            date: new Date(data.date),
+            buyer: data.buyer.name + "_" + data.buyer._id,
+            income: data.income.name + "_" + data.income._id,
           }
         : {},
   });
 
   async function submiteForm(newData) {
+    const myNewData = {
+      ...newData,
+      buyer: newData.buyer.split("_")[1],
+      income: newData.income.split("_")[1],
+      image: newData.image?.[0],
+    };
     startTransition(async () => {
       if (type === "create") {
-        const result = await createSaleAction(newData);
+        const result = await createSaleAction(myNewData);
         if (result.result?.message)
           return toast.warning(result.result?.message);
         if (!result.err) {
           toast.success("فروش شما با موفقیت ثبت شد");
+          handlePrint();
 
           form.reset();
           onOpen(false);
@@ -91,8 +120,12 @@ export function SaleModal({
         }
       }
       if (type === "update") {
-        const currentData = data;
-        const result = await updateSaleAction(currentData, newData);
+        const currentData = {
+          ...data,
+          buyer: data.buyer._id,
+          income: data.income._id,
+        };
+        const result = await updateSaleAction(currentData, myNewData);
         if (result.result?.message)
           return toast.warning(result.result?.message);
         if (!result.err) {
@@ -111,20 +144,30 @@ export function SaleModal({
   const cash = form.watch("cashAmount") || 0;
   const loan = form.watch("lendAmount") || 0;
   const cent = form.watch("cent") || 0;
+  const metuAmount = form.watch("metuAmount") || 0;
+
   useEffect(() => {
-    const total = cash + loan;
-    const metuAmount =
-      Math.round((total + (total / 100) * Number(cent)) * 100) / 100;
-    form.setValue("totalAmount", total, { shouldValidate: true });
-    form.setValue("metuAmount", metuAmount, {
-      shouldValidate: true,
-    });
-  }, [cash, loan, cent]);
+    if (countByCash) {
+      const total = cash + loan;
+      const metuAmount =
+        Math.round((total + (total / 100) * Number(cent)) * 100) / 100;
+      form.setValue("totalAmount", total, { shouldValidate: true });
+      form.setValue("metuAmount", metuAmount, {
+        shouldValidate: true,
+      });
+    } else {
+      const totalAmount =
+        Math.round(((100 * metuAmount) / (Number(cent) + 100)) * 100) / 100;
+      form.setValue("totalAmount", totalAmount, { shouldValidate: true });
+      form.setValue("cashAmount", totalAmount, { shouldValidate: true });
+      form.resetField("lendAmount", { defaultValue: 0 });
+    }
+  }, [cash, loan, cent, metuAmount]);
 
   return (
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
-      <DialogContent className="xs:max-w-[350px] lg:max-w-[690px]">
+      <DialogContent className="">
         <DialogHeader>
           <DialogTitle className={"text-right"}>
             {type == "update" ? "تصحیح" : " فروش جدید "}
@@ -132,135 +175,195 @@ export function SaleModal({
           <DialogDescription className={"text-right"}>
             لطف نموده در درج اطلاعات دقت نمایید.
           </DialogDescription>
+          <div className="flex justify-end gap-4">
+            <SwitchDemo
+              value={countByCash}
+              onChange={setCountByCash}
+              label={"محاسبه بر اساس پول "}
+            />
+            <SwitchDemo
+              value={dateType}
+              onChange={setDateType}
+              label={"تاریخ میلادی"}
+            />
+          </div>
         </DialogHeader>
-
+        {/* <OrderReceipt ref={contentRef} data={form.getValues()} /> */}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(submiteForm)}
             className="w-full space-y-6"
           >
-            <div className="flex flex-row flex-wrap justify-center gap-[22px] gap-y-4">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel> تاریخ</FormLabel>
-                    <DatePickerWithPresets
-                      size="sm"
-                      date={field.value}
-                      onDate={field.onChange}
-                    />
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel> تاریخ</FormLabel>
+                      <DatePickerWithPresets
+                        size="sm"
+                        date={field.value}
+                        onDate={field.onChange}
+                        type={dateType ? "gregorian" : "jalali"}
+                      />
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="buyer"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>خریدار</FormLabel>
-                    <AutoComplete
-                      size="sm"
-                      field={field}
-                      type="buyer"
-                      label="خریدار را انتخاب کنید.."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="cashAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>مقدار رسید </FormLabel>
-                    <Input
-                      type={"number"}
-                      className={"w-full"}
-                      value={field.value}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? "" : Number(value));
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lendAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>مقدار باقی</FormLabel>
-                    <Input
-                      type={"number"}
-                      className={"w-full"}
-                      value={field.value}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? "" : Number(value));
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="totalAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>مجموع پول</FormLabel>
-                    <Input
-                      disabled
-                      type={"number"}
-                      className={"w-full"}
-                      value={field.value}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="buyer"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>خریدار</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        type="buyer"
+                        label="خریدار را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="income"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>دریافت گننده</FormLabel>
+                      <AutoCompleteV2
+                        disabled={type === "update"}
+                        value={field.value}
+                        onChange={field.onChange}
+                        type="company-bank"
+                        label="دریافت کننده را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="cashAmount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>مقدار رسید </FormLabel>
+                      <Input
+                        disabled={!countByCash}
+                        type={"number"}
+                        className={"w-full"}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lendAmount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>مقدار باقی</FormLabel>
+                      <Input
+                        type={"number"}
+                        disabled={!countByCash}
+                        className={"w-full"}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="totalAmount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>مجموع پول</FormLabel>
+                      <Input
+                        disabled
+                        type={"number"}
+                        className={"w-full"}
+                        value={field.value}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="cent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel> فیصدی</FormLabel>
-                    <Input
-                      type={"number"}
-                      value={field.value}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? "" : Number(value));
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="metuAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>مقدار METU</FormLabel>
-                    <Input
-                      disabled
-                      type={"number"}
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="cent"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel> فیصدی</FormLabel>
+                      <Input
+                        type={"number"}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="metuAmount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>مقدار METU</FormLabel>
+                      <Input
+                        type={"number"}
+                        value={field.value}
+                        disabled={countByCash}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>عکس</FormLabel>
+                      <Input
+                        type={"file"}
+                        disabled={type !== "create"}
+                        onChange={(e) => field.onChange(e.target.files)}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             <FormField
               control={form.control}
@@ -269,7 +372,7 @@ export function SaleModal({
                 <FormItem>
                   <FormLabel> تفصیلات</FormLabel>
                   <Textarea
-                    className={"w-auto "}
+                    className={"w-auto max-h-[200px]"}
                     value={field.value}
                     onChange={field.onChange}
                   />

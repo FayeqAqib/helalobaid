@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import jalaliMoment from 'moment-jalaali';
+import jalaliMoment from "moment-jalaali";
 
 const accountSchema = new mongoose.Schema({
   date: {
@@ -31,8 +31,10 @@ const accountSchema = new mongoose.Schema({
   },
   // 'قرض گرفتن'
   borrow: { type: Number, default: 0, min: 0 },
+  vendeeBorrow: { type: Number, default: 0, min: 0 },
   // 'قرض دادن'
   lend: { type: Number, default: 0, min: 0 },
+  vendeeLend: { type: Number, default: 0, min: 0 },
   balance: { type: Number, default: 0, min: 0 },
   METUbalance: { type: Number, default: 0, min: 0 },
   email: {
@@ -48,9 +50,8 @@ const accountSchema = new mongoose.Schema({
 });
 
 accountSchema.pre("save", function (next) {
-
   if (this.date) {
-     this.afgDate = jalaliMoment(this.date).format('jYYYY/jM');
+    this.afgDate = jalaliMoment(this.date).format("jYYYY/jM");
   }
   next();
 });

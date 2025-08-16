@@ -14,8 +14,8 @@ export default async function Page({ searchParams }) {
       </CardHeader>
 
       <DataTableReceive
-        data={data.result.result || []}
-        count={data.result.count}
+        data={data.result?.result || []}
+        count={data.result?.count}
       />
     </Card>
   );

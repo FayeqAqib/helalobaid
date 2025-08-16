@@ -28,18 +28,19 @@ import createAccountAction, {
 } from "@/actions/accountAction";
 import { toast } from "sonner";
 import { CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
+import { useState } from "react";
+import { SwitchDemo } from "@/components/myUI/Switch";
 
 const schema = z.object({
-  date: z.date({ required_error: "تاریخ الزامی است" }),
+  date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
   name: z.string({ required_error: '" ذکر نام فروشنده الزامی است "' }),
   accountType: z.enum(["buyer", "saller", "bank", "employe"]),
   phoneNumber: z.string().optional(),
   address: z.string().optional(),
   email: z.string().optional(),
   details: z.string().optional(),
-  amount: z.string().optional(),
-  amountType: z.enum(["lend", "borrow"]).default("lend").optional(),
+  amount: z.number().min(0).optional(),
+  amountType: z.enum(["lend", "borrow"]),
 });
 
 const accountTypeOptions = [
@@ -68,15 +69,18 @@ export function RegisterModal({
   open,
   onOpen,
 }) {
+  const [dateType, setDateType] = useState(false);
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues:
       type === "update"
         ? {
             ...data,
-            date: data.date,
+            date: new Date(data.date),
           }
-        : {},
+        : {
+            amountType: "lend",
+          },
   });
   async function submiteForm(formData) {
     const newFormData = {
@@ -123,24 +127,33 @@ export function RegisterModal({
           <DialogDescription className={"text-right"}>
             لطف نموده در درج اطلاعات دقت نمایید.
           </DialogDescription>
+          <div>
+            <SwitchDemo
+              value={dateType}
+              onChange={setDateType}
+              label={"تاریخ میلادی"}
+            />
+          </div>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(submiteForm)}
-            className="w-full space-y-6"
+            className=" space-y-6"
           >
-            <div className="flex flex-row flex-wrap xs:justify-center justify-between ">
+            <div className="flex flex-row gap-4 flex-1 ">
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={" flex-1"}>
                     <FormLabel> تاریخ</FormLabel>
                     <DatePickerWithPresets
                       date={field.value}
                       onDate={field.onChange}
+                      className="w-[100%] "
                       size="sm"
+                      type={dateType ? "gregorian" : "jalali"}
                     />
 
                     <FormMessage />
@@ -151,10 +164,10 @@ export function RegisterModal({
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <FormLabel>اسم</FormLabel>
                     <Input
-                      className={"w-[207px]"}
+                      className={""}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -163,16 +176,17 @@ export function RegisterModal({
                 )}
               />
             </div>
-            <div className="flex flex-row flex-wrap xs:justify-center justify-between ">
+            <div className="flex flex-row gap-4 ">
               <FormField
                 control={form.control}
                 name="accountType"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <FormLabel>نوع حساب</FormLabel>
                     <SelectInput
                       disabled={type === "update"}
                       field={field}
+                      className={" w-[200px]"}
                       options={accountTypeOptions}
                       lable={"نوع حساب"}
                     />
@@ -186,10 +200,10 @@ export function RegisterModal({
                 name="phoneNumber"
                 type="number"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel> شماره تماس</FormLabel>
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>شماره تماس</FormLabel>
                     <Input
-                      className={"w-[207px]"}
+                      className={"flex-1 w-auto"}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -198,18 +212,14 @@ export function RegisterModal({
                 )}
               />
             </div>
-            <div className="flex flex-row flex-wrap xs:justify-center justify-between ">
+            <div className="flex flex-row gap-4 ">
               <FormField
                 control={form.control}
                 name="address"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <FormLabel> آدرس</FormLabel>
-                    <Input
-                      className={"w-[207px]"}
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                    <Input value={field.value} onChange={field.onChange} />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -218,10 +228,9 @@ export function RegisterModal({
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <FormLabel> ایمیل آدرس </FormLabel>
                     <Input
-                      className={"w-[207px]"}
                       type={"email"}
                       value={field.value}
                       onChange={field.onChange}
@@ -235,57 +244,62 @@ export function RegisterModal({
               control={form.control}
               name="details"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={"flex-1"}>
                   <FormLabel> تفصیلات</FormLabel>
-                  <Textarea
-                    className={"w-auto "}
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
+                  <Textarea value={field.value} onChange={field.onChange} />
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="dark:bg-[#003f3c] bg-[#008f88] rounded-lg shadow-lg p-3 shadow-[#000000c2] dark:shadow-[#1f1f1f] space-y-5">
-              <CardTitle className={"font-extrabold"}>
-                رسید حسابات سابقه
-              </CardTitle>
-              <div className="flex flex-row flex-wrap xs:justify-center justify-between ">
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel> مبلغ</FormLabel>
-                      <Input
-                        className={"w-[207px] "}
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                      <FormMessage />
-                    </FormItem>
+            {type !== "update" && (
+              <div className="dark:bg-[#003f3c] bg-[#008f88] rounded-lg shadow-lg p-3 shadow-[#000000c2] dark:shadow-[#1f1f1f] space-y-5">
+                <CardTitle className={"font-extrabold"}>
+                  رسید حسابات سابقه
+                </CardTitle>
+                <div className="flex flex-row gap-4 ">
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem className={"flex-1"}>
+                        <FormLabel> مبلغ</FormLabel>
+                        <Input
+                          value={field.value}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value === "" ? "" : Number(value));
+                          }}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {form.watch("amount") > 0 && (
+                    <FormField
+                      control={form.control}
+                      name="amountType"
+                      render={({ field }) => (
+                        <FormItem className={"flex-1"}>
+                          <FormLabel> نوعیت حساب</FormLabel>
+                          <SelectInput
+                            field={field}
+                            lable={"نوعیت"}
+                            options={[
+                              { value: "lend", label: "از ما قرضدار است" },
+                              {
+                                value: "borrow",
+                                label: "ما از او قرضدار استیم",
+                              },
+                            ]}
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-                <FormField
-                  control={form.control}
-                  name="amountType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel> نوعیت حساب</FormLabel>
-                      <SelectInput
-                        field={field}
-                        lable={"نوعیت"}
-                        options={[
-                          { value: "lend", label: "از ما قرضدار است" },
-                          { value: "borrow", label: "ما از او قرضدار استیم" },
-                        ]}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                </div>
               </div>
-            </div>
+            )}
             <div className="flex justify-end gap-2.5">
               <DialogClose asChild>
                 <Button

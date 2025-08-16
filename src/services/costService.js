@@ -1,23 +1,36 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
+import { deleteFile } from "@/lib/deleteImage";
+import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
 import { Cost } from "@/models/cost";
 import moment from "moment-jalaali";
 
 export const createCost = catchAsync(async (data) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const newData = { ...data };
+  const company = await Account.findById(newData.income, {
     balance: 1,
   });
   if (company.balance <= 0)
     return { message: "به دلیل نبود پول نقد در حساب شرکت پرداخت ممکن نیست" };
-  if (company.balance < data.amount)
+  if (company.balance < newData.amount)
     return { message: "به دلیل کمبود پول نقد در حساب شرکت پرداخت ممکن نیست" };
-  const result = await Cost.create(data);
+
+  const { path, err } = await uploadImage(data.image);
+  newData.image = path;
+
+  if (err) {
+    return {
+      message:
+        "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
+    };
+  }
+  const result = await Cost.create(newData);
   if (result._id) {
     const newBalance = {
-      balance: Number(company.balance) - Number(data.amount),
+      balance: Number(company.balance) - Number(newData.amount),
     };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newBalance);
+    await Account.findByIdAndUpdate(newData.income, newBalance);
   }
   return result;
 });
@@ -28,21 +41,22 @@ export const getAllCost = catchAsync(async (filter) => {
     .filter()
     .sort()
     .paginate();
-  const result = await features.query;
+  const result = await features.query.populate("income", "name");
   return { result, count };
 });
 
 export const deleteCost = catchAsync(async (data) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const company = await Account.findById(data.income, {
     balance: 1,
   });
 
   const result = await Cost.findByIdAndDelete(data._id);
+  await deleteFile(data.image);
   if (result._id) {
     const newBalance = {
       balance: Number(company.balance) + Number(data.amount),
     };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newBalance);
+    await Account.findByIdAndUpdate(data.income, newBalance);
   }
   return result;
 });
@@ -50,21 +64,23 @@ export const deleteCost = catchAsync(async (data) => {
 ////////////////////////////////////////////////// update ////////////////////////////////////////////////
 
 export const updateCost = catchAsync(async ({ currentData, newData }) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const myNewData = { ...newData, image: currentData.image };
+
+  const company = await Account.findById(data.income, {
     balance: 1,
   });
   if (company.balance <= 0)
     return { message: "به دلیل نبود پول نقد در حساب شرکت پرداخت ممکن نیست" };
-  if (company.balance < newData.amount)
+  if (company.balance < myNewData.amount - currentData.amount)
     return { message: "به دلیل کمبود پول نقد در حساب شرکت پرداخت ممکن نیست" };
-  const result = await Cost.findByIdAndUpdate(currentData._id, newData);
+  const result = await Cost.findByIdAndUpdate(currentData._id, myNewData);
   if (result._id) {
     const newBalance = {
       balance:
         Number(company.balance) +
-        (Number(currentData.amount) - Number(newData.amount)),
+        (Number(currentData.amount) - Number(myNewData.amount)),
     };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newBalance);
+    await Account.findByIdAndUpdate(data.income, newBalance);
   }
   return result;
 });

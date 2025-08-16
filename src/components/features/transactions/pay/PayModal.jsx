@@ -25,16 +25,32 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { createPayAction, updatePayAction } from "@/actions/payAction";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
+import { SwitchDemo } from "@/components/myUI/Switch";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 const schema = z.object({
-  date: z.date({ required_error: "تاریخ الزامی میباشد" }),
-  saller: z.string().min(1, "خریدار الزامی است"),
+  date: z
+    .date({ required_error: "تاریخ الزامی میباشد" })
+    .default(() => new Date()),
+  income: z.string({ required_error: "پرداخت کننده الزامی میباشد" }),
+  type: z.string({ required_error: "اضافه کردن فروشنده الزامی می باشد" }),
   amount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
-    .min(0, "مقدار پول الزامی است")
-    .default(0),
+    .min(1, "مقدار پول الزامی است"),
+
+  image: z
+    .any()
+
+    .refine(
+      (files) =>
+        !files ||
+        typeof files === "string" ||
+        files[0]?.size <= 2.5 * 1024 * 1024,
+      "حجم عکس نباید بیشتر از ۲.۵ مگابایت باشد"
+    )
+    .optional(),
   details: z.string().optional(),
 });
 
@@ -45,6 +61,7 @@ export function PayModal({
   open,
   onOpen,
 }) {
+  const [dateType, setDateType] = useState(false);
   const [isPending, startTransition] = useTransition();
   const form = useForm({
     resolver: zodResolver(schema),
@@ -52,16 +69,24 @@ export function PayModal({
       type === "update"
         ? {
             ...data,
-            date: data.date,
-            saller: data.saller._id,
+            date: new Date(data.date),
+            type: data.type.name + "_" + data.type._id,
+            income: data.income.name + "_" + data.income._id,
           }
         : {},
   });
 
   async function submiteForm(newData) {
+    const myNewData = {
+      ...newData,
+      type: newData.type.split("_")[1],
+      income: newData.income.split("_")[1],
+      image: newData.image?.[0],
+    };
+
     startTransition(async () => {
       if (type === "create") {
-        const result = await createPayAction(newData);
+        const result = await createPayAction(myNewData);
         if (result.result?.message)
           return toast.warning(result.result?.message);
         if (!result.err) {
@@ -75,8 +100,12 @@ export function PayModal({
         }
       }
       if (type === "update") {
-        const currentData = data;
-        const result = await updatePayAction(currentData, newData);
+        const currentData = {
+          ...data,
+          type: data.type._id,
+          income: data.income._id,
+        };
+        const result = await updatePayAction(currentData, myNewData);
         if (result.result?.message)
           return toast.warning(result.result?.message);
         if (!result.err) {
@@ -90,13 +119,12 @@ export function PayModal({
         }
       }
     });
-    onOpen(false);
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
-      <DialogContent className="xs:max-w-[350px] lg:max-w-[690px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className={"text-right"}>
             {type == "update" ? "تصحیح" : " پرداخت جدید "}
@@ -104,6 +132,13 @@ export function PayModal({
           <DialogDescription className={"text-right"}>
             لطف نموده در درج اطلاعات دقت نمایید.
           </DialogDescription>
+          <div>
+            <SwitchDemo
+              value={dateType}
+              onChange={setDateType}
+              label={"تاریخ میلادی"}
+            />
+          </div>
         </DialogHeader>
 
         <Form {...form}>
@@ -111,68 +146,105 @@ export function PayModal({
             onSubmit={form.handleSubmit(submiteForm)}
             className="w-full space-y-6"
           >
-            <div className="flex flex-row flex-wrap justify-center gap-[22px] gap-y-4">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel> تاریخ</FormLabel>
-                    <DatePickerWithPresets
-                      size="sm"
-                      date={field.value}
-                      onDate={field.onChange}
-                    />
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-4">
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel> تاریخ</FormLabel>
+                      <DatePickerWithPresets
+                        date={field.value}
+                        onDate={field.onChange}
+                        type={dateType ? "gregorian" : "jalali"}
+                      />
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="saller"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>گیرنده</FormLabel>
-                    <AutoComplete
-                      size="sm"
-                      field={field}
-                      type="saller"
-                      borrow={true}
-                      label="گیرنده را انتخاب کنید.."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>مقدار پول </FormLabel>
-                    <Input
-                      type={"number"}
-                      className={"w-full"}
-                      value={field.value}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? "" : Number(value));
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>دریافت کننده</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        type="saller-buyer"
+                        borrow={true}
+                        label="گیرنده را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-row gap-4">
+                <FormField
+                  control={form.control}
+                  name="income"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>پرداخت گننده</FormLabel>
+                      <AutoCompleteV2
+                        disabled={type === "update"}
+                        value={field.value}
+                        onChange={field.onChange}
+                        type="company-bank"
+                        label="پرداخت کننده را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex gap-4">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>مقدار پول </FormLabel>
+                      <Input
+                        type={"number"}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />{" "}
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>عکس</FormLabel>
+                      <Input
+                        type={"file"}
+                        disabled={type !== "create"}
+                        onChange={(e) => field.onChange(e.target.files)}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             <FormField
               control={form.control}
               name="details"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={"flex-1"}>
                   <FormLabel> تفصیلات</FormLabel>
                   <Textarea
-                    className={"w-auto "}
+                    className={"w-auto max-h-[200px]"}
                     value={field.value}
                     onChange={field.onChange}
                   />

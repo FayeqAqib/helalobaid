@@ -11,13 +11,16 @@ class APIFeatures {
 
     // 1B) Advanced filtering
     if (queryObj.date) {
-      const dateValue = new Date(queryObj.date);
-      const start = new Date(dateValue);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 1);
+      const dates = queryObj.date.split(",");
+      const startDate = new Date(dates[0]);
+      const endDate = new Date(dates[1]);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setDate(endDate.getDate() + 1);
 
-      queryObj.date = { gte: start.toISOString(), lt: end.toISOString() };
+      queryObj.date = {
+        gte: startDate.toISOString(),
+        lt: endDate.toISOString(),
+      };
     }
 
     let queryStr = JSON.stringify(queryObj);
@@ -30,7 +33,6 @@ class APIFeatures {
   sort() {
     if (this.queryString.sort) {
       const [field, type] = this.queryString.sort.split(",");
-
       const sortBy = type === "false" ? field : "-" + field;
       this.query = this.query.sort(sortBy);
     } else {

@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 
 import {
   Select,
@@ -8,24 +8,41 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
-export function SelectInput({options,lable,field,disabled=false}) {
+export function SelectInput({
+  options,
+  lable,
+  lable2,
+  field,
+  disabled = false,
+  fullwidth = false,
+}) {
   return (
-    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={disabled}>
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="نوع حساب را مشخص کنید" />
+    <Select
+      onValueChange={(value) => field.onChange(value)}
+      defaultValue={field.value}
+      disabled={disabled}
+      width={500}
+      dir="rtl"
+    >
+      <SelectTrigger className={fullwidth ? " w-[100%]" : ""}>
+        <SelectValue placeholder={lable2 ? lable2 : "نوع حساب را مشخص کنید"} />
       </SelectTrigger>
-      <SelectContent >
+      <SelectContent>
         <SelectGroup>
           <SelectLabel>{lable}</SelectLabel>
           {options.map((option) => (
-            <SelectItem key={option.value} value={option.value} className={'text-right'}>
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className={"text-right "}
+            >
               {option.label}
             </SelectItem>
           ))}
         </SelectGroup>
       </SelectContent>
     </Select>
-  )
+  );
 }

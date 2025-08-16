@@ -9,7 +9,9 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -24,116 +26,43 @@ import {
 } from "../ui/collapsible";
 import { Button } from "../ui/button";
 import { signOutAction } from "@/actions/user";
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { Label } from "../ui/label";
 
 // Menu items.
-const list = [
-  {
-    title: "صفحه اصلی",
-    url: "/customer/home",
-    icon: <img src="../house.png" className="size-7" />,
-  },
-  {
-    title: "ثبت نام ",
-    url: "/customer/account",
-    icon: <img src="../man.png" className="size-7" />,
-  },
-  {
-    title: "لیجر میتیو",
-    url: "/customer/metuLedgar",
-    icon: <img src="../ledger.png" className="size-7" />,
-  },
-  {
-    title: "لیجر",
-    url: "/customer/ledgar",
-    icon: <img src="../ledger.png" className="size-7" />,
-  },
-  {
-    title: "خرید",
-    url: "/customer/buy",
-    icon: <img src="../discount.png" className="size-7" />,
-  },
-  {
-    title: "فروش",
-    url: "/customer/sale",
-    icon: <img src="../ewallet.png" className="size-7" />,
-  },
-  {
-    title: "مصارف",
-    url: "/customer/cost",
-    icon: <img src="../calculate-cost.png" className="size-7" />,
-  },
-  {
-    title: "عواید بیرونی",
-    url: "/customer/externalProceed",
-    icon: <img src="../money-bag.png" className="size-7" />,
-  },
-  {
-    title: "معاملات",
-    icon: <img src="../transaction-success.png" className="size-7" />,
-    child: [
-      {
-        title: " پرداخت ها",
-        url: "/customer/pay",
-        icon: <img src="../payment.png" className="size-7" />,
-      },
-      {
-        title: "در یافتی ها",
-        url: "/customer/receive",
-        icon: <img src="../money.png" className="size-7" />,
-      },
-    ],
-  },
-];
 
-export function AppSidebarContent({ getAllAccount }) {
-  const [items, setItems] = useState(list);
-  useEffect(() => {
-    if (getAllAccount.length > 0) {
-      const newItems = getAllAccount
-        .map((item) => {
-          if (item.accountType === "company") return;
-          return {
-            title: item.label,
-            url: `/customer/account/${item.value}`,
-            icon:
-              (item.accountType === "saller" && (
-                <img src="../seller.png" className="size-7" />
-              )) ||
-              (item.accountType === "buyer" && (
-                <img src="../investor.png" className="size-7" />
-              )) ||
-              (item.accountType === "bank" && (
-                <img src="../bank.png" className="size-7" />
-              )),
-          };
-        })
-        .filter(Boolean);
-
-      setItems((item) =>
-        item.length === 10
-          ? item
-          : [
-              ...item,
-
-              {
-                title: "گذارشات",
-                icon: <img src="../health-report.png" className="size-7" />,
-                child: newItems,
-              },
-            ]
-      );
-    }
-  }, []);
-
+export function AppSidebarContent({ list, count }) {
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarHeader className={"flex flex-row gap-2"}>
+            <div className="relative w-1/2 h-[45px]">
+              <Image
+                src="/Ajmal.png"
+                fill
+                className="absolute "
+                alt="image"
+                // objectFit="fit"
+              />
+            </div>
+            <div className="flex h-[45px] flex-col italic justify-center  items-center w-1/2">
+              <Label className={"font-bold text-xs  font-sans  uppercase"}>
+                Shukrullah
+              </Label>
+              <Label
+                className={
+                  "font-extralight text-3xl bg-gradient-to-tr from-white dark:from-black via-slate-400 dark:via-slate-500 to-slate-950 dark:to-white bg-clip-text text-transparent  uppercasexz px-1 "
+                }
+              >
+                Ajmal
+              </Label>
+            </div>
+          </SidebarHeader>
+
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {list.map((item) => {
                 if (!item?.child) {
                   return (
                     <SidebarMenuItem key={item.title}>
@@ -142,6 +71,12 @@ export function AppSidebarContent({ getAllAccount }) {
                           {item.icon}
 
                           <span>{item.title}</span>
+                          {item.url === "/customer/applecation" &&
+                            count > 0 && (
+                              <SidebarMenuBadge className={"bg-red-600"}>
+                                {count}
+                              </SidebarMenuBadge>
+                            )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

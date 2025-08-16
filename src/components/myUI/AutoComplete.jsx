@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2Icon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { getAllSallerAndBuyerAction } from "@/actions/accountAction";
 
 export function AutoComplete({
@@ -29,16 +29,20 @@ export function AutoComplete({
   lend = false,
   borrow = false,
 }) {
+  const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState([]);
-  useEffect(() => {
-    async function getOptions() {
-      const result = await getAllSallerAndBuyerAction(type, lend, borrow);
-      setOptions(result.result);
-    }
-    getOptions();
-  }, []);
-
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    async function get() {
+      setIsLoading(true);
+      const result = await getAllSallerAndBuyerAction(type, lend, borrow);
+
+      setOptions(result.result);
+      setIsLoading(false);
+    }
+
+    get();
+  }, []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -47,13 +51,9 @@ export function AutoComplete({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={
-            size == "sm" ? "w-[180px]" : "w-[270px]" + "justify-between"
-          }
+          className={size == "sm" ? "w-full" : "w-[270px]" + "justify-between"}
         >
-          {field.value
-            ? options?.find((option) => option.value === field.value)?.label
-            : label}
+          {field.value ? field.value?.label : label}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -61,29 +61,43 @@ export function AutoComplete({
         <Command>
           <CommandInput placeholder="جستجو فروشده" className="h-9" />
           <CommandList>
-            <CommandEmpty>فروشنده ای پیدا نشد.</CommandEmpty>
-            <CommandGroup>
-              {options?.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    field.onChange(
-                      currentValue === field.value ? "" : currentValue
-                    );
-                    setOpen(false);
-                  }}
-                >
-                  {option.label}
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      field.value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {isLoading ? (
+              <div className="flex items-center justify-center flex-1 min-h-24">
+                <Loader2Icon className="animate-spin mr-2" />
+              </div>
+            ) : (
+              <>
+                <CommandEmpty>فروشنده ای پیدا نشد.</CommandEmpty>
+                <CommandGroup>
+                  {options?.map((option) => (
+                    <CommandItem
+                      key={option.label}
+                      value={option.label}
+                      onSelect={(currentValue) => {
+                        field.onChange(
+                          currentValue === field.value?.label
+                            ? {}
+                            : options?.find(
+                                (option) => option.label === currentValue
+                              )
+                        );
+                        setOpen(false);
+                      }}
+                    >
+                      {option.label}
+                      <Check
+                        className={cn(
+                          "ml-auto",
+                          field.value?.value === option.value
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

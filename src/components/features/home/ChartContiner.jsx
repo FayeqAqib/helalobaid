@@ -6,9 +6,12 @@ import { getCostInThisMonth } from "@/services/costService";
 
 function ChartContiner({ buyData, saleData }) {
   const allCost = use(getCostInThisMonth());
-  const totalCost = allCost.result.reduce((acc, cur) => acc + cur.totalCost, 0);
+  const totalCost = allCost.result?.reduce(
+    (acc, cur) => acc + cur.totalCost,
+    0
+  );
   const buyAvgCent =
-    buyData.reduce((acc, cur) => acc + cur.avgCent, 0) / buyData.length;
+    buyData?.reduce((acc, cur) => acc + cur.avgCent, 0) / buyData?.length;
   const currentMonthSaleAvgCent = saleData.slice(-1)[0]?.avgCent;
   const pastMonthSaleAvgCent = saleData.slice(-2)[0]?.avgCent;
   const currentMonthSale = saleData.slice(-1)[0]?.totalSale;

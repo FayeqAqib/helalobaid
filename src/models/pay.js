@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
-import jalaliMoment from 'moment-jalaali';
-
-
-
+import jalaliMoment from "moment-jalaali";
 
 const paySchema = new mongoose.Schema({
   date: {
@@ -13,7 +10,12 @@ const paySchema = new mongoose.Schema({
   afgDate: {
     type: String,
   },
-  saller: {
+  income: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Account",
+    required: true,
+  },
+  type: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
     required: true,
@@ -23,21 +25,18 @@ const paySchema = new mongoose.Schema({
     required: false,
     min: [0, "مقدار رسید باید 0 یا یک عدد مثبت باشد"],
   },
+  image: String,
   details: {
     type: String,
     required: false,
   },
 });
 
-
-
 paySchema.pre("save", function (next) {
-
   if (this.date) {
-     this.afgDate = jalaliMoment(this.date).format('jYYYY/jM');
+    this.afgDate = jalaliMoment(this.date).format("jYYYY/jM");
   }
   next();
 });
-
 
 export const Pay = mongoose.models.Pay || mongoose.model("Pay", paySchema);

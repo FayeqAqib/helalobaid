@@ -11,6 +11,9 @@ export default async function RootLayout({ children }) {
   if (!session) {
     redirect("/login");
   }
+  if (session.user._doc.role === "vendee") {
+    return redirect("/vendee/home");
+  }
 
   return (
     <ThemeProvider
@@ -21,10 +24,10 @@ export default async function RootLayout({ children }) {
     >
       <SidebarProvider>
         <AppSidebar />
-        <div className="w-full ">
+        <div className="w-full">
           <Header />
 
-          <main className="p-6 min-w-[500px]">{children}</main>
+          <main className="p-6 ">{children}</main>
         </div>
       </SidebarProvider>
     </ThemeProvider>

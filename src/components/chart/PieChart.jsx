@@ -21,7 +21,7 @@ import {
 export const description = "A donut chart with an active sector";
 
 export function ChartPieDonutActive({ costs }) {
-  const chartData = costs.map((item, i) => {
+  const chartData = costs?.map((item, i) => {
     return {
       title: `${item._id}`,
       totalCost: item.totalCost,
@@ -58,8 +58,8 @@ export function ChartPieDonutActive({ costs }) {
             />
           </PieChart>
         </ChartContainer>
-         <ul className="relative bottom-6 gap-2 h-16 w-full items-center  flex flex-wrap">
-          {chartData.map(({ title, fill }, i) => (
+        <ul className="relative bottom-6 gap-2 h-16 w-full items-center  flex flex-wrap">
+          {chartData?.map(({ title, fill }, i) => (
             <li
               key={i}
               className="flex items-center gap-1 space-x-2 rtl:space-x-reverse"
@@ -68,14 +68,11 @@ export function ChartPieDonutActive({ costs }) {
                 className="w-4 h-4 rounded"
                 style={{ backgroundColor: fill }}
               />
-              <span>
-                {title}
-              </span>
+              <span>{title}</span>
             </li>
           ))}
         </ul>
       </CardContent>
-      
     </Card>
   );
 }

@@ -1,36 +1,59 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
+import { deleteFile } from "@/lib/deleteImage";
+import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
 import { Sale } from "@/models/Sale";
 import moment from "moment-jalaali";
 
 export const createSale = catchAsync(async (data) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const newData = { ...data };
+  const company = await Account.findById(newData.income, {
     balance: 1,
+  });
+  const company_id = await Account.findById(process.env.COMPANY_ID, {
     borrow: 1,
     METUbalance: 1,
   });
-  const buyer = await Account.findById(data.buyer, {
+
+  const buyer = await Account.findById(newData.buyer, {
     lend: 1,
+    balance: 1,
+    METUbalance: 1,
   });
-  if (company.METUbalance < data.metuAmount)
+  if (company.METUbalance < newData.metuAmount)
     return {
       message: `برای پرداخت میتیو در حساب میتیو بیلانس کافی ندارید بیلانس شما${company.METUbalance} می باشد`,
     };
-  const result = await Sale.create(data);
+
+  const { path, err } = await uploadImage(data.image);
+  newData.image = path;
+
+  if (err) {
+    return {
+      message:
+        "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
+    };
+  }
+  const result = await Sale.create(newData);
 
   if (result?._id) {
     const newCompanyData = {
-      balance: Number(company.balance) + Number(data.cashAmount),
-      borrow: Number(company.borrow) + Number(data.lendAmount),
-      METUbalance: Number(company.METUbalance) - Number(data.metuAmount),
+      balance: Number(company.balance) + Number(newData.cashAmount),
     };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompanyData);
-    if (data.lendAmount >= 1) {
+    const newCompany_idData = {
+      borrow: Number(company_id.borrow) + Number(newData.lendAmount),
+      METUbalance: Number(company_id.METUbalance) - Number(newData.metuAmount),
+    };
+    await Account.findByIdAndUpdate(newData.income, newCompanyData);
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
+    if (newData.lendAmount >= 1) {
       const newBuyerData = {
-        lend: Number(buyer.lend) + Number(data.lendAmount),
+        lend: Number(buyer.lend) + Number(newData.lendAmount),
+        balance: Number(buyer.balance) - Number(newData.cashAmount),
+        METUbalance: Number(buyer.METUbalance) + Number(newData.metuAmount),
       };
-      const x = await Account.findByIdAndUpdate(data.buyer, newBuyerData);
+      await Account.findByIdAndUpdate(newData.buyer, newBuyerData);
     }
   }
   return result;
@@ -50,16 +73,16 @@ export const createSale = catchAsync(async (data) => {
 
 export const getAllSales = catchAsync(async (filter) => {
   if (filter.buyer) {
-    filter.buyer = await Account.findOne({ name: filter.buyer }, { _id: 1 });
+    filter.buyer = filter.buyer.split("_")[1];
   }
 
   const count = await Sale.countDocuments();
-  console.log(filter);
+
   const features = new APIFeatures(Sale.find(), filter)
     .filter()
     .sort()
     .paginate();
-  const result = await features.query.populate("buyer", "name");
+  const result = await features.query.populate(["buyer", "income"], "name");
 
   return { result, count };
 });
@@ -76,31 +99,43 @@ export const getAllSales = catchAsync(async (filter) => {
 //
 
 export const deleteSale = catchAsync(async (data) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const company = await Account.findById(data.income, {
     balance: 1,
+  });
+  const company_id = await Account.findById(process.env.COMPANY_ID, {
     borrow: 1,
     METUbalance: 1,
   });
   const buyer = await Account.findById(data.buyer._id, {
     lend: 1,
+    balance: 1,
+    METUbalance: 1,
   });
 
   if (company.balance < data.cashAmount)
     return {
       message: `برای پرداخت پول مشتری در حساب  بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
     };
+
   const result = await Sale.findByIdAndDelete(data._id);
+  await deleteFile(data.image);
 
   if (result?._id) {
     const newCompanyData = {
       balance: Number(company.balance) - Number(data.cashAmount),
-      borrow: Number(company.borrow) - Number(data.lendAmount),
-      METUbalance: Number(company.METUbalance) + Number(data.metuAmount),
     };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompanyData);
+    const newCompany_idData = {
+      borrow: Number(company_id.borrow) - Number(data.lendAmount),
+      METUbalance: Number(company_id.METUbalance) + Number(data.metuAmount),
+    };
+
+    await Account.findByIdAndUpdate(data.income, newCompanyData);
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
     if (data.lendAmount >= 1) {
       const newBuyerData = {
         lend: Number(buyer.lend) - Number(data.lendAmount),
+        balance: Number(buyer.balance) + Number(data.cashAmount),
+        METUbalance: Number(buyer.METUbalance) - Number(data.metuAmount),
       };
       await Account.findByIdAndUpdate(data.buyer, newBuyerData);
     }
@@ -123,57 +158,90 @@ export const deleteSale = catchAsync(async (data) => {
 //
 
 export const updateSale = catchAsync(async ({ currentData, newData }) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const myNewData = { ...newData, image: currentData.image };
+  const company = await Account.findById(currentData.income, {
     balance: 1,
+  });
+  const company_id = await Account.findById(process.env.COMPANY_ID, {
     lend: 1,
     METUbalance: 1,
   });
 
-  if (company.METUbalance < newData.metuAmount)
+  if (company.METUbalance < myNewData.metuAmount)
     return {
       message: `برای پرداخت میتیو در حساب میتیو بیلانس کافی ندارید بیلانس شما${company.METUbalance} می باشد`,
     };
 
-  if (currentData.buyer !== newData.buyer) {
-    const newBuyer = await Account.findById(newData.buyer, {
+  if (currentData.buyer !== myNewData.buyer) {
+    const newBuyer = await Account.findById(myNewData.buyer, {
       lend: 1,
+      balance: 1,
+      METUbalance: 1,
       _id: 0,
     });
     const currentBuyer = await Account.findById(currentData.buyer, {
       lend: 1,
+      balance: 1,
+      METUbalance: 1,
       _id: 0,
     });
-    currentBuyer.lend =
-      Number(currentBuyer.lend) - Number(currentData.lendAmount);
-    newBuyer.lend = Number(newBuyer.lend) + Number(newData.lendAmount);
 
-    await Account.findByIdAndUpdate(newData.buyer, newBuyer);
-    await Account.findByIdAndUpdate(currentData.buyer, currentBuyer);
+    const newBuyerData = {
+      lend: Number(newBuyer.lend) + Number(myNewData.lendAmount),
+      balance: Number(newBuyer.lend) - Number(myNewData.cashAmount),
+      METUbalance: Number(newBuyer.METUbalance) + Number(myNewData.metuAmount),
+    };
+
+    const currentBuyerData = {
+      lend: Number(currentBuyer.lend) - Number(currentData.lendAmount),
+      balance: Number(currentBuyer.balance) + Number(currentData.cashAmount),
+      METUbalance:
+        Number(currentBuyer.METUbalance) - Number(currentData.metuAmount),
+    };
+
+    await Account.findByIdAndUpdate(myNewData.buyer, newBuyerData);
+    await Account.findByIdAndUpdate(currentData.buyer, currentBuyerData);
   } else {
-    const buyer = await Account.findById(newData.buyer, {
+    const buyer = await Account.findById(myNewData.buyer, {
       lend: 1,
+      balance: 1,
+      METUbalance: 1,
       _id: 0,
     });
-    buyer.lend = Number(newData.lendAmount);
 
-    await Account.findByIdAndUpdate(newData.buyer, buyer);
+    const buyerData = {
+      lend:
+        Number(buyer.lend) -
+        (Number(currentData.lendAmount) - Number(myNewData.lendAmount)),
+      balance:
+        Number(buyer.balance) +
+        (Number(currentData.cashAmount) - Number(myNewData.cashAmount)),
+      METUbalance:
+        Number(buyer.METUbalance) -
+        (Number(currentData.metuAmount) - Number(myNewData.metuAmount)),
+    };
+
+    await Account.findByIdAndUpdate(myNewData.buyer, buyerData);
   }
-  const result = await Sale.findByIdAndUpdate(currentData._id, newData);
+  const result = await Sale.findByIdAndUpdate(currentData._id, myNewData);
 
   if (result?._id) {
     const newCompanyData = {
       balance:
         Number(company.balance) -
-        (Number(currentData.cashAmount) - Number(newData.cashAmount)),
+        (Number(currentData.cashAmount) - Number(myNewData.cashAmount)),
+    };
+    const newCompany_idData = {
       borrow:
-        Number(company.lend) -
-        (Number(currentData.lendAmount) - Number(newData.lendAmount)),
+        Number(company_id.lend) -
+        (Number(currentData.lendAmount) - Number(myNewData.lendAmount)),
       METUbalance:
-        Number(company.METUbalance) +
-        (Number(currentData.metuAmount) - Number(newData.metuAmount)),
+        Number(company_id.METUbalance) +
+        (Number(currentData.metuAmount) - Number(myNewData.metuAmount)),
     };
 
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompanyData);
+    await Account.findByIdAndUpdate(currentData.income, newCompanyData);
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
   }
   return result;
 });
@@ -228,7 +296,7 @@ export const getBiggestSeller = catchAsync(async () => {
       $sort: { totalAmount: -1 },
     },
     {
-      $limit: 3,
+      $limit: 5,
     },
     {
       $lookup: {

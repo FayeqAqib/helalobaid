@@ -28,15 +28,10 @@ const authConfig = {
 
           if (user) {
             // Set user data in session
-            return {
-              id: user.id,
-              username: user.username,
-              role: user.role, // Include the user role
-              // Add other user properties as needed
-            };
+            return user;
           }
 
-          return { mame: "fayeq", password: "1234456" };
+          return null;
         } catch (err) {
           return null;
         }

@@ -35,7 +35,7 @@ export default function ConfirmDelete({ children, data, open, onOpen }) {
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
 
-      <DialogContent className="sm:max-w-[425px] flex flex-col text-right items-start">
+      <DialogContent className=" flex flex-col text-right items-start">
         <DialogHeader className=" flex flex-col t items-start">
           <DialogTitle>حذف فروشنده</DialogTitle>
           <DialogDescription className={"text-right"}>
@@ -43,7 +43,7 @@ export default function ConfirmDelete({ children, data, open, onOpen }) {
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter>
+        <DialogFooter className={"w-full"}>
           <DialogClose asChild>
             <Button onClick={handleDelete}>
               {isPending ? (

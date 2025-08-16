@@ -34,6 +34,8 @@ import { DatePickerWithPresets } from "@/components/myUI/datePacker";
 import { usePathname, useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import moment from "moment-jalaali";
+import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 export const columns = [
   {
@@ -45,7 +47,6 @@ export const columns = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           تاریخ
-          <ArrowUpDown />
         </Button>
       );
     },
@@ -64,7 +65,6 @@ export const columns = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           خرید نقد
-          <ArrowUpDown />
         </Button>
       );
     },
@@ -89,7 +89,6 @@ export const columns = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           فروش نقد
-          <ArrowUpDown />
         </Button>
       );
     },
@@ -114,7 +113,6 @@ export const columns = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           خرید قرض
-          <ArrowUpDown />
         </Button>
       );
     },
@@ -140,7 +138,6 @@ export const columns = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           فروش قرض
-          <ArrowUpDown />
         </Button>
       );
     },
@@ -166,7 +163,6 @@ export const columns = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           پرداخت قرض
-          <ArrowUpDown />
         </Button>
       );
     },
@@ -191,7 +187,6 @@ export const columns = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           دربافت قرض
-          <ArrowUpDown />
         </Button>
       );
     },
@@ -218,7 +213,8 @@ export const columns = [
   },
 ];
 
-export function DataTableDetils({ data, count }) {
+export function DataTableExecuttiveReportage({ data, count, account = {} }) {
+  const [name, setName] = useState("");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -228,7 +224,17 @@ export function DataTableDetils({ data, count }) {
   function setFilter() {
     router.push(
       `${pathname}?${
-        "page=" + table.getState().pagination.pageIndex + "&limit=4"
+        columnFilters.length
+          ? columnFilters
+              .map((items) => `${items.id + "=" + items.value}`)
+              .join("&") + "&"
+          : ""
+      }${
+        "page=" +
+        table.getState().pagination.pageIndex +
+        "&limit=10" +
+        "&name=" +
+        name
       }`
     );
   }
@@ -237,7 +243,6 @@ export function DataTableDetils({ data, count }) {
     data,
     columns,
     rowCount: count,
-    pageCount: count > 4 ? count / 4 : 1,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -260,34 +265,59 @@ export function DataTableDetils({ data, count }) {
   }, [sorting, table.getState().pagination.pageIndex]);
   return (
     <div className="w-full">
-      <div className="flex items-stretch py-4 gap-3">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              ستون ها <ChevronDown />
+      <div className="flex flex-col md:flex-row justify-between py-4 gap-3">
+        <div className="flex gap-4">
+          <AutoCompleteV2 value={name} onChange={setName} dataType="vendee" />
+          <RangeDatePickerWithPresets
+            date={table.getColumn("date")?.getFilterValue() ?? ""}
+            onDate={(event) => table.getColumn("date")?.setFilterValue(event)}
+            size="sm"
+          />
+          <Button onClick={() => setFilter()} className={"flex-1"}>
+            جستجو
+          </Button>
+        </div>
+        <div className="flex gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                ستون ها <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {account?.accountType === "saller" && (
+            <Button variant={"secondary"}>{` بلانس : ${formatCurrency(
+              account?.borrow
+            )}`}</Button>
+          )}
+          {account?.accountType === "buyer" && (
+            <Button variant={"destructive"}>
+              {` بلانس : -${formatCurrency(account?.lend)}`}
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button>تعداد معاملات {count}</Button>
+          )}
+
+          <Button>تعداد معاملات {count}</Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -337,6 +367,39 @@ export function DataTableDetils({ data, count }) {
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow
+              className={
+                "bg-[var(--secondary-foreground)] text-[var(--secondary)] hover:bg-[var(--muted-foreground)]"
+              }
+            >
+              {table.getFooterGroups()[0].headers.map((footer, idx) => (
+                <TableCell
+                  key={footer.id || idx}
+                  className="text-right font-bold "
+                >
+                  {[
+                    "buyCashAmount",
+                    "saleCashAmount",
+                    "borrowAmount",
+                    "lendAmount",
+                    "payAmount",
+                    "receiveAmount",
+                  ].includes(footer.id)
+                    ? formatCurrency(
+                        table
+                          .getRowModel()
+                          .rows.reduce(
+                            (sum, row) =>
+                              sum + (parseFloat(row.getValue(footer.id)) || 0),
+                            0
+                          )
+                      )
+                    : ["date"].includes(footer.id) && "مجموع"}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">

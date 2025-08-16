@@ -1,12 +1,12 @@
+import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
 import { User } from "@/models/User";
 
 import bcrypt from "bcryptjs";
 
 export const createUser = catchAsync(async (data) => {
-  const { username, password, securityCod } = data;
-  // if (securityCod !== process.env.MY_CODE)
-  //   return { message: "فقد ادمین میتواند حساب کاربری ایجاد کند" };
+  const { username, password, owner, role } = data;
+
   const user = await User.find();
 
   if (!username || !password) {
@@ -21,8 +21,36 @@ export const createUser = catchAsync(async (data) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const result = await User.create({
+    owner,
+    role,
     username,
     password: hashedPassword,
   });
+
+  return result;
+});
+
+////////////////////////////////////////////////////find user///////////////////////////////////////////////
+
+export const getAllUsers = catchAsync(async (filter) => {
+  if (filter.owner) {
+    filter.owner = filter.owner.split("_")[1];
+  }
+
+  const count = await User.countDocuments(filter);
+
+  const features = new APIFeatures(User.find(), filter)
+    .filter()
+    .sort()
+    .paginate();
+  const result = await features.query.populate("owner", "name");
+
+  return { result, count };
+});
+
+///////////////////////////////////////////////// DELETE /////////////////////////////////////////////////////////
+
+export const deleteUser = catchAsync(async (_id) => {
+  const result = await User.findByIdAndDelete(_id);
   return result;
 });

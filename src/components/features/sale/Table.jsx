@@ -20,11 +20,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -46,6 +47,11 @@ import { DialogTrigger } from "@radix-ui/react-dialog";
 
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import moment from "moment-jalaali";
+import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
+import { SelectInput } from "@/components/myUI/select";
+import { DetailsModal } from "@/components/myUI/DetailsModal";
+import { HiEye } from "react-icons/hi2";
 
 export const columns = [
   {
@@ -65,6 +71,23 @@ export const columns = [
       <div className="capitalize">
         {moment(row.getValue("date")).format("jYYYY/jMM/jDD")}
       </div>
+    ),
+  },
+  {
+    accessorKey: "income",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          دریافت کننده
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("income")?.name}</div>
     ),
   },
   {
@@ -205,6 +228,7 @@ export const columns = [
       const payment = row.original;
       const [openDelete, setOpenDelete] = useState(false);
       const [openBuy, setOpenBuy] = useState(false);
+      const [openDetails, setOpenDetails] = useState(false);
       return (
         <SaleModal
           key={openBuy}
@@ -218,42 +242,64 @@ export const columns = [
             open={openDelete}
             onOpen={setOpenDelete}
           >
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel className={" text-right"}>
-                  صلاحیت ها
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(payment.id)}
-                >
-                  <Button
-                    onClick={() => setOpenBuy((openBuy) => !openBuy)}
-                    variant={"ghost"}
-                    className={"w-full justify-end"}
-                  >
-                    <span>تصحیح</span>
-                    <FilePenLine size={32} strokeWidth={1.75} color="green" />
+            <DetailsModal
+              data={{
+                ...payment,
+                name: payment.buyer.name,
+                income: payment?.income.name,
+              }}
+              open={openDetails}
+              onChange={setOpenDetails}
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal />
                   </Button>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Button
-                    onClick={() => setOpenDelete((openDelete) => !openDelete)}
-                    variant={"ghost"}
-                    className={"w-full justify-end"}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel className={" text-right"}>
+                    صلاحیت ها
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Button
+                      onClick={() =>
+                        setOpenDetails((openDetails) => !openDetails)
+                      }
+                      variant={"ghost"}
+                      className={"w-full justify-end"}
+                    >
+                      <span>دیدن جذیات</span>
+                      <HiEye size={32} strokeWidth={1.75} />
+                    </Button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => navigator.clipboard.writeText(payment.id)}
                   >
-                    <span>حذف</span>
-                    <Trash2 size={32} strokeWidth={1.75} color={"red"} />
-                  </Button>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <Button
+                      onClick={() => setOpenBuy((openBuy) => !openBuy)}
+                      variant={"ghost"}
+                      className={"w-full justify-end"}
+                    >
+                      <span>تصحیح</span>
+                      <FilePenLine size={32} strokeWidth={1.75} color="green" />
+                    </Button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Button
+                      onClick={() => setOpenDelete((openDelete) => !openDelete)}
+                      variant={"ghost"}
+                      className={"w-full justify-end"}
+                    >
+                      <span>حذف</span>
+                      <Trash2 size={32} strokeWidth={1.75} color={"red"} />
+                    </Button>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </DetailsModal>
           </ConfirmDelete>
         </SaleModal>
       );
@@ -279,7 +325,12 @@ export function DataTableSale({ data, count }) {
               .map((items) => `${items.id + "=" + items.value}`)
               .join("&")
           : ""
-      }&${"page=" + table.getState().pagination.pageIndex + "&limit=10"}`
+      }&${
+        "page=" +
+        table.getState().pagination.pageIndex +
+        "&limit=" +
+        table.getState().pagination.pageSize
+      }`
     );
   }
 
@@ -287,7 +338,7 @@ export function DataTableSale({ data, count }) {
     data,
     columns,
     rowCount: count,
-    pageCount: count > 10 ? Math.round(count / 10 + 1) : 1,
+
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -307,31 +358,36 @@ export function DataTableSale({ data, count }) {
 
   useEffect(() => {
     setFilter();
-  }, [sorting, table.getState().pagination.pageIndex]);
+  }, [
+    sorting,
+    table.getState().pagination.pageIndex,
+    table.getState().pagination.pageSize,
+  ]);
 
   return (
     <div className="w-full">
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
-        <div className="flex gap-4">
-          <Input
-            placeholder=" جستجو با نام ....."
+        <div className="flex gap-2 gap-y-4 flex-wrap">
+          <AutoCompleteV2
             value={table.getColumn("buyer")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table.getColumn("buyer")?.setFilterValue(event.target.value)
+            onChange={(value) =>
+              table.getColumn("buyer")?.setFilterValue(value)
             }
-            className="max-w-sm"
+            type={"buyer"}
           />
-          <DatePickerWithPresets
+          <RangeDatePickerWithPresets
             date={table.getColumn("date")?.getFilterValue() ?? ""}
             onDate={(event) => table.getColumn("date")?.setFilterValue(event)}
             size="sm"
           />
-          <Button onClick={() => setFilter()}>جستجو</Button>
+          <Button onClick={() => setFilter()} className={"flex-1"}>
+            جستجو
+          </Button>
         </div>
         <div className="flex gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
+              <Button variant="outline" className="ml-auto flex-1">
                 ستون ها <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -413,12 +469,58 @@ export function DataTableSale({ data, count }) {
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow
+              className={
+                "bg-[var(--secondary-foreground)] text-[var(--secondary)] hover:bg-[var(--muted-foreground)]"
+              }
+            >
+              {table.getFooterGroups()[0].headers.map((footer, idx) => (
+                <TableCell
+                  key={footer.id || idx}
+                  className="text-right font-bold "
+                >
+                  {[
+                    "cashAmount",
+                    "lendAmount",
+                    "totalAmount",
+                    "metuAmount",
+                  ].includes(footer.id)
+                    ? formatCurrency(
+                        table
+                          .getRowModel()
+                          .rows.reduce(
+                            (sum, row) =>
+                              sum + (parseFloat(row.getValue(footer.id)) || 0),
+                            0
+                          )
+                      )
+                    : ["date"].includes(footer.id) && "مجموع"}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getState().pagination.pageIndex + 1} از {table.getPageCount()}{" "}
-          صفحه
+        <div className="flex-1 flex text-sm text-muted-foreground gap-4 items-center">
+          <h3>
+            {table.getState().pagination.pageIndex + 1} از{" "}
+            {table.getPageCount()} صفحه
+          </h3>
+
+          <SelectInput
+            field={{
+              value: table.getState().pagination.pageSize,
+              onChange: table.setPageSize,
+            }}
+            lable={"تعداد آیتم در هر صفحه"}
+            options={[
+              { value: 10, label: "10" },
+              { value: 20, label: "20" },
+              { value: 30, label: "30" },
+            ]}
+          />
         </div>
         <div className="space-x-2">
           <Button

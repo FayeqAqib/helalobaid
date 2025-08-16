@@ -16,8 +16,8 @@ export default async function Page({ searchParams }) {
       </CardHeader>
 
       <DataTableMetuLedger
-        data={data.result.allTransactionsArray}
-        metuBalance={metuBalance.result[0].METUbalance}
+        data={data.result?.allTransactionsArray || []}
+        metuBalance={metuBalance.result?.[0]?.METUbalance}
       />
     </Card>
   );

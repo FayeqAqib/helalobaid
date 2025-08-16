@@ -13,7 +13,10 @@ export default async function Page({ searchParams }) {
         <h2 className={"text-2xl font-bold"}>پرداخت ها</h2>
       </CardHeader>
 
-      <DataTablePay data={data.result.result || []} count={data.result.count} />
+      <DataTablePay
+        data={data.result?.result || []}
+        count={data.result?.count}
+      />
     </Card>
   );
 }

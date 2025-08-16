@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
-import jalaliMoment from 'moment-jalaali';
-
-
-
+import jalaliMoment from "moment-jalaali";
 
 const buySchema = new mongoose.Schema({
   date: {
@@ -12,6 +9,11 @@ const buySchema = new mongoose.Schema({
   },
   afgDate: {
     type: String,
+  },
+  income: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Account",
+    required: true,
   },
   saller: {
     type: mongoose.Schema.Types.ObjectId,
@@ -44,6 +46,7 @@ const buySchema = new mongoose.Schema({
     required: true,
     min: [0, "مقدار  میتیو باید یک عدد مثبت  باشد"],
   },
+  image: { type: String },
   details: {
     type: String,
     required: false,
@@ -51,12 +54,10 @@ const buySchema = new mongoose.Schema({
 });
 
 buySchema.pre("save", function (next) {
-
   if (this.date) {
-     this.afgDate = jalaliMoment(this.date).format('jYYYY/jM');
+    this.afgDate = jalaliMoment(this.date).format("jYYYY/jM");
   }
   next();
 });
-
 
 export const Buy = mongoose.models.Buy || mongoose.model("Buy", buySchema);

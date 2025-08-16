@@ -1,3 +1,4 @@
+import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
 import { Account } from "@/models/account";
 import { Buy } from "@/models/Buy";
@@ -6,40 +7,50 @@ import { Receive } from "@/models/receive";
 import { Sale } from "@/models/Sale";
 import moment from "moment-jalaali";
 
-export const getaccountAlltransactions = catchAsync(async ({ _id, filter }) => {
-  const { limit, page } = filter;
-  const account = await Account.findById(_id, {
-    name: 1,
-    accountType: 1,
-    _id: 0,
-  });
-  const [
-    sales,
-    buys,
-    receives,
-    pays,
-    salesCount,
-    buysCount,
-    receivesCount,
-    paysCount,
-  ] = await Promise.all([
-    Sale.find({ buyer: _id })
-      .limit(limit)
-      .skip(page * limit),
-    Buy.find({ saller: _id })
-      .limit(limit)
-      .skip(page * limit),
-    Receive.find({ buyer: _id })
-      .limit(limit)
-      .skip(page * limit),
-    Pay.find({ saller: _id })
-      .limit(limit)
-      .skip(page * limit),
-    Sale.countDocuments({ buyer: _id }),
-    Buy.countDocuments({ saller: _id }),
-    Receive.countDocuments({ buyer: _id }),
-    Pay.countDocuments({ saller: _id }),
-  ]);
+async function getAPIFeatures(query, queryString) {
+  const count = await query.countDocuments();
+  const features = new APIFeatures(query.find(), queryString)
+    .filter()
+    .sort()
+    .paginate();
+  const result = await features.query;
+
+  return [result, count];
+}
+
+export const getaccountAlltransactions = catchAsync(async (filter) => {
+  const myFilter = {
+    page: filter?.page || 0,
+    limit: filter?.limit || 0,
+    date: filter?.date || undefined,
+  };
+
+  const account = await Account.findById(filter?.name?.split("_")?.[1] || "");
+
+  if (account.accountType === "buyer") {
+    myFilter.buyer = filter?.name?.split("_")?.[1] || "";
+  }
+
+  if (account.accountType === "saller") {
+    myFilter.saller = filter?.name?.split("_")?.[1] || "";
+  }
+  const { buyer, saller, ...newFilter } = myFilter;
+  if (account.accountType === "saller" || account.accountType === "buyr") {
+    newFilter.type = filter?.name?.split("_")?.[1];
+  }
+  if (account.accountType === "bank" || account.accountType === "company") {
+    newFilter.income = filter?.name?.split("_")?.[1];
+    myFilter.income = filter?.name?.split("_")?.[1] || "";
+  }
+
+  const [sales, salesCount] = await getAPIFeatures(Sale, myFilter, "buyer");
+  const [buys, buysCount] = await getAPIFeatures(Buy, myFilter, "saller");
+  const [receives, receivesCount] = await getAPIFeatures(
+    Receive,
+    newFilter,
+    "type"
+  );
+  const [pays, paysCount] = await getAPIFeatures(Pay, newFilter, "type");
 
   const result = [...sales, ...buys, ...receives, ...pays]
     .map((transaction) => {
@@ -65,9 +76,10 @@ export const getaccountAlltransactions = catchAsync(async ({ _id, filter }) => {
     })
     .sort((a, b) => b.date - a.date);
   const count = salesCount + buysCount + receivesCount + paysCount;
+
   return {
     result,
-    account: { name: account.name, accountType: account.accountType },
+    account,
     count,
   };
 });
@@ -148,7 +160,7 @@ export const getMetuLedger = catchAsync(async ({ date }) => {
 
 export const getLedgar = catchAsync(async ({ date }) => {
   const month = moment(date).format("jYYYY/jM");
-  console.log(month, "sadasdsadsad");
+
   const saleTransactions = await Sale.aggregate([
     {
       $match: {

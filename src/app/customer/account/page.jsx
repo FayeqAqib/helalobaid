@@ -17,8 +17,8 @@ export default async function page({ searchParams }) {
           <h2 className={"text-2xl font-bold"}> صورت حساب ها </h2>
         </CardHeader>
         <DataTableRegister
-          data={data.result.result || []}
-          count={data.result.count}
+          data={data.result?.result || []}
+          count={data.result?.count}
         />
       </Card>
     </div>

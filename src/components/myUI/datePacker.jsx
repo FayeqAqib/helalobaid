@@ -1,5 +1,5 @@
 "use client";
-
+import { format } from "date-fns";
 const afghan_fa = {
   months: [
     ["حمل"], // فروردین
@@ -17,11 +17,11 @@ const afghan_fa = {
   ],
   weekDays: [
     ["شنبه", "ش"],
-    ["یک‌شنبه", "یک‌"],
-    ["دوشنبه", "دو"],
-    ["سه‌شنبه", "سه‌"],
-    ["چهارشنبه", "چه"],
-    ["پنج‌شنبه", "پن"],
+    ["یک‌شنبه", "۱ش"],
+    ["دوشنبه", "۲ش"],
+    ["سه‌شنبه", "۳ش"],
+    ["چهارشنبه", "۴ش"],
+    ["پنج‌شنبه", "۵ش"],
     ["جمعه", "جم"],
   ],
 
@@ -39,7 +39,6 @@ import {
 
 import { Calendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
-import persian_fa from "react-date-object/locales/persian_fa";
 import "react-multi-date-picker/styles/backgrounds/bg-dark.css";
 import "react-multi-date-picker/styles/colors/green.css";
 import { Button } from "@/components/ui/button";
@@ -51,40 +50,52 @@ import { useEffect, useState } from "react";
 export function DatePickerWithPresets({
   date,
   onDate,
-  size = "md",
+  defaultSelet = true,
   placeholder = "تاریخ",
   onlyMonthPicker = false,
+  type = "jalali",
+  className = "",
 }) {
   const { theme: initialTheme } = useTheme();
   const [theme, setTheme] = useState(initialTheme);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setTheme(initialTheme);
   }, [initialTheme]);
 
+  function handleDateChange(val) {
+    onDate(val ? val.toDate() : undefined);
+    setOpen(false);
+  }
+  const location =
+    type === "jalali"
+      ? {
+          calendar: persian,
+          locale: afghan_fa,
+        }
+      : {};
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen} className=" w-[100%]">
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
           className={cn(
-            size == "sm" ? "w-[180px]" : "w-[270px]",
-            "justify-start text-left font-normal",
+            className,
+            "justify-start text-left font-normal flex-1 ",
             !date && "text-muted-foreground"
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {onlyMonthPicker ? (
-            date ? (
-              moment(date).format("jYYYY/jMM")
-            ) : (
-              <span>{placeholder}</span>
-            )
-          ) : date ? (
-            moment(date).format("jYYYY/jMM/jDD")
-          ) : (
-            <span>{placeholder}</span>
-          )}
+          {onlyMonthPicker
+            ? date
+              ? moment(date).format("jYYYY/jMM")
+              : placeholder
+            : defaultSelet
+            ? type === "jalali"
+              ? moment(date ? date : new Date()).format("jYYYY/jMM/jDD")
+              : format(date ? date : new Date(), "yyyy/MM/dd")
+            : placeholder}
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -95,7 +106,7 @@ export function DatePickerWithPresets({
           {onlyMonthPicker ? (
             <Calendar
               value={date}
-              onChange={(val) => onDate(val ? val.toDate() : undefined)}
+              onChange={handleDateChange}
               calendar={persian}
               locale={afghan_fa}
               calendarPosition="bottom-right"
@@ -106,9 +117,8 @@ export function DatePickerWithPresets({
           ) : (
             <Calendar
               value={date}
-              onChange={(val) => onDate(val ? val.toDate() : undefined)}
-              calendar={persian}
-              locale={afghan_fa}
+              onChange={handleDateChange}
+              {...location}
               calendarPosition="bottom-right"
               inputClass="hidden" // چون از Popover استفاده می‌کنی و نیازی به input نداری
               className={theme === "dark" ? "bg-dark green" : "green"}

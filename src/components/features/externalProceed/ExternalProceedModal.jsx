@@ -1,6 +1,4 @@
-import { AutoComplete } from "@/components/myUI/AutoComplete";
 import { DatePickerWithPresets } from "@/components/myUI/datePacker";
-import { SelectInput } from "@/components/myUI/select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,15 +25,26 @@ import { toast } from "sonner";
 import createExternalProceedAction, {
   updateExternalProceedAction,
 } from "@/actions/externalProceedAction";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
+import { SwitchDemo } from "@/components/myUI/Switch";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 const schema = z.object({
-  date: z.date({ required_error: "تاریخ الزامی است" }),
+  date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
   externalProceedTitle: z.string().min(1, " ذکر عنوان عاید الزامی است"),
+  income: z.string({ required_error: "دریافت کننده الزامی میباشد" }),
   amount: z
     .number({ invalid_type_error: "ذکر مقدار پول الزامی می باشد" })
     .min(1, " مقدار پول نمیتواند کمتر از 1 باشد"),
+  image: z
+    .any()
+    .refine((file) => file?.length === 1, "یک عکس انتخاب کنید")
+    .refine(
+      (files) => !files || files[0]?.size <= 2.5 * 1024 * 1024,
+      "حجم عکس نباید بیشتر از ۲.۵ مگابایت باشد"
+    )
+    .optional(),
   details: z.string().optional(),
 });
 
@@ -46,6 +55,7 @@ export function ExternalProceedModal({
   open,
   onOpen,
 }) {
+  const [dateType, setDateType] = useState(false);
   const [isPending, startTransition] = useTransition();
   const form = useForm({
     resolver: zodResolver(schema),
@@ -53,14 +63,20 @@ export function ExternalProceedModal({
       type === "update"
         ? {
             ...data,
-            date: data.date,
+            date: new Date(data.date),
+            income: data.income.name + "_" + data.income._id,
           }
         : {},
   });
   function submiteForm(newData) {
+    const myNewData = {
+      ...newData,
+      image: newData.image?.[0],
+      income: newData.income.split("_")[1],
+    };
     startTransition(async () => {
       if (type === "create") {
-        const result = await createExternalProceedAction(newData);
+        const result = await createExternalProceedAction(myNewData);
         if (!result.err) {
           toast.success("عواید شما با موفقیت ثبت شد");
           form.reset();
@@ -72,8 +88,11 @@ export function ExternalProceedModal({
         }
       }
       if (type === "update") {
-        const currentData = data;
-        const result = await updateExternalProceedAction(currentData, newData);
+        const currentData = { ...data, income: data.income._id };
+        const result = await updateExternalProceedAction(
+          currentData,
+          myNewData
+        );
         if (!result.err) {
           toast.success("عواید شما با موفقیت آپدیت شد");
           onOpen(false);
@@ -90,7 +109,7 @@ export function ExternalProceedModal({
   return (
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
-      <DialogContent className="xs:max-w-[300px] lg:max-w-[650px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className={"text-right"}>
             {type == "update" ? "تصحیح" : " عواید جدید "}
@@ -98,6 +117,13 @@ export function ExternalProceedModal({
           <DialogDescription className={"text-right"}>
             لطف نموده در درج اطلاعات دقت نمایید.
           </DialogDescription>
+          <div>
+            <SwitchDemo
+              value={dateType}
+              onChange={setDateType}
+              label={"تاریخ میلادی"}
+            />
+          </div>
         </DialogHeader>
 
         <Form {...form}>
@@ -105,16 +131,17 @@ export function ExternalProceedModal({
             onSubmit={form.handleSubmit(submiteForm)}
             className="w-full space-y-6"
           >
-            <div className="flex flex-row flex-wrap justify-between gap-6">
+            <div className=" flex flex-row gap-4">
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <FormLabel> تاریخ</FormLabel>
                     <DatePickerWithPresets
                       date={field.value}
                       onDate={field.onChange}
+                      type={dateType ? "gregorian" : "jalali"}
                     />
 
                     <FormMessage />
@@ -125,10 +152,10 @@ export function ExternalProceedModal({
                 control={form.control}
                 name="externalProceedTitle"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <FormLabel>عنوان عاید</FormLabel>
                     <Input
-                      className={"w-[270px]"}
+                      className={"flex-1"}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -137,21 +164,55 @@ export function ExternalProceedModal({
                 )}
               />
             </div>
-            <div className="flex flex-row flex-wrap ">
+            <div className="flex flex-row gap-4">
+              <FormField
+                control={form.control}
+                name="income"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>دریافت گننده</FormLabel>
+                    <AutoCompleteV2
+                      disabled={type === "update"}
+                      value={field.value}
+                      onChange={field.onChange}
+                      type="company-bank"
+                      label="دریافت کننده را انتخاب کنید.."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className=" flex flex-row gap-4">
               <FormField
                 control={form.control}
                 name="amount"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <FormLabel>مقدار پول</FormLabel>
                     <Input
                       type={"number"}
-                      className={"w-[270px]"}
+                      className={"flex-1"}
                       value={field.value}
                       onChange={(e) => {
                         const value = e.target.value;
                         field.onChange(value === "" ? "" : Number(value));
                       }}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="image"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>عکس</FormLabel>
+                    <Input
+                      type={"file"}
+                      disabled={type !== "create"}
+                      onChange={(e) => field.onChange(e.target.files)}
                     />
                     <FormMessage />
                   </FormItem>
@@ -165,7 +226,7 @@ export function ExternalProceedModal({
                 <FormItem>
                   <FormLabel> تفصیلات</FormLabel>
                   <Textarea
-                    className={"w-auto "}
+                    className={"w-auto max-h-[200px]"}
                     value={field.value}
                     onChange={field.onChange}
                   />

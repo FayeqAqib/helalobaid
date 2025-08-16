@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import jalaliMoment from "moment-jalaali";
 
-
 const saleSchema = new mongoose.Schema({
   date: {
     type: Date, // Example: "2024/5/3"
@@ -10,6 +9,11 @@ const saleSchema = new mongoose.Schema({
   },
   afgDate: {
     type: String,
+  },
+  income: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Account",
+    required: true,
   },
   buyer: {
     type: mongoose.Schema.Types.ObjectId,
@@ -42,6 +46,7 @@ const saleSchema = new mongoose.Schema({
     required: true,
     min: [0, "مقدار  میتیو باید یک عدد مثبت  باشد"],
   },
+  image: { type: String },
   details: {
     type: String,
     required: false,

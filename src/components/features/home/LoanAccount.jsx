@@ -13,7 +13,7 @@ function LoanAccount({ company }) {
   const bigestLend = use(getTopThreeAccountsBylend());
 
   return (
-    <Card className={"w-full max-w-4xl h-[600px] p-2 shadow-lg"}>
+    <Card className={"w-full max-w-4xl  p-2 shadow-lg"}>
       <div className="flex flex-col items-center justify-center bg-[var(--chart-2)] rounded-2xl shadow-2xl shadow-[#a1a1a1] dark:shadow-black p-2">
         <CardHeader className={"w-full p-1"}>
           <CardTitle className={"text-xl font-bold "}>
@@ -71,7 +71,7 @@ function LoanAccount({ company }) {
         </CardTitle>
         <CardDescription className={"text-sm"}>
           {" "}
-          سه دانه از بزرگ ترین طلبات شرکت
+          10 دانه از بزرگ ترین طلبات شرکت
         </CardDescription>
       </CardHeader>
       {bigestLend.result?.length ? (

@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import jalaliMoment from 'moment-jalaali';      
-
+import jalaliMoment from "moment-jalaali";
 
 const receiveSchema = new mongoose.Schema({
   date: {
@@ -11,7 +10,12 @@ const receiveSchema = new mongoose.Schema({
   afgDate: {
     type: String,
   },
-  buyer: {
+  type: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Account",
+    required: true,
+  },
+  income: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
     required: true,
@@ -21,22 +25,19 @@ const receiveSchema = new mongoose.Schema({
     required: false,
     min: [0, "مقدار رسید باید 0 یا یک عدد مثبت باشد"],
   },
+  image: String,
   details: {
     type: String,
     required: false,
   },
 });
 
-
-
 receiveSchema.pre("save", function (next) {
-
   if (this.date) {
-     this.afgDate = jalaliMoment(this.date).format('jYYYY/jM');
+    this.afgDate = jalaliMoment(this.date).format("jYYYY/jM");
   }
   next();
 });
-
 
 export const Receive =
   mongoose.models.Receive || mongoose.model("Receive", receiveSchema);

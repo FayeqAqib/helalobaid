@@ -40,6 +40,9 @@ import { HiEye, HiPencil, HiUserPlus } from "react-icons/hi2";
 import moment from "moment-jalaali";
 import { format } from "date-fns";
 import Link from "next/link";
+import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
+import { SelectInput } from "@/components/myUI/select";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 export const columns = [
   {
@@ -291,19 +294,20 @@ export function DataTableRegister({ data, count }) {
               .map((items) => `${items.id + "=" + items.value}`)
               .join("&") + "&"
           : ""
-      }${"page=" + table.getState().pagination.pageIndex + "&limit=10"}`
+      }${
+        "page=" +
+        table.getState().pagination.pageIndex +
+        "&limit=" +
+        table.getState().pagination.pageSize
+      }`
     );
   }
-
-  //  useEffect(() => {
-  //     setFilter();
-  //   }, [sorting ,getPaginationRowModel().pagination.pageIndex]);
 
   const table = useReactTable({
     data,
     columns,
     rowCount: count,
-    pageCount: count > 10 ? Math.round(count / 10 + 1) : 1,
+
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -323,32 +327,35 @@ export function DataTableRegister({ data, count }) {
 
   useEffect(() => {
     setFilter();
-  }, [sorting, table.getState().pagination.pageIndex]);
+  }, [
+    sorting,
+    table.getState().pagination.pageIndex,
+    table.getState().pagination.pageSize,
+  ]);
 
   return (
     <div className="w-full">
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
-        <div className="flex gap-4">
-          <Input
-            placeholder=" جستجو با اسم حساب....."
+        <div className="flex gap-2 flex-wrap">
+          <AutoCompleteV2
             value={table.getColumn("name")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
+            onChange={(value) => table.getColumn("name")?.setFilterValue(value)}
           />
-          <DatePickerWithPresets
+
+          <RangeDatePickerWithPresets
             date={table.getColumn("date")?.getFilterValue() ?? ""}
             onDate={(event) => table.getColumn("date")?.setFilterValue(event)}
             size="sm"
           />
-          <Button onClick={() => setFilter()}>جستجو</Button>
+          <Button onClick={() => setFilter()} className={"flex-1"}>
+            جستجو
+          </Button>
         </div>
 
         <div className="flex gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
+              <Button variant="outline" className="ml-auto flex-1">
                 ستون ها <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -432,9 +439,24 @@ export function DataTableRegister({ data, count }) {
         </Table>
       </div>
       <div className="flex items-phoneNumberer justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getState().pagination.pageIndex + 1} از {table.getPageCount()}{" "}
-          صفحه
+        <div className="flex-1 flex text-sm text-muted-foreground gap-4 items-center">
+          <h3>
+            {table.getState().pagination.pageIndex + 1} از{" "}
+            {table.getPageCount()} صفحه
+          </h3>
+
+          <SelectInput
+            field={{
+              value: table.getState().pagination.pageSize,
+              onChange: table.setPageSize,
+            }}
+            lable={"تعداد آیتم در هر صفحه"}
+            options={[
+              { value: 10, label: "10" },
+              { value: 20, label: "20" },
+              { value: 30, label: "30" },
+            ]}
+          />
         </div>
         <div className="space-x-2">
           <Button

@@ -2,18 +2,32 @@ import { catchAsync } from "@/lib/catchAsync";
 import { ExternalProceed } from "@/models/externalProceed";
 import { Account } from "@/models/account";
 import APIFeatures from "@/lib/apiFeatues";
+import { uploadImage } from "@/lib/uploadImage";
+import { deleteFile } from "@/lib/deleteImage";
 
 export const createExternalProceed = catchAsync(async (data) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const newData = { ...data };
+  const company = await Account.findById(newData.income, {
     balance: 1,
   });
 
-  const result = await ExternalProceed.create(data);
+  const result = await ExternalProceed.create(newData);
+
+  const { path, err } = await uploadImage(data.image);
+  newData.image = path;
+
+  if (err) {
+    return {
+      message:
+        "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
+    };
+  }
+
   if (result._id) {
     const newBalance = {
-      balance: Number(company.balance) + Number(data.amount),
+      balance: Number(company.balance) + Number(newData.amount),
     };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newBalance);
+    await Account.findByIdAndUpdate(newData.income, newBalance);
   }
   return result;
 });
@@ -24,12 +38,12 @@ export const getAllExternalProceed = catchAsync(async (filter) => {
     .filter()
     .sort()
     .paginate();
-  const result = await features.query;
+  const result = await features.query.populate("income", "name");
   return { result, count };
 });
 
 export const deleteExternalProceed = catchAsync(async (data) => {
-  const company = await Account.findById(process.env.COMPANY_ID, {
+  const company = await Account.findById(data.income, {
     balance: 1,
   });
   if (company.balance < data.amount)
@@ -38,11 +52,12 @@ export const deleteExternalProceed = catchAsync(async (data) => {
     };
 
   const result = await ExternalProceed.findByIdAndDelete(data._id);
+  await deleteFile(data.image);
   if (result._id) {
     const newBalance = {
       balance: Number(company.balance) - Number(data.amount),
     };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newBalance);
+    await Account.findByIdAndUpdate(data.income, newBalance);
   }
   return result;
 });
@@ -51,21 +66,23 @@ export const deleteExternalProceed = catchAsync(async (data) => {
 
 export const updateExternalProceed = catchAsync(
   async ({ currentData, newData }) => {
-    const company = await Account.findById(process.env.COMPANY_ID, {
+    const myNewData = { ...newData, image: currentData.image };
+
+    const company = await Account.findById(currentData.income, {
       balance: 1,
     });
 
     const result = await ExternalProceed.findByIdAndUpdate(
-      currentData,
-      newData
+      currentData._id,
+      myNewData
     );
     if (result._id) {
       const newBalance = {
         balance:
           Number(company.balance) -
-          (Number(currentData.amount) - Number(newData.amount)),
+          (Number(currentData.amount) - Number(myNewData.amount)),
       };
-      await Account.findByIdAndUpdate(process.env.COMPANY_ID, newBalance);
+      await Account.findByIdAndUpdate(currentData.income, newBalance);
     }
     return result;
   }
