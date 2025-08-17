@@ -13,6 +13,7 @@ export const createApplecation = catchAsync(async (data, owner) => {
     balance: 1,
     lend: 1,
   });
+  console.log(owner, company);
 
   if (company.balance < data.cashAmount) {
     return {
@@ -121,17 +122,20 @@ export const StatusCheck = catchAsync(async () => {
 export const updateApplecation = catchAsync(async (data) => {
   const buyer = await Account.findById(data.buyer._id, {
     METUbalance: 1,
+    balance: 1,
+    lend: 1,
   });
 
   if (data.status === "reject") {
-    const newCompanyData = {
-      balance: Number(company.balance) + Number(data.cashAmount),
-      lend: Number(company.lend) - Number(data.lendAmount),
+    const newBuyerData = {
+      balance: Number(buyer.balance) + Number(data.cashAmount),
+      lend: Number(buyer.lend) - Number(data.lendAmount),
     };
-    await Account.findByIdAndUpdate(buyer._id, newCompanyData);
-    return null;
+    await Account.findByIdAndUpdate(buyer._id, newBuyerData);
+    const { income, ...rejectData } = data;
+    const result = await Applecation.findByIdAndUpdate(data._id, rejectData);
+    return result;
   }
-
   const company = await Account.findById(data.income, {
     balance: 1,
   });
@@ -153,8 +157,8 @@ export const updateApplecation = catchAsync(async (data) => {
       balance: Number(company.balance) + Number(data.cashAmount),
     };
     const newCompany_idData = {
-      borrow: Number(company.borrow) + Number(data.lendAmount),
-      METUbalance: Number(company.METUbalance) - Number(data.metuAmount),
+      borrow: Number(company_id.borrow) + Number(data.lendAmount),
+      METUbalance: Number(company_id.METUbalance) - Number(data.metuAmount),
     };
     await Account.findByIdAndUpdate(data.income, newCompanyData);
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);

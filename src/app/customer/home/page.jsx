@@ -1,10 +1,16 @@
+import { DataTableBankAndBuy } from "@/components/features/home/bankAndBuyTable";
 import { BuyerCard } from "@/components/features/home/BuyerCard";
+import { DataTableTransferBuy } from "@/components/features/home/buyTable";
 import ChartContiner from "@/components/features/home/ChartContiner";
 import LoanAccount from "@/components/features/home/LoanAccount";
 import { ShowCard } from "@/components/features/home/ShowCard";
 import { SmallShowCard } from "@/components/features/home/smallShowCard";
 import { getCompanyAccount } from "@/services/accountService";
 import { getSixMonthBuyData } from "@/services/buyService";
+import {
+  getAllTransferBank,
+  getAllTransferMoneySeller,
+} from "@/services/ledgarServer";
 import { getSixMonthSaleData } from "@/services/saleService";
 
 import React, { use } from "react";
@@ -13,7 +19,9 @@ export default function Page() {
   const { result } = use(getCompanyAccount());
   const buySixMonthData = use(getSixMonthBuyData());
   const SaleSixMonthData = use(getSixMonthSaleData());
-
+  const banks = use(getAllTransferBank());
+  const buy = use(getAllTransferMoneySeller());
+  console.log(buy);
   const saleCent =
     ((Number(SaleSixMonthData.result?.slice(-1)[0]?.totalSale || 0) -
       Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 0)) *
@@ -62,6 +70,10 @@ export default function Page() {
           buyData={buySixMonthData.result || []}
           saleData={SaleSixMonthData.result || []}
         />
+        <div className="flex flex-col gap-5 w-full md:flex-row">
+          <DataTableBankAndBuy data={banks || []} />
+          <DataTableTransferBuy data={buy || []} />
+        </div>
       </div>
     </div>
   );

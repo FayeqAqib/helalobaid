@@ -32,30 +32,43 @@ import moment from "moment-jalaali";
 import { Label } from "@/components/ui/label";
 import { SelectInput } from "@/components/myUI/select";
 import { updateApplecationAction } from "@/actions/applecationAction";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 const schema = z
   .object({
     status: z.enum(["reject", "approved"]),
-    income: z.string({ required_error: "دریافت کننده الزامی میباشد" }),
+    income: z
+      .string({ required_error: "دریافت کننده الزامی میباشد" })
+      .optional(),
     cent: z
       .number({ invalid_type_error: "فیصدی الزامی می باشد" })
       .min(0, "فیصدی نمیتواند کمتر از 0 باشد")
       .max(100, "فیصدی نمیتواند بیشتر از 100 باشد")
-      .default(0),
+      .default(0)
+      .optional(),
 
     metuAmount: z
       .number({ invalid_type_error: "مقدار میتیو الزامی می باشد" })
-      .min(0, "مقدار پول الزامی است")
-      .default(0),
+      .min(0, "مقدار پول الزامی است"),
     details: z.string().optional(),
   })
   .refine(
     (data) =>
       data.status !== "approved" || // اگر status != approved
-      (data.status === "approved" && data.metuAmount > 0 && data.cent > 0), // یا اگر approved است و مقدار دارد
+      (data.status === "approved" && data.cent > 0),
+    // یا اگر approved است و مقدار دارد
     {
-      message: "در حالت تایید شده، مقدار میتیو الزامی است",
-      path: ["metuAmount"], // مسیر خطا را به فیلد مورد نظر مرتبط می‌کند
+      message: "در حالت تایید شده فیصدی الزامی است",
+      path: ["cent"], // مسیر خطا را به فیلد مورد نظر مرتبط می‌کند
+    }
+  )
+  .refine(
+    (data) =>
+      data.status !== "approved" || // اگر status != approved
+      (data.status === "approved" && data.income !== undefined), // یا اگر approved است و مقدار دارد
+    {
+      message: "در حالت تایید شده، دریافت کننده الزامی است",
+      path: ["income"], // مسیر خطا را به فیلد مورد نظر مرتبط می‌کند
     }
   );
 
@@ -74,10 +87,11 @@ export function ApplecationModal({
   });
 
   async function submiteForm(newData) {
+    console.log(newData.income);
     const myNewData = {
       ...data,
       ...newData,
-      income: newData.income.split("_")[1],
+      income: newData.income?.split("_")?.[1] || "",
       date: new Date(),
     };
     startTransition(async () => {
@@ -140,24 +154,6 @@ export function ApplecationModal({
                 disabled
                 value={moment(data?.date).format("jYYYY/jMM/jDD")}
               />
-
-              <FormField
-                control={form.control}
-                name="income"
-                render={({ field }) => (
-                  <FormItem className={"flex-1"}>
-                    <FormLabel>دریافت گننده</FormLabel>
-                    <AutoCompleteV2
-                      disabled={type === "update"}
-                      value={field.value}
-                      onChange={field.onChange}
-                      type="company-bank"
-                      label="پرداخت کننده را انتخاب کنید.."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             <div className={"flex-1 space-y-2"}>
@@ -218,45 +214,66 @@ export function ApplecationModal({
               />
             </div>
             {status === "approved" && (
-              <div className="flex flex-row gap-4">
-                <FormField
-                  control={form.control}
-                  name="cent"
-                  render={({ field }) => (
-                    <FormItem className={"flex-1"}>
-                      <FormLabel> فیصدی</FormLabel>
-                      <Input
-                        type={"number"}
-                        value={field.value}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.onChange(value === "" ? "" : Number(value));
-                        }}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="metuAmount"
-                  render={({ field }) => (
-                    <FormItem className={"flex-1"}>
-                      <FormLabel>مقدار METU</FormLabel>
-                      <Input
-                        type={"number"}
-                        value={field.value}
-                        disabled={true}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.onChange(value === "" ? "" : Number(value));
-                        }}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <>
+                <div className="flex flex-row gap-4">
+                  <FormField
+                    control={form.control}
+                    name="income"
+                    render={({ field }) => (
+                      <FormItem className={"flex-1"}>
+                        <FormLabel>دریافت گننده</FormLabel>
+                        <AutoCompleteV2
+                          disabled={type === "update"}
+                          value={field.value}
+                          onChange={field.onChange}
+                          type="company-bank"
+                          label="پرداخت کننده را انتخاب کنید.."
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex flex-row gap-4">
+                  <FormField
+                    control={form.control}
+                    name="cent"
+                    render={({ field }) => (
+                      <FormItem className={"flex-1"}>
+                        <FormLabel> فیصدی</FormLabel>
+                        <Input
+                          type={"number"}
+                          value={field.value}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value === "" ? "" : Number(value));
+                          }}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="metuAmount"
+                    render={({ field }) => (
+                      <FormItem className={"flex-1"}>
+                        <FormLabel>مقدار METU</FormLabel>
+                        <Input
+                          type={"number"}
+                          value={field.value}
+                          disabled={true}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value === "" ? "" : Number(value));
+                          }}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
             )}
             <FormField
               control={form.control}

@@ -95,9 +95,10 @@ export const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("income").name}</div>
-    ),
+    cell: ({ row }) => {
+      const income = row.getValue("income");
+      return <div className="capitalize">{income ? income?.name : ""}</div>;
+    },
   },
   {
     accessorKey: "buyer",
@@ -270,7 +271,11 @@ export const columns = [
         >
           <DetailsModal
             key={payment._id}
-            data={{ ...payment, name: payment.buyer.name }}
+            data={{
+              ...payment,
+              name: payment.buyer.name,
+              income: payment?.income?.name || "",
+            }}
             open={openDetails}
             onChange={setOpenDetails}
           >

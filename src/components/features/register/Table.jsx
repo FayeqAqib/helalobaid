@@ -212,27 +212,6 @@ export const columns = [
                   صلاحیت ها
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(payment.id)}
-                >
-                  <Button
-                    // onClick={() => }
-                    variant={"ghost"}
-                    className={"w-full justify-end"}
-                    asChild
-                  >
-                    <Link
-                      href={
-                        payment.accountType === "company"
-                          ? "/customer/ledgar"
-                          : `/customer/account/${payment._id}`
-                      }
-                    >
-                      <span> جذیات</span>
-                      <HiEye />
-                    </Link>
-                  </Button>
-                </DropdownMenuItem>
                 {payment.accountType === "company" ? (
                   ""
                 ) : (

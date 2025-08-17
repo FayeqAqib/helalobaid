@@ -16,7 +16,7 @@ const applectionSchema = new mongoose.Schema({
   income: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
-    required: true,
+    required: false,
   },
   buyer: {
     type: mongoose.Schema.Types.ObjectId,

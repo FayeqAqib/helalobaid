@@ -12,7 +12,7 @@ const list = [
     icon: <img src="../house.png" className="size-7" />,
   },
   {
-    title: "ثبت نام ",
+    title: "صورت حساب ها",
     url: "/customer/account",
     icon: <img src="../man.png" className="size-7" />,
   },

@@ -2,6 +2,8 @@ import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
 import { Account } from "@/models/account";
 import { Buy } from "@/models/Buy";
+import { Cost } from "@/models/cost";
+import { ExternalProceed } from "@/models/externalProceed";
 import { Pay } from "@/models/pay";
 import { Receive } from "@/models/receive";
 import { Sale } from "@/models/Sale";
@@ -314,3 +316,163 @@ export const getLedgar = catchAsync(async ({ date }) => {
     allTransactionsArray,
   };
 });
+export async function getAllTransferMoneySeller() {
+  const month = moment(new Date()).format("jYYYY/jM");
+
+  const aggregateData = async (model, sumField, group) => {
+    return model.aggregate([
+      { $match: { afgDate: month } },
+      {
+        $group: {
+          _id: `$${group}`,
+          pay: { $sum: `$${sumField}` },
+        },
+      },
+    ]);
+  };
+
+  // اجرای کوئری‌ها به صورت موازی
+  const [buy, receive] = await Promise.all([
+    aggregateData(Buy, "cashAmount", "saller"), // خرید = پرداخت
+    aggregateData(Receive, "amount", "typa"), // دریافت وجه
+  ]);
+  const allData = [...buy, ...receive];
+
+  // ترکیب نتایج برای هر فروشنده
+  const combinedResults = allData.reduce((acc, curr) => {
+    const saller = curr._id;
+
+    if (!acc[saller]) {
+      acc[saller] = { _id: saller, pay: 0, receive: 0 };
+    }
+
+    if (curr.pay) {
+      acc[saller].pay += curr.pay;
+    }
+
+    return acc;
+  }, {});
+  let resultArray = Object.values(combinedResults);
+
+  // استخراج تمام شناسه‌های منحصر به فرد
+  const sallerIds = resultArray.map((item) => item._id);
+
+  // دریافت اطلاعات حساب‌ها از کولکشن Account
+  const accounts = await Account.find(
+    { _id: { $in: sallerIds } },
+    { name: 1, balance: 1, lend: 1 } // فقط فیلد name را دریافت می‌کنیم
+  );
+
+  // ایجاد مپ برای دسترسی سریع به نام‌ها
+  const accountMap = new Map();
+  accounts.forEach((account) => {
+    // console.log(account);
+    accountMap.set(account._id.toString(), {
+      name: account.name,
+      balance: account.balance,
+      lend: account.lend,
+    });
+  });
+
+  // اضافه کردن نام به هر آیتم
+  resultArray = resultArray.map((item) => {
+    const acc = accountMap.get(item._id.toString());
+    console.log(acc, "game");
+    return {
+      ...item,
+      _id: item._id.toString(),
+      name: acc.name || "نامشخص",
+      balance: acc.balance || 0,
+      lend: acc.lend || 0,
+    };
+  });
+  console.log(resultArray, "my");
+  // تبدیل به آرایه نهایی
+  // console.log(resultArray, "fayeq");
+  return resultArray;
+}
+
+export async function getAllTransferBank() {
+  const month = moment(new Date()).format("jYYYY/jM");
+
+  // تابع کمکی برای اجرای aggregate
+  const aggregateData = async (model, sumField, type) => {
+    return model.aggregate([
+      { $match: { afgDate: month } },
+      {
+        $group: {
+          _id: "$income",
+          [type]: { $sum: `$${sumField}` },
+        },
+      },
+    ]);
+  };
+
+  // اجرای کوئری‌ها به صورت موازی
+  const [buy, sale, receive, pay, cost, externalProceed] = await Promise.all([
+    aggregateData(Buy, "cashAmount", "pay"), // خرید = پرداخت
+    aggregateData(Sale, "cashAmount", "receive"), // فروش = دریافت
+    aggregateData(Receive, "amount", "receive"), // دریافت وجه
+    aggregateData(Pay, "amount", "pay"), // پرداخت وجه
+    aggregateData(Cost, "amount", "pay"), // هزینه = پرداخت
+    aggregateData(ExternalProceed, "amount", "receive"), // درآمد خارجی = دریافت
+  ]);
+
+  // ادغام تمام نتایج در یک آرایه
+  const allData = [
+    ...buy,
+    ...sale,
+    ...receive,
+    ...pay,
+    ...cost,
+    ...externalProceed,
+  ];
+
+  // ترکیب نتایج برای هر فروشنده
+  const combinedResults = allData.reduce((acc, curr) => {
+    const saller = curr._id;
+
+    if (!acc[saller]) {
+      acc[saller] = { _id: saller, pay: 0, receive: 0 };
+    }
+
+    if (curr.pay) {
+      acc[saller].pay += curr.pay;
+    }
+
+    if (curr.receive) {
+      acc[saller].receive += curr.receive;
+    }
+
+    return acc;
+  }, {});
+  let resultArray = Object.values(combinedResults);
+
+  // استخراج تمام شناسه‌های منحصر به فرد
+  const sallerIds = resultArray.map((item) => item._id);
+
+  // دریافت اطلاعات حساب‌ها از کولکشن Account
+  const accounts = await Account.find(
+    { _id: { $in: sallerIds } },
+    { name: 1, balance: 1 } // فقط فیلد name را دریافت می‌کنیم
+  );
+
+  // ایجاد مپ برای دسترسی سریع به نام‌ها
+  const accountMap = new Map();
+  accounts.forEach((account) => {
+    accountMap.set(account._id.toString(), {
+      name: account.name,
+      balance: account.balance,
+    });
+  });
+
+  // اضافه کردن نام به هر آیتم
+  resultArray = resultArray.map((item) => ({
+    ...item,
+    _id: item._id.toString(),
+    name: accountMap.get(item._id.toString()).name || "نامشخص",
+    balance: accountMap.get(item._id.toString()).balance || "نامشخص",
+  }));
+  // تبدیل به آرایه نهایی
+  return resultArray;
+}
