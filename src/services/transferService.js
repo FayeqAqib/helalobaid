@@ -67,7 +67,7 @@ export const getAllTransfer = catchAsync(async (filter) => {
     .sort()
     .paginate();
   const result = await features.query.populate(["from", "to"], "name");
-  console.log(result);
+
   return { result, count };
 });
 

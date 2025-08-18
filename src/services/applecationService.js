@@ -13,7 +13,6 @@ export const createApplecation = catchAsync(async (data, owner) => {
     balance: 1,
     lend: 1,
   });
-  console.log(owner, company);
 
   if (company.balance < data.cashAmount) {
     return {

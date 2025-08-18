@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 
 export default async function Page({ searchParams }) {
   const session = await auth();
-  console.log();
+
   if (session.user._doc.role !== "admin") {
     redirect("/customer/home");
     return null;

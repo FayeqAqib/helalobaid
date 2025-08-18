@@ -87,7 +87,6 @@ export function ApplecationModal({
   });
 
   async function submiteForm(newData) {
-    console.log(newData.income);
     const myNewData = {
       ...data,
       ...newData,

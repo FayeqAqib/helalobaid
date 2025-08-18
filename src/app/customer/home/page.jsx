@@ -21,7 +21,7 @@ export default function Page() {
   const SaleSixMonthData = use(getSixMonthSaleData());
   const banks = use(getAllTransferBank());
   const buy = use(getAllTransferMoneySeller());
-  console.log(buy);
+
   const saleCent =
     ((Number(SaleSixMonthData.result?.slice(-1)[0]?.totalSale || 0) -
       Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 0)) *

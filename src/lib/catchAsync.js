@@ -15,7 +15,6 @@ export const catchAsync = (fn) => async (data) => {
 
     return { result: JSON.parse(JSON.stringify(result)), err: false };
   } catch (err) {
-    console.log(err);
     return { result: null, err: true };
   }
 };
