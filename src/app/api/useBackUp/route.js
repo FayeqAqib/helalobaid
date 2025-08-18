@@ -1,6 +1,6 @@
 import { exec } from "child_process";
-import path from "path";
-import fs from "fs";
+
+const baseUrl = process.env.NEXTAUTH_URL;
 
 export async function GET() {
   try {
@@ -13,7 +13,7 @@ export async function GET() {
 
     await new Promise((resolve, reject) => {
       exec(
-        `mongorestore --archive="mongodump-test-db" --nsFrom="backUp.*" --nsTo="plaza.*"`,
+        `mongorestore --archive="mongodump-test-db" --nsFrom="backUp.*" --nsTo="test.*"`,
         (err) => {
           if (err) return reject(err);
           resolve();
@@ -21,7 +21,16 @@ export async function GET() {
       );
     });
 
-    return Response.json({ message: "بکاپ همه کالکشن‌ها با موفقیت انجام شد" });
+    return new Response(
+      JSON.stringify("بکاپ همه کالکشن‌ها با موفقیت اجرا شد"),
+      {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": `${baseUrl}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
   }

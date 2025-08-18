@@ -16,7 +16,6 @@ import { useState, useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
 
 import axios from "axios";
-import { Progress } from "@/components/ui/progress";
 
 export function BackupModal({
   children,
@@ -41,6 +40,7 @@ export function BackupModal({
             onOpen(false);
           }
         } catch (err) {
+          console.log(err);
           toast.error(
             "در ایجاد دیتای پشتیبان شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
           );
@@ -50,12 +50,12 @@ export function BackupModal({
           const result = await axios.get(`${baseUrl}/api/useBackUp`);
 
           if (result.status === 200) {
-            toast.success(" دیتای پشتیبان با موفقیت ثبت شد");
+            toast.success(" دیتای پشتیبان با موفقیت آپدیت شد");
             onOpen(false);
           }
         } catch {
           toast.error(
-            "در ایجاد دیتای پشتیبان شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
+            "در آپدیت دیتای پشتیبان شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
           );
         }
       } else {
@@ -63,12 +63,12 @@ export function BackupModal({
           const result = await axios.get(`${baseUrl}/api/resetAllData`);
 
           if (result.status === 200) {
-            toast.success(" دیتای پشتیبان با موفقیت ثبت شد");
+            toast.success(" دیتای پشتیبان با موفقیت حذف شد");
             onOpen(false);
           }
         } catch {
           toast.error(
-            "در ایجاد دیتای پشتیبان شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
+            "در حذف دیتای پشتیبان شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
           );
         }
       }
@@ -96,6 +96,7 @@ export function BackupModal({
             type="submit"
             className=" cursor-pointer px-6"
             onClick={handleClick}
+            disabled={isPending}
           >
             {" "}
             {isPending ? (

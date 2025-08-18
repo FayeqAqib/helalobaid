@@ -28,8 +28,9 @@ import createAccountAction, {
 } from "@/actions/accountAction";
 import { toast } from "sonner";
 import { CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { SwitchDemo } from "@/components/myUI/Switch";
+import { Loader2Icon } from "lucide-react";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -70,6 +71,7 @@ export function RegisterModal({
   onOpen,
 }) {
   const [dateType, setDateType] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues:
@@ -89,31 +91,33 @@ export function RegisterModal({
       borrow: formData.amountType === "borrow" ? formData.amount : 0,
       _id: data._id,
     };
-    if (type === "create") {
-      const result = await createAccountAction(newFormData);
-      if (!result.err) {
-        toast.success("حساب شما با موفقیت ایجاد شد");
-        form.reset();
-        onOpen(false);
-      } else {
-        toast.error(
-          "در ایجاد حساب شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
-        );
+    startTransition(async () => {
+      if (type === "create") {
+        const result = await createAccountAction(newFormData);
+        if (!result.err) {
+          toast.success("حساب شما با موفقیت ایجاد شد");
+          form.reset();
+          onOpen(false);
+        } else {
+          toast.error(
+            "در ایجاد حساب شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
+          );
+        }
       }
-    }
-    if (type === "update") {
-      const result = await updateAccountAction(newFormData);
+      if (type === "update") {
+        const result = await updateAccountAction(newFormData);
 
-      if (!result.err) {
-        toast.success("حساب شما با موفقیت آپدیت شد");
-        form.reset();
-        onOpen(false);
-      } else {
-        toast.error(
-          "در آپدیت حساب شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
-        );
+        if (!result.err) {
+          toast.success("حساب شما با موفقیت آپدیت شد");
+          form.reset();
+          onOpen(false);
+        } else {
+          toast.error(
+            "در آپدیت حساب شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
+          );
+        }
       }
-    }
+    });
   }
 
   return (
@@ -310,7 +314,13 @@ export function RegisterModal({
                   انصراف
                 </Button>
               </DialogClose>
-              <Button type="submit">ذخیره کردن</Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? (
+                  <Loader2Icon className="animate-spin mr-2" />
+                ) : (
+                  " ذخیره کردن"
+                )}
+              </Button>
             </div>
           </form>
         </Form>

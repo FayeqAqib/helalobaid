@@ -1,12 +1,12 @@
+import { connectDB } from "@/lib/db";
 import { Account } from "@/models/account";
-import { User } from "@/models/User";
-import { createUser } from "@/services/userServer";
-import mongoose from "mongoose";
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
 
+import { createUser } from "@/services/userServer";
+
+const baseUrl = process.env.NEXTAUTH_URL;
 export async function GET() {
   try {
-    const db = await mongoose.connect(`${MONGODB_URI}/plaza`);
+    const db = await connectDB();
     await db.connection.dropDatabase();
 
     await Account.create({
@@ -21,8 +21,15 @@ export async function GET() {
       role: "admin",
       owner: process.env.COMPANY_ID,
     });
-    return Response.json({ message: "بکاپ همه کالکشن‌ها با موفقیت انجام شد" });
+    return new Response(JSON.stringify("بکاپ همه کالکشن‌ها با موفقیت حذف شد"), {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": `${baseUrl}`,
+        "Content-Type": "application/json",
+      },
+    });
   } catch (err) {
+    console.log(err);
     return Response.json({ error: err.message }, { status: 500 });
   }
 }

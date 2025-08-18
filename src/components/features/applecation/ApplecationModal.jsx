@@ -299,7 +299,7 @@ export function ApplecationModal({
                   انصراف
                 </Button>
               </DialogClose>
-              <Button type="submit">
+              <Button type="submit" disabled={isPending}>
                 {isPending ? (
                   <Loader2Icon className="animate-spin mr-2" />
                 ) : (

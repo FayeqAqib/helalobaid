@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 
+import { User } from "lucide-react";
 import Credentials from "next-auth/providers/credentials";
 // import { redirect } from "next/navigation"; //Unused import
 
