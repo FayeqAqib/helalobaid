@@ -11,11 +11,9 @@ export const createExternalProceed = catchAsync(async (data) => {
     balance: 1,
   });
 
-  const result = await ExternalProceed.create(newData);
-
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
-
+  console.log(newData);
   if (err) {
     return {
       message:
@@ -23,6 +21,7 @@ export const createExternalProceed = catchAsync(async (data) => {
     };
   }
 
+  const result = await ExternalProceed.create(newData);
   if (result._id) {
     const newBalance = {
       balance: Number(company.balance) + Number(newData.amount),

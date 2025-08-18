@@ -5,6 +5,7 @@ import path from "path";
 export async function uploadImage(image, myPath = "upload/buy") {
   if (image?.size > 0) {
     try {
+      console.log(image);
       const filename = `${Date.now()}-${image.name}`;
       const bytes = await image.arrayBuffer();
       const buffer = Buffer.from(bytes);
