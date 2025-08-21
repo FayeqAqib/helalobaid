@@ -25,7 +25,7 @@ const loginSchema = z.object({
   username: z.string().min(3, "حداقل 3 حرف وارد کنید"),
   password: z
     .string()
-    .min(6, "حداقل 6 حرف وارد کنید")
+    .min(4, "حداقل 4 حرف وارد کنید")
     .max(36, "حد اگثر 36 حرف مجاز است "),
 });
 

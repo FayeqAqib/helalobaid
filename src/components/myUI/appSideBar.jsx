@@ -32,7 +32,7 @@ const list = [
     icon: <img src="../ledger.png" className="size-7" />,
   },
   {
-    title: "درخاستی",
+    title: "صندوق ورودی",
     url: "/customer/applecation",
     icon: <img src="../online-registration.png" className="size-7" />,
   },

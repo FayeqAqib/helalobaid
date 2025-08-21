@@ -37,7 +37,7 @@ const RoleEnum = z.enum(["vendee", "admin", "employe"]);
 const signupSchema = z
   .object({
     username: z.string().min(3, "حداقل 3 کاراکتر وارد کنید"),
-    password: z.string().min(6, "حداقل 6 کاراکتر وارد کنید"),
+    password: z.string().min(4, "حداقل 4 کاراکتر وارد کنید"),
     confirmPassword: z.string().min(6, "لطفا تایید رمز عبور را وارد کنید"),
     owner: z.string({ required_error: "نام فروشنده الزامی می‌باشد" }),
     role: RoleEnum,
