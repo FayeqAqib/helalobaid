@@ -108,7 +108,12 @@ export const columns = [
     cell: ({ row }) => {
       const payment = row.original;
       const [openDelete, setOpenDelete] = useState(false);
-
+      if (
+        payment.username === "Kaaweshgaraan" ||
+        payment.username === "demo" ||
+        payment.username === "company"
+      )
+        return null;
       return (
         <ConfirmDelete data={payment} open={openDelete} onOpen={setOpenDelete}>
           <DropdownMenu>
@@ -272,7 +277,7 @@ export function DataTableUser({ data, count }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) =>
-                row.original.username === "superAdmin" ||
+                row.original.username === "Kaaweshgaraan" ||
                 row.original.username === "demo" ? null : (
                   <TableRow
                     key={row.id}
