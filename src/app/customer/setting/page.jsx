@@ -1,9 +1,11 @@
 import { BackupCard } from "@/components/features/setting/backupCard";
+import CreateMarquee from "@/components/features/setting/createMarquee";
 import { ExportDataCard } from "@/components/features/setting/exportDateCard";
 import { DataTableUser } from "@/components/features/setting/UserTable";
 import { Card, CardHeader } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { BackUp } from "@/models/backUp";
+import { GetMarquee } from "@/services/marqueeService";
 import { getAllUsers } from "@/services/userServer";
 import { redirect } from "next/navigation";
 
@@ -15,7 +17,7 @@ export default async function Page({ searchParams }) {
     return null;
   }
   const filter = await searchParams;
-
+  const text = await GetMarquee();
   const data = await getAllUsers(filter);
   const backup = await BackUp.findOne({}, { _id: 0 });
 
@@ -26,6 +28,7 @@ export default async function Page({ searchParams }) {
       </CardHeader>
       <div className="flex flex-col lg:flex-row justify-between gap-4">
         <ExportDataCard />
+        <CreateMarquee text={text?.result?.[0]?.text || ""} />
         <BackupCard backup={backup} />
       </div>
       <DataTableUser

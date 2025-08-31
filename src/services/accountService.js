@@ -6,6 +6,7 @@ import { Buy } from "@/models/Buy";
 import { Sale } from "@/models/Sale";
 import { Pay } from "@/models/pay";
 import { Receive } from "@/models/receive";
+import { uploadImage } from "@/lib/uploadImage";
 
 export const createAccount = catchAsync(async (data) => {
   let company;
@@ -15,6 +16,17 @@ export const createAccount = catchAsync(async (data) => {
       lend: 1,
     });
   }
+
+  const { path, err } = await uploadImage(data.image);
+  data.image = path;
+
+  if (err) {
+    return {
+      message:
+        "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
+    };
+  }
+
   const result = await Account.create(data);
 
   if (data.borrow >= 1 || data.lend >= 1) {

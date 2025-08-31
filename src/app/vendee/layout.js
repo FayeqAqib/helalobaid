@@ -5,6 +5,7 @@ import Header from "@/components/myUI/Header";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { VendeeAppSidebar } from "@/components/myUI/vendeeAppSideBar";
+import TextMarquee from "@/components/myUI/TextMarquee";
 
 export default async function RootLayout({ children }) {
   const session = await auth();
@@ -27,9 +28,10 @@ export default async function RootLayout({ children }) {
     >
       <SidebarProvider>
         <VendeeAppSidebar />
+
         <div className="w-full">
           <Header />
-
+          <TextMarquee />
           <main className="p-6 ">{children}</main>
         </div>
       </SidebarProvider>

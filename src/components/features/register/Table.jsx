@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -32,21 +31,21 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { RegisterModal } from "./registerModal";
-import { DatePickerWithPresets } from "@/components/myUI/datePacker";
 import { usePathname, useRouter } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { HiEye, HiPencil, HiUserPlus } from "react-icons/hi2";
 import moment from "moment-jalaali";
-import { format } from "date-fns";
-import Link from "next/link";
+
 import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
 import { SelectInput } from "@/components/myUI/select";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
+import { DetailsModal } from "@/components/myUI/DetailsModal";
+import { format } from "date-fns";
 
 export const columns = [
   {
-    accessorKey: "date",
+    accessorKey: "PersionDate",
     header: ({ column }) => {
       return (
         <Button
@@ -62,6 +61,23 @@ export const columns = [
       <div className="capitalize">
         {moment(row.getValue("date")).format("jYYYY/jMM/jDD")}
       </div>
+    ),
+  },
+  {
+    accessorKey: "date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          تاریخ میلادی
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="capitalize">{format(row.getValue("date"), "P")}</div>
     ),
   },
   {
@@ -187,6 +203,7 @@ export const columns = [
 
       const [openDelete, setOpenDelete] = useState(false);
       const [openSaller, setOpenSaller] = useState(false);
+      const [openDetails, setOpenDetails] = useState(false);
       return (
         <RegisterModal
           key={openSaller}
@@ -200,52 +217,73 @@ export const columns = [
             open={openDelete}
             onOpen={setOpenDelete}
           >
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel className={" text-right"}>
-                  صلاحیت ها
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {payment.accountType === "company" ? (
-                  ""
-                ) : (
-                  <>
-                    <DropdownMenuItem
-                      onClick={() => navigator.clipboard.writeText(payment.id)}
+            <DetailsModal
+              data={{ ...payment }}
+              open={openDetails}
+              onChange={setOpenDetails}
+              key={openDetails}
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel className={" text-right"}>
+                    صلاحیت ها
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Button
+                      onClick={() =>
+                        setOpenDetails((openDetails) => !openDetails)
+                      }
+                      variant={"ghost"}
+                      className={"w-full justify-end"}
                     >
-                      <Button
+                      <span>دیدن جذیات</span>
+                      <HiEye size={32} strokeWidth={1.75} />
+                    </Button>
+                  </DropdownMenuItem>
+                  {payment.accountType === "company" ? (
+                    ""
+                  ) : (
+                    <>
+                      <DropdownMenuItem
                         onClick={() =>
-                          setOpenSaller((openSaller) => !openSaller)
+                          navigator.clipboard.writeText(payment.id)
                         }
-                        variant={"ghost"}
-                        className={"w-full justify-end"}
                       >
-                        <span>اصلاح کردن</span>
-                        <HiPencil size={32} color="green" />
-                      </Button>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Button
-                        onClick={() =>
-                          setOpenDelete((openDelete) => !openDelete)
-                        }
-                        variant={"ghost"}
-                        className={"w-full justify-end"}
-                      >
-                        <span>حذف</span>
-                        <Trash2 size={32} strokeWidth={1.75} color={"red"} />
-                      </Button>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                        <Button
+                          onClick={() =>
+                            setOpenSaller((openSaller) => !openSaller)
+                          }
+                          variant={"ghost"}
+                          className={"w-full justify-end"}
+                        >
+                          <span>اصلاح کردن</span>
+                          <HiPencil size={32} color="green" />
+                        </Button>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Button
+                          onClick={() =>
+                            setOpenDelete((openDelete) => !openDelete)
+                          }
+                          variant={"ghost"}
+                          className={"w-full justify-end"}
+                        >
+                          <span>حذف</span>
+                          <Trash2 size={32} strokeWidth={1.75} color={"red"} />
+                        </Button>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </DetailsModal>
           </ConfirmDelete>
         </RegisterModal>
       );

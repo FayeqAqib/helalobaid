@@ -78,12 +78,12 @@ const list = [
     ],
   },
   {
-    title: "گذارشات مختصر",
+    title: "گزارشات مختصر",
     url: "/customer/abridgedReportage",
     icon: <img src="../documentation.png" className="size-7" />,
   },
   {
-    title: "گذارشات مفصل ",
+    title: "گزارشات مفصل ",
     url: "/customer/executtiveReportage",
     icon: <img src="../folder.png" className="size-7" />,
   },

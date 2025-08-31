@@ -68,6 +68,54 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
           </>
         )}
         <div className="space-y-1 mt-5 max-h-96 overflow-auto">
+          {data?.accountType && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>نوع حساب</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {data.accountType}
+                </DialogDescription>
+              </div>
+
+              <Separator />
+            </>
+          )}
+          {data?.phoneNumber && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>شماره تماس</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {data.phoneNumber}
+                </DialogDescription>
+              </div>
+
+              <Separator />
+            </>
+          )}
+          {data?.email && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}> ایمیل آدرس </DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {data.email}
+                </DialogDescription>
+              </div>
+
+              <Separator />
+            </>
+          )}
+          {data?.address && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>آدرس</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {data.address}
+                </DialogDescription>
+              </div>
+
+              <Separator />
+            </>
+          )}
           {data?.from && (
             <>
               <div className="flex gap-6 items-center justify-between pe-4">
@@ -104,16 +152,44 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
               <Separator />
             </>
           )}
-          {data?.borrowAmount && (
+          {data?.borrow ? (
             <>
               <div className="flex gap-6 items-center justify-between pe-4">
-                <DialogTitle className={"text-right"}>باقی</DialogTitle>
+                <DialogTitle className={"text-right"}>طلب</DialogTitle>
                 <DialogDescription className={"text-lg"}>
-                  {formatCurrency(data.borrowAmount)}
+                  {formatCurrency(data.borrow)}
                 </DialogDescription>
               </div>
               <Separator />
             </>
+          ) : (
+            ""
+          )}
+          {data?.lend ? (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>باقی</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {formatCurrency(data.lend)}
+                </DialogDescription>
+              </div>
+              <Separator />
+            </>
+          ) : (
+            ""
+          )}
+          {data?.balance ? (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>بیلانس</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {formatCurrency(data.balance)}
+                </DialogDescription>
+              </div>
+              <Separator />
+            </>
+          ) : (
+            ""
           )}
           {data?.lendAmount && (
             <>

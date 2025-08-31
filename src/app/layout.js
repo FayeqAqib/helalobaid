@@ -3,7 +3,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 
 export const metadata = {
-  title: "SHUKRULLAH AJMAL",
+  title: "MEGABYTE",
 };
 export default function RootLayout({ children }) {
   return (

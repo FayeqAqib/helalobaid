@@ -12,7 +12,7 @@ export default async function Page({ searchParams }) {
   return (
     <Card className={"p-5 shadow-xl size-full gap-0"}>
       <CardHeader className={"text-right "}>
-        <h2 className={"text-2xl font-bold"}>گذارشات مفصل </h2>
+        <h2 className={"text-2xl font-bold"}>گزارشات مفصل </h2>
       </CardHeader>
 
       <DataTableExecuttiveReportage

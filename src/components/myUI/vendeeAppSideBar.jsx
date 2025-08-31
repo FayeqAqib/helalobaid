@@ -65,12 +65,12 @@ const list = [
     ],
   },
   {
-    title: "گذارشات مختصر",
+    title: "گزارشات مختصر",
     url: "/vendee/abridgedReportage",
     icon: <img src="../documentation.png" className="size-7" />,
   },
   {
-    title: "گذارشات مفصل ",
+    title: "گزارشات مفصل ",
     url: "/vendee/executtiveReportage",
     icon: <img src="../folder.png" className="size-7" />,
   },

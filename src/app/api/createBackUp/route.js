@@ -4,14 +4,26 @@ import fs from "fs";
 import { BackUp } from "@/models/backUp";
 
 import { connectDB } from "@/lib/db";
+import { auth } from "@/lib/auth";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
 const baseUrl = process.env.NEXTAUTH_URL;
-
+const backUp = process.env.MONGODBBACKUP_URI;
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session.user._doc.role || session.user._doc.role !== "admin") {
+      return new Response(
+        JSON.stringify("شما اجازه دسترسی به این صفحه را ندارید"),
+        {
+          status: 401,
+          headers: {
+            "Access-Control-Allow-Origin": `${baseUrl}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
     // مسیر دقیق فایل‌های bson
-    const db = await connectDB();
     // if (fs.existsSync(dumpPath)) {
     //   fs.rmSync(dumpPath, { recursive: true, force: true });
     // }
@@ -21,10 +33,13 @@ export async function GET() {
     // await db.connection.dropDatabase();
     // 1. گرفتن بکاپ
     await new Promise((resolve, reject) => {
-      exec(`mongodump --archive="mongodump-test-db" --db=test`, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
+      exec(
+        `mongodump --uri="${backUp}test?authSource=admin" --archive="mongodump-test-db"`,
+        (err) => {
+          if (err) return reject(err);
+          resolve();
+        }
+      );
     });
 
     // چک کردن وجود پوشه test
@@ -35,7 +50,7 @@ export async function GET() {
     // 2. بازگردانی دیتابیس به نام backup
     await new Promise((resolve, reject) => {
       exec(
-        `mongorestore --archive="mongodump-test-db" --nsFrom="test.*" --nsTo="backUp.*"`,
+        ` mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --nsFrom="test.*" --nsTo="backUp.*"`,
         (err) => {
           if (err) return reject(err);
           resolve();

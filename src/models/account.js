@@ -29,6 +29,7 @@ const accountSchema = new mongoose.Schema({
     required: false,
     default: "",
   },
+  image: { type: String },
   // 'قرض گرفتن'
   borrow: { type: Number, default: 0, min: 0 },
   vendeeBorrow: { type: Number, default: 0, min: 0 },

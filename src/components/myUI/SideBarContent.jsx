@@ -38,8 +38,8 @@ export function AppSidebarContent({ list, count }) {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarHeader className={"flex flex-row gap-2"}>
-            <div className="relative w-1/2 h-[45px]">
+          <SidebarHeader className={"flex flex-col gap-2"}>
+            <div className="relative w-[70%] mx-5 h-[90px]">
               <Image
                 src="/Ajmal.png"
                 fill
@@ -48,16 +48,13 @@ export function AppSidebarContent({ list, count }) {
                 // objectFit="fit"
               />
             </div>
-            <div className="flex h-[45px] flex-col italic justify-center  items-center w-1/2">
-              <Label className={"font-bold text-xs  font-sans  uppercase"}>
-                Shukrullah
-              </Label>
+            <div className="flex h-[45px] flex-col italic justify-center  items-center w-full">
               <Label
                 className={
                   "font-extralight text-3xl bg-gradient-to-tr from-white dark:from-black via-slate-400 dark:via-slate-500 to-slate-950 dark:to-white bg-clip-text text-transparent  uppercasexz px-1 "
                 }
               >
-                Ajmal
+                MEGABYTE
               </Label>
             </div>
           </SidebarHeader>

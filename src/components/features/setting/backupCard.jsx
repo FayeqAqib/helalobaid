@@ -50,22 +50,6 @@ export const BackupCard = ({ backup }) => {
         </div>
         <div className="flex flex-col gap-4 justify-center items-center">
           <BackupModal
-            variant={"destructive"}
-            type={"reset"}
-            open={Open2}
-            onOpen={setOpen2}
-            tital={"حذف تمام اطلاعات"}
-            discreption={
-              "با اجرای این عمل مطمعن شوید که از اطلاعات خود پشتیبان گیری کرده باشین جود تمام اطلاعات شما به صورت کامل حذف می شود"
-            }
-          >
-            <DialogTrigger>
-              <Button variant={"destructive"}>حذف تمام دیتا ها</Button>
-            </DialogTrigger>
-          </BackupModal>
-        </div>
-        <div className="flex flex-col gap-4 justify-center items-center">
-          <BackupModal
             type={"update"}
             open={Open3}
             onOpen={setOpen3}

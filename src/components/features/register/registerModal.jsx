@@ -41,6 +41,17 @@ const schema = z.object({
   email: z.string().optional(),
   details: z.string().optional(),
   amount: z.number().min(0).optional(),
+  image: z
+    .any()
+
+    .refine(
+      (files) =>
+        !files ||
+        typeof files === "string" ||
+        files[0]?.size <= 2.5 * 1024 * 1024,
+      "حجم عکس نباید بیشتر از ۲.۵ مگابایت باشد"
+    )
+    .optional(),
   amountType: z.enum(["lend", "borrow"]),
 });
 
@@ -90,6 +101,7 @@ export function RegisterModal({
       lend: formData.amountType === "lend" ? formData.amount : 0,
       borrow: formData.amountType === "borrow" ? formData.amount : 0,
       _id: data._id,
+      image: formData.image?.[0],
     };
     startTransition(async () => {
       if (type === "create") {
@@ -238,6 +250,23 @@ export function RegisterModal({
                       type={"email"}
                       value={field.value}
                       onChange={field.onChange}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex flex-row gap-4 ">
+              <FormField
+                control={form.control}
+                name="image"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>عکس</FormLabel>
+                    <Input
+                      type={"file"}
+                      disabled={type !== "create"}
+                      onChange={(e) => field.onChange(e.target.files)}
                     />
                     <FormMessage />
                   </FormItem>
