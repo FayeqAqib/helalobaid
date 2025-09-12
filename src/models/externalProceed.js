@@ -16,7 +16,8 @@ const externalProceedSchema = new mongoose.Schema({
     required: true,
   },
   externalProceedTitle: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ProceedTital",
     required: true,
   },
   amount: {

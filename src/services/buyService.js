@@ -6,11 +6,21 @@ import moment from "moment-jalaali";
 
 import { uploadImage } from "@/lib/uploadImage";
 import { deleteFile } from "@/lib/deleteImage";
+import { generateBillNumber } from "@/lib/billNumberGenerator";
+import { DepotItems } from "@/models/depotItems";
+import { Cost } from "@/models/cost";
+import { CostTital } from "@/models/constTital";
+import { Items } from "@/models/items";
 
 ////////////////////////////////////////////////// create ////////////////////////////////////////////////
 
 export const createBuy = catchAsync(async (data) => {
   const newData = { ...data };
+
+  //////////////////////////////// GENERATE BILL //////////////////////////////////
+
+  newData.billNumber = await generateBillNumber(Buy);
+
   const company = await Account.findById(newData.income, {
     balance: 1,
   });
@@ -28,6 +38,13 @@ export const createBuy = catchAsync(async (data) => {
       message: `برای پرداخت  در حساب خود بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
     };
 
+  if (company.balance < newData.cashAmount + newData.transportCost)
+    return {
+      message: `برای پرداخت پول ترانسپورت در حساب خود بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
+    };
+
+  //////////////////////////////////////////////////// UPLOAD IMAGE ////////////////////////////////////////////////
+
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
 
@@ -38,15 +55,77 @@ export const createBuy = catchAsync(async (data) => {
     };
   }
 
-  const result = await Buy.create(newData);
+  newData.buyLists.forEach(async (item) => {
+    const itemData = await Items.findOne({
+      $and: [
+        { depot: item.depot },
+        { product: item.product },
+        { unit: item.unit },
+      ],
+    });
 
+    if (itemData) {
+      const updateData = {
+        count: itemData.count + item.count,
+        unitAmount:
+          (itemData.unitAmount * itemData.count +
+            item.unitAmount * item.count) /
+          (itemData.count + item.count),
+        aveUnitAmount:
+          (itemData.aveUnitAmount * itemData.count +
+            item.aveUnitAmount * item.count) /
+          (itemData.count + item.count),
+      };
+      await Items.findByIdAndUpdate(itemData._id, updateData);
+    } else {
+      await Items.create(item);
+    }
+  });
+
+  ////////////////////////////////////////// CREATE TRANSPORT COST//////////////////////////////////////////////
+  const costTital = await CostTital.findOneAndUpdate(
+    { name: "ترانسپورت" },
+    { $setOnInsert: { name: "ترانسپورت" } },
+    {
+      upsert: true, // ایجاد اگر وجود نداشت
+      new: true, // بازگرداندن سند جدید
+      runValidators: true, // اجرای اعتبارسنجی‌ها
+    }
+  );
+
+  const costData = {
+    income: newData.income,
+    costTital: costTital._id,
+    amount: newData.transportCost,
+    createBy: "buy",
+    details: `مصارف از درک ترانسپورت  خرید  با بل نمبر ${newData.billNumber} صورت گرفته.`,
+  };
+
+  let cost;
+  if (newData.transportCost > 0) {
+    cost = await Cost.create(costData);
+  }
+
+  ////////////////////////////////////// CREATE BUY //////////////////////////////////////////////////////////////////////
+
+  if (newData.transportCost > 0) {
+    newData.cost = cost._id;
+  }
+  newData.totalCount = newData.buyLists.reduce(
+    (acc, item) => item.count + acc,
+    0
+  );
+  const result = await Buy.create(newData);
+  /////////////////////////////////////////////////// UPDATE ACCOUNT DATA /////////////////////////////////////////////////
   if (result?._id) {
     const newCompanyData = {
-      balance: Number(company.balance) - Number(newData.cashAmount),
+      balance:
+        Number(company.balance) -
+        Number(newData.cashAmount) -
+        Number(newData.transportCost),
     };
     const newCompany_idData = {
       lend: Number(company_id.lend) + Number(newData.borrowAmount),
-      METUbalance: Number(company_id.METUbalance) + Number(newData.metuAmount),
     };
     await Account.findByIdAndUpdate(newData.income, newCompanyData);
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
@@ -60,7 +139,7 @@ export const createBuy = catchAsync(async (data) => {
   return result;
 });
 
-////////////////////////////////////////////////// find ////////////////////////////////////////////////
+////////////////////////////////////////////////// FIND ////////////////////////////////////////////////
 
 export const getAllbuy = catchAsync(async (filter) => {
   if (filter.saller) {
@@ -72,10 +151,11 @@ export const getAllbuy = catchAsync(async (filter) => {
     .sort()
     .paginate();
   const result = await features.query.populate(["saller", "income"], "name");
+
   return { result, count };
 });
 
-////////////////////////////////////////////////// delete ////////////////////////////////////////////////
+////////////////////////////////////////////////// DELETE  ////////////////////////////////////////////////
 
 export const deleteBuy = catchAsync(async (data) => {
   const company = await Account.findById(data.income, {
@@ -90,21 +170,32 @@ export const deleteBuy = catchAsync(async (data) => {
   const saller = await Account.findById(data.saller._id, {
     borrow: 1,
   });
+  ////////////////////////////////////////////////// DELETE BUY /////////////////////////////////
 
-  if (company.METUbalance < data.metuAmount)
-    return {
-      message: `برای پرداخت  در حساب خود میتیو کافی ندارید بیلانس شما${company.METUbalance} می باشد`,
-    };
   const result = await Buy.findByIdAndDelete(data._id);
   await deleteFile(data.image);
 
+  ///////////////////////////////////////////////// DETELE DEPOT ITEMS //////////////////////////
+
+  await DepotItems.deleteMany({
+    _id: { $in: data.items },
+  });
+
+  //////////////////////////////////////////// DELETE COST ///////////////////////////////////////
+
+  await Cost.findByIdAndDelete(data.cost);
+
+  /////////////////////////////////////////// UPDATE ACCOUNT ///////////////////////////////////////
+
   if (result?._id) {
     const newCompanyData = {
-      balance: Number(company.balance) + Number(data.cashAmount),
+      balance:
+        Number(company.balance) +
+        Number(data.cashAmount) +
+        Number(data.transportCost),
     };
     const newCompany_idData = {
       lend: Number(company_id.lend) - Number(data.borrowAmount),
-      METUbalance: Number(company_id.METUbalance) - Number(data.metuAmount),
     };
     await Account.findByIdAndUpdate(data.income, newCompanyData);
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
@@ -202,7 +293,6 @@ export const getSixMonthBuyData = catchAsync(async () => {
       afgDate: moment(`${year}/${month}`, "jYYYY/jM").format("jYYYY/jM"),
     });
   }
-
   const result = await Buy.aggregate([
     {
       $match: { $or: filter },

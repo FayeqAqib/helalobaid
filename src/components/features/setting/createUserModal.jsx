@@ -91,15 +91,16 @@ export function UserModal({ children, data = {}, open, onOpen }) {
             onSubmit={form.handleSubmit(submiteForm)}
             className="w-full  rounded-lg shadow-md p-8 space-y-6"
           >
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-4 w-full">
               <FormField
                 control={form.control}
                 name="username"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <Label>نام کاربری</Label>
 
                     <Input
+                      className={"flex-1"}
                       placeholder="نام کاربری خود را وارد کنید"
                       {...field}
                       disabled={isPending}
@@ -114,17 +115,13 @@ export function UserModal({ children, data = {}, open, onOpen }) {
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={"flex-1"}>
                     <Label>رمز عبور</Label>
 
                     <Input
                       type="password"
                       placeholder="رمز عبور خود را وارد کنید"
-                      value={field.value}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? "" : Number(value));
-                      }}
+                      className={"flex-1"}
                       {...field}
                       disabled={isPending}
                     />

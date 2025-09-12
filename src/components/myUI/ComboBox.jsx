@@ -20,7 +20,18 @@ import {
 
 import { useEffect, useState } from "react";
 import { getAllSallerAndBuyerAction } from "@/actions/accountAction";
-import { getAllBuyerAction } from "@/actions/vendeeAccountAction";
+import { getAllCostTitalAction } from "@/actions/costTitalAction";
+import { getAllProceedTitalAction } from "@/actions/proceedTitalAction";
+import { getAllProductAction } from "@/actions/productAction";
+import { getAllUnitAction } from "@/actions/unitAction";
+import { getAllDepotAction } from "@/actions/depotAction";
+import { getListOfDepotItemsAction } from "@/actions/depotItemsAction";
+import { getListOfItemsActions } from "@/actions/itemsAction";
+
+// const optionslist = [
+//   { label: "ایران", value: "68426436f40989bb6a60bf55" },
+//   { label: "آلمان", value: "DE" },
+// ];
 
 export function AutoCompleteV2({
   label = "فروشنده را اتنخاب کنید..",
@@ -39,13 +50,61 @@ export function AutoCompleteV2({
     async function get() {
       let result;
       setIsLoading(true);
-      if (dataType === "vendee") {
-        result = await getAllBuyerAction(type, lend, borrow);
-      } else {
+      if (dataType === "customer") {
         result = await getAllSallerAndBuyerAction(type, lend, borrow);
+      } else if (dataType === "cost") {
+        result = await getAllCostTitalAction();
+      } else if (dataType === "proceed") {
+        result = await getAllProceedTitalAction();
+      } else if (dataType === "product") {
+        result = await getAllProductAction();
+      } else if (dataType === "unit") {
+        result = await getAllUnitAction();
+      } else if (dataType === "depot") {
+        result = await getAllDepotAction();
+      } else if (dataType === "items") {
+        result = await getListOfItemsActions();
+        console.log("fayeqeq", result);
       }
 
-      setOptions(result.result);
+      if (!["customer", "items"].includes(dataType)) {
+        const data = result.result.map((item) => {
+          return { value: item._id, label: item.name };
+        });
+        setOptions(data);
+        if (dataType === "depot") onChange(`${data[0].label}_${data[0].value}`);
+      } else if (dataType === "customer") {
+        setOptions(result.result);
+      } else if (dataType === "items") {
+        const newResult = result.result.map((item) => {
+          return {
+            value:
+              item.product._id +
+              "-" +
+              item.aveUnitAmount +
+              "-" +
+              item.depot._id +
+              "," +
+              item.depot.name +
+              "-" +
+              item.unit._id +
+              "," +
+              item.unit.name,
+            label:
+              item.product.name +
+              " " +
+              "-" +
+              " " +
+              "(" +
+              item.unit.name +
+              ")" +
+              " " +
+              item.count,
+          };
+        });
+        setOptions(newResult);
+      }
+
       setIsLoading(false);
     }
     get();
@@ -58,15 +117,17 @@ export function AutoCompleteV2({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={" text-right overflow-hidden"}
+          className={
+            " text-right overflow-hidden bg-primary/20 backdrop-blur-md"
+          }
         >
           {value ? value?.split("_")[0] : label}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className={` w-[200px] p-0`}>
         <Command>
-          <CommandInput placeholder="جستجو فروشده" className="h-9" />
+          <CommandInput placeholder="جستجو " className="h-9" />
           <CommandList>
             {isLoading ? (
               <div className="flex items-center justify-center flex-1 min-h-24">

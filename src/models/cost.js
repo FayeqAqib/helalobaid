@@ -15,8 +15,9 @@ const costSchema = new mongoose.Schema({
     ref: "Account",
     required: true,
   },
-  costTitle: {
-    type: String,
+  costTital: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "CostTital",
     required: true,
   },
   amount: {
@@ -29,6 +30,7 @@ const costSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  createBy: String,
 });
 
 costSchema.pre("save", function (next) {

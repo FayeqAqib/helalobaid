@@ -14,7 +14,7 @@ function LoanAccount({ company }) {
 
   return (
     <Card className={"w-full max-w-4xl  p-2 shadow-lg"}>
-      <div className="flex flex-col items-center justify-center bg-[var(--chart-2)] rounded-2xl shadow-2xl shadow-[#a1a1a1] dark:shadow-black p-2">
+      <div className="flex flex-col items-center justify-center bg-[var(--chart-1)] rounded-2xl shadow-2xl shadow-[#a1a1a1] dark:shadow-black p-2">
         <CardHeader className={"w-full p-1"}>
           <CardTitle className={"text-xl font-bold "}>
             <img
@@ -37,7 +37,7 @@ function LoanAccount({ company }) {
               alt="money icon"
             />
             <CardTitle className={"text-center text-md font-bold"}>
-              مجموع قابل حصول
+              قابل حصول
             </CardTitle>
             <CardDescription className={"text-center text-md font-bold"}>
               {" "}
@@ -51,7 +51,7 @@ function LoanAccount({ company }) {
               alt="money icon"
             />
             <CardTitle className={"text-center text-md font-bold"}>
-              مجموع قابل پرداخت
+              قابل پرداخت
             </CardTitle>
             <CardDescription className={"text-center text-md font-bold"}>
               {" "}

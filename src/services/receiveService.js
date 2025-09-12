@@ -14,15 +14,16 @@ export const createReceive = catchAsync(async (data) => {
     borrow: 1,
   });
 
-  const buyer = await Account.findById(newData.type, {
+  const buyer = await Account.findById(data.type, {
     lend: 1,
     balance: 1,
   });
 
-  if (buyer.lend < newData.amount)
+  if (buyer.lend < newData.amount) {
     return {
       message: `پول درج شده بیشر از مقدار پول مورد نظر میباشد، لطفا نموده در درج مقدار پول توجه بیشتر به خرچ دهید. طلب  شما از  مشتری   ${buyer.lent} می باشد`,
     };
+  }
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
 
@@ -47,7 +48,6 @@ export const createReceive = catchAsync(async (data) => {
     if (newData.amount >= 1) {
       const newbuyerData = {
         lend: Number(buyer.lend) - Number(newData.amount),
-        balance: Number(buyer.balance) - Number(newData.amount),
       };
       await Account.findByIdAndUpdate(newData.type, newbuyerData);
     }
@@ -101,7 +101,6 @@ export const deleteReceive = catchAsync(async (data) => {
     if (data.amount >= 1) {
       const newbuyerData = {
         lend: Number(buyer.lend) + Number(data.amount),
-        balance: Number(buyer.balance) + Number(data.amount),
       };
       await Account.findByIdAndUpdate(data.type, newbuyerData);
     }
@@ -156,9 +155,6 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
     const newBuyerdata = {
       lend:
         Number(newBuyer.lend) -
-        (Number(myNewData.amount) - Number(currentData.amount)),
-      balance:
-        Number(newBuyer.balance) -
         (Number(myNewData.amount) - Number(currentData.amount)),
     };
 

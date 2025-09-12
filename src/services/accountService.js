@@ -206,7 +206,7 @@ export const updateAccount = catchAsync(async (data) => {
 
 export const getTopThreeAccountsBylend = catchAsync(async () => {
   const accounts = await Account.find(
-    { accountType: "buyer", lend: { $ne: 0 } },
+    { accountType: { $ne: "company" }, lend: { $ne: 0 } },
     { lend: 1, name: 1 }
   )
     .sort({ lend: -1 }) // Sort in descending order by balance

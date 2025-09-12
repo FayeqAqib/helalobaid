@@ -39,7 +39,7 @@ export default function ConfirmDelete({ children, data, open, onOpen }) {
         <DialogHeader className=" flex flex-col t items-start">
           <DialogTitle>حذف مصرف</DialogTitle>
           <DialogDescription className={"text-right"}>
-            آیا مطمئن هستید اطلاعات مصرف {data.costTitle} را حذف کنید؟.
+            آیا مطمئن هستید اطلاعات مصرف {data.costTitle?.name} را حذف کنید؟.
           </DialogDescription>
         </DialogHeader>
 

@@ -1,30 +1,49 @@
 import APIFeatures from "@/lib/apiFeatues";
+import { generateBillNumber } from "@/lib/billNumberGenerator";
 import { catchAsync } from "@/lib/catchAsync";
 import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
+import { Items } from "@/models/items";
 import { Sale } from "@/models/Sale";
 import moment from "moment-jalaali";
 
 export const createSale = catchAsync(async (data) => {
   const newData = { ...data };
+
+  //////////////////////////////// GENERATE BILL //////////////////////////////////
+
+  newData.billNumber = await generateBillNumber(Sale);
+
   const company = await Account.findById(newData.income, {
     balance: 1,
   });
   const company_id = await Account.findById(process.env.COMPANY_ID, {
     borrow: 1,
-    METUbalance: 1,
   });
 
   const buyer = await Account.findById(newData.buyer, {
     lend: 1,
     balance: 1,
-    METUbalance: 1,
   });
-  if (company.METUbalance < newData.metuAmount)
-    return {
-      message: `برای پرداخت میتیو در حساب میتیو بیلانس کافی ندارید بیلانس شما${company.METUbalance} می باشد`,
-    };
+
+  newData.items.forEach(async (item) => {
+    const itemData = await Items.findOne({
+      $and: [
+        { depot: item.depot },
+        { product: item.product },
+        { unit: item.unit },
+      ],
+    });
+    if (itemData.count >= item.count) {
+      const updateData = {
+        count: itemData.count - item.count,
+      };
+      await Items.findByIdAndUpdate(itemData._id, updateData);
+    } else {
+      throw new Error("تعداد معتبر نیست");
+    }
+  });
 
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
@@ -35,6 +54,9 @@ export const createSale = catchAsync(async (data) => {
         "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
     };
   }
+
+  newData.totalCount = newData.items.reduce((acc, item) => item.count + acc, 0);
+
   const result = await Sale.create(newData);
 
   if (result?._id) {
@@ -43,7 +65,6 @@ export const createSale = catchAsync(async (data) => {
     };
     const newCompany_idData = {
       borrow: Number(company_id.borrow) + Number(newData.lendAmount),
-      METUbalance: Number(company_id.METUbalance) - Number(newData.metuAmount),
     };
     await Account.findByIdAndUpdate(newData.income, newCompanyData);
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
@@ -51,7 +72,6 @@ export const createSale = catchAsync(async (data) => {
       const newBuyerData = {
         lend: Number(buyer.lend) + Number(newData.lendAmount),
         balance: Number(buyer.balance) - Number(newData.cashAmount),
-        METUbalance: Number(buyer.METUbalance) + Number(newData.metuAmount),
       };
       await Account.findByIdAndUpdate(newData.buyer, newBuyerData);
     }
@@ -116,6 +136,24 @@ export const deleteSale = catchAsync(async (data) => {
     return {
       message: `برای پرداخت پول مشتری در حساب  بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
     };
+
+  data.items.forEach(async (item) => {
+    const itemData = await Items.findOne({
+      $and: [
+        { depot: item.depot },
+        { product: item.product },
+        { unit: item.unit },
+      ],
+    });
+    if (itemData.length > 0) {
+      const updateData = {
+        count: itemData.count + item.count,
+      };
+      await Items.findByIdAndUpdate(itemData._id, updateData);
+    } else {
+      throw new Error("تعداد معتبر نیست");
+    }
+  });
 
   const result = await Sale.findByIdAndDelete(data._id);
   await deleteFile(data.image);
@@ -279,7 +317,6 @@ export const getSixMonthSaleData = catchAsync(async () => {
       $sort: { _id: 1 },
     },
   ]);
-
   return result;
 });
 

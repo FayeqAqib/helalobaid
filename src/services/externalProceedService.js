@@ -4,6 +4,7 @@ import { Account } from "@/models/account";
 import APIFeatures from "@/lib/apiFeatues";
 import { uploadImage } from "@/lib/uploadImage";
 import { deleteFile } from "@/lib/deleteImage";
+import { ProceedTital } from "@/models/ProceedTital";
 
 export const createExternalProceed = catchAsync(async (data) => {
   const newData = { ...data };
@@ -13,7 +14,7 @@ export const createExternalProceed = catchAsync(async (data) => {
 
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
-  console.log(newData);
+
   if (err) {
     return {
       message:
@@ -37,7 +38,10 @@ export const getAllExternalProceed = catchAsync(async (filter) => {
     .filter()
     .sort()
     .paginate();
-  const result = await features.query.populate("income", "name");
+  const result = await features.query.populate(
+    ["income", "externalProceedTitle"],
+    "name"
+  );
   return { result, count };
 });
 
@@ -65,11 +69,53 @@ export const deleteExternalProceed = catchAsync(async (data) => {
 
 export const updateExternalProceed = catchAsync(
   async ({ currentData, newData }) => {
-    const myNewData = { ...newData, image: currentData.image };
+    const myNewData = { ...newData };
+
+    if (typeof newData.image === "object") {
+      const { path, err } = await uploadImage(data.image);
+      myNewData.image = path;
+
+      if (err) {
+        return {
+          message:
+            "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
+        };
+      }
+    } else {
+      delete myNewData.image;
+    }
 
     const company = await Account.findById(currentData.income, {
       balance: 1,
     });
+
+    if (currentData.income !== newData.income) {
+      const company_id = await Account.findById(currentData.income, {
+        balance: 1,
+      });
+
+      const result = await ExternalProceed.findByIdAndUpdate(
+        currentData._id,
+        myNewData
+      );
+
+      if (result._id) {
+        const currentCompanyBalance = {
+          balance: Number(company_id.balance) - Number(currentData.amount),
+        };
+        const newCompanyBalance = {
+          balance: Number(company.balance) + Number(myNewData.amount),
+        };
+
+        await Account.findByIdAndUpdate(
+          currentData.income,
+          currentCompanyBalance
+        );
+        await Account.findByIdAndUpdate(myNewData.income, newCompanyBalance);
+      }
+
+      return result;
+    }
 
     const result = await ExternalProceed.findByIdAndUpdate(
       currentData._id,
@@ -86,3 +132,10 @@ export const updateExternalProceed = catchAsync(
     return result;
   }
 );
+
+////////////////////////////////// GET PROCEED TITAL/////////////////////////////////////
+
+export const getProceedTital = catchAsync(async () => {
+  const accounts = await ProceedTital.find({}).lean(); // Get plain JavaScript objectsst;
+  return accounts;
+});

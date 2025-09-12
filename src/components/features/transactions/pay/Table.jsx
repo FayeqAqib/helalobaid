@@ -331,7 +331,7 @@ export function DataTablePay({ data, count }) {
           <PayModal open={open} onOpen={setOpen}>
             <DialogTrigger asChild>
               <Button>
-                افزودن فروش <ShoppingBasket size={32} strokeWidth={1.75} />
+                افزودن پرداختی <ShoppingBasket size={32} strokeWidth={1.75} />
               </Button>
             </DialogTrigger>
           </PayModal>

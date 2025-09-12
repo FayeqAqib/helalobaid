@@ -30,23 +30,21 @@ import { Button } from "../ui/button";
 import { signOutAction } from "@/actions/user";
 import Image from "next/image";
 import { Label } from "../ui/label";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 // Menu items.
 
-export function AppSidebarContent({ list, count }) {
+export function AppSidebarContent({ list }) {
+  const path = usePathname();
+  const [isActive, setIsActive] = useState(path);
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarHeader className={"flex flex-col gap-2"}>
+          <SidebarHeader className={"flex-col gap-2"}>
             <div className="relative w-[70%] mx-5 h-[90px]">
-              <Image
-                src="/Ajmal.png"
-                fill
-                className="absolute "
-                alt="image"
-                // objectFit="fit"
-              />
+              <Image src="/Ajmal.png" fill className="absolute " alt="image" />
             </div>
             <div className="flex h-[45px] flex-col italic justify-center  items-center w-full">
               <Label
@@ -65,17 +63,15 @@ export function AppSidebarContent({ list, count }) {
                 if (!item?.child) {
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild size="lg">
-                        <Link href={item.url} className="  ">
-                          {item.icon}
-
-                          <span>{item.title}</span>
-                          {item.url === "/customer/applecation" &&
-                            count > 0 && (
-                              <SidebarMenuBadge className={"bg-red-600"}>
-                                {count}
-                              </SidebarMenuBadge>
-                            )}
+                      <SidebarMenuButton
+                        asChild
+                        size="lg"
+                        isActive={item.url === isActive}
+                        onClick={() => setIsActive(item.url)}
+                      >
+                        <Link href={item.url}>
+                          <span> {item.icon}</span>
+                          {item.title}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -87,9 +83,9 @@ export function AppSidebarContent({ list, count }) {
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton asChild size="lg">
                             <Link href={"#"} className="  ">
-                              {item.icon}
+                              <span>{item.icon}</span>
 
-                              <span>{item.title}</span>
+                              {item.title}
                             </Link>
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
@@ -97,11 +93,16 @@ export function AppSidebarContent({ list, count }) {
                           <SidebarMenuSub>
                             {item?.child?.map((subItem, i) => (
                               <SidebarMenuSubItem key={i}>
-                                <SidebarMenuButton asChild size="lg">
-                                  <Link href={subItem.url} className="  ">
-                                    {subItem.icon}
+                                <SidebarMenuButton
+                                  asChild
+                                  size="lg"
+                                  isActive={subItem.url === isActive}
+                                  onClick={() => setIsActive(subItem.url)}
+                                >
+                                  <Link href={subItem.url} className=" ">
+                                    <span>{subItem.icon}</span>
 
-                                    <span>{subItem.title}</span>
+                                    {subItem.title}
                                   </Link>
                                 </SidebarMenuButton>
                               </SidebarMenuSubItem>

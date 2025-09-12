@@ -366,7 +366,7 @@ export async function getAllTransferMoneySeller() {
   // ایجاد مپ برای دسترسی سریع به نام‌ها
   const accountMap = new Map();
   accounts.forEach((account) => {
-    accountMap.set(account._id.toString(), {
+    accountMap.set(account._id?.toString(), {
       name: account.name,
       balance: account.balance,
       lend: account.lend,
@@ -375,11 +375,11 @@ export async function getAllTransferMoneySeller() {
 
   // اضافه کردن نام به هر آیتم
   resultArray = resultArray.map((item) => {
-    const acc = accountMap.get(item._id.toString());
+    const acc = accountMap.get(item._id?.toString());
 
     return {
       ...item,
-      _id: item._id.toString(),
+      _id: item._id?.toString(),
       name: acc.name || "نامشخص",
       balance: acc.balance || 0,
       lend: acc.lend || 0,

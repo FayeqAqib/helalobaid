@@ -72,7 +72,7 @@ export const columns = [
     ),
   },
   {
-    accessorKey: "costTitle",
+    accessorKey: "costTital",
     header: ({ column }) => {
       return (
         <Button
@@ -85,7 +85,7 @@ export const columns = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("costTitle")}</div>
+      <div className="lowercase">{row.getValue("costTital")?.name}</div>
     ),
   },
   {
@@ -132,7 +132,7 @@ export const columns = [
     accessorKey: "details",
     header: "تفصیلات",
     cell: ({ row }) => (
-      <div className="lowercase max-w-[250px] overflow-clip">
+      <div className="lowercase max-w-[350px] overflow-clip">
         {row.getValue("details")}
       </div>
     ),
@@ -161,7 +161,7 @@ export const columns = [
             <DetailsModal
               data={{
                 ...payment,
-                name: payment.costTitle,
+                name: payment.costTitle?.name,
                 income: payment.income.name,
               }}
               open={openDetails}
@@ -191,28 +191,40 @@ export const columns = [
                       <HiEye size={32} strokeWidth={1.75} />
                     </Button>
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => navigator.clipboard.writeText(payment.id)}
-                  >
-                    <Button
-                      onClick={() => setOpenCost((openCost) => !openCost)}
-                      variant={"ghost"}
-                      className={"w-full justify-end"}
-                    >
-                      <span>تصحیح</span>
-                      <FilePenLine size={32} strokeWidth={1.75} color="green" />
-                    </Button>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Button
-                      onClick={() => setOpenDelete((openDelete) => !openDelete)}
-                      variant={"ghost"}
-                      className={"w-full justify-end"}
-                    >
-                      <span>حذف</span>
-                      <Trash2 size={32} strokeWidth={1.75} color={"red"} />
-                    </Button>
-                  </DropdownMenuItem>
+                  {payment.createBy !== "buy" && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          navigator.clipboard.writeText(payment.id)
+                        }
+                      >
+                        <Button
+                          onClick={() => setOpenCost((openCost) => !openCost)}
+                          variant={"ghost"}
+                          className={"w-full justify-end"}
+                        >
+                          <span>تصحیح</span>
+                          <FilePenLine
+                            size={32}
+                            strokeWidth={1.75}
+                            color="green"
+                          />
+                        </Button>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Button
+                          onClick={() =>
+                            setOpenDelete((openDelete) => !openDelete)
+                          }
+                          variant={"ghost"}
+                          className={"w-full justify-end"}
+                        >
+                          <span>حذف</span>
+                          <Trash2 size={32} strokeWidth={1.75} color={"red"} />
+                        </Button>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </DetailsModal>
@@ -286,9 +298,9 @@ export function DataTableCost({ data, count }) {
         <div className="flex gap-4">
           <Input
             placeholder="  جستجو با عنوان مصرف....."
-            value={table.getColumn("costTitle")?.getFilterValue() ?? ""}
+            value={table.getColumn("costTital")?.getFilterValue() ?? ""}
             onChange={(event) =>
-              table.getColumn("costTitle")?.setFilterValue(event.target.value)
+              table.getColumn("costTital")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />

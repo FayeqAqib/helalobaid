@@ -18,24 +18,20 @@ import {
 } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+
 export const description = "An area chart with gradient fill";
 
-const persianMonths = [
-  { index: 1, label: "حمل" },
-  { index: 2, label: "ثور" },
-  { index: 3, label: "جوزا" },
-  { index: 4, label: "سرطان" },
-  { index: 5, label: "اسد" },
-  { index: 6, label: "سنبله" },
-  { index: 7, label: "میزان" },
-  { index: 8, label: "عقرب" },
-  { index: 9, label: "قوس" },
-  { index: 10, label: "جدی" },
-  { index: 11, label: "دلو" },
-  { index: 12, label: "حوت" },
-];
-
 const chartConfig = {
+  visitors: {
+    label: "تراکنش",
+  },
   buy: {
     label: "خرید",
     color: "var(--chart-1)",
@@ -46,98 +42,121 @@ const chartConfig = {
   },
 };
 
-export function ChartAreaGradient({ buyData, saleData }) {
-  const [chartData, setChartData] = useState([]);
-
-  function mergeByDate(buys, sales) {
-    const resultMap = new Map();
-
-    // پردازش خریدها
-    for (const item of buys) {
-      if (!resultMap.has(item._id)) {
-        resultMap.set(item._id, { _id: item._id });
-      }
-      resultMap.get(item._id).buy = item.totalBuy;
+export function ChartAreaGradient({ data }) {
+  const [timeRange, setTimeRange] = useState("120d");
+  const chartData = data.map((item) => {
+    return { date: item.date, sale: item.totalBuy, buy: item.totalSale };
+  });
+  const filteredData = chartData.filter((item) => {
+    const date = new Date(item.date);
+    const referenceDate = new Date("2024-06-30");
+    let daysToSubtract = 120;
+    if (timeRange === "30d") {
+      daysToSubtract = 30;
+    } else if (timeRange === "7d") {
+      daysToSubtract = 7;
     }
-
-    // پردازش فروش‌ها
-    for (const item of sales) {
-      if (!resultMap.has(item._id)) {
-        resultMap.set(item._id, { _id: item._id });
-      }
-      resultMap.get(item._id).sale = item.totalSale;
-    }
-
-    // خروجی نهایی به صورت آرایه
-    return Array.from(resultMap.values())
-      .sort((a, b) => a._id.localeCompare(b._id))
-      .map((item) => {
-        return {
-          _id: item._id,
-          buy: item.buy ?? 0, // مقدار پیش‌فرض 0 اگر buy نبود
-          sale: item.sale ?? 0,
-          month: persianMonths[Number(item._id.split("/")[1]) - 1]?.label,
-        };
-      });
-  }
-
-  useEffect(() => {
-    setChartData(mergeByDate(buyData, saleData));
-  }, [buyData, saleData]);
-
-  const x = chartData.slice(-2);
-  const improvement =
-    ((Number(x[1]?.sale || 0) - Number(x[0]?.sale || 0)) * 100) /
-    Number(x[0]?.sale || 1);
+    const startDate = new Date(referenceDate);
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    return date >= startDate;
+  });
 
   return (
-    <Card className="w-full shadow-lg">
-      <CardHeader>
-        <CardTitle>تراکنش ها</CardTitle>
-        <CardDescription>میزان خرید وقروش در 6 ماه گذشته</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full shadow-xl shadow-black/30 p-0 rounded-sm overflow-hidden">
+      <div className="flex flex-row w-full justify-between h-8">
+        <CardHeader className={"p-5 w-1/2"}>
+          <CardTitle>تراکنش ها</CardTitle>
+          <CardDescription>میزان خرید وقروش در 6 ماه گذشته</CardDescription>
+        </CardHeader>
+        <CardHeader className={"p-5 w-1/2"}>
+          <Select value={timeRange} onValueChange={setTimeRange} dir="rtl">
+            <SelectTrigger
+              className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
+              aria-label="چهار ماه اخیر "
+            >
+              <SelectValue placeholder="fayeq" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl ">
+              <SelectItem value="120d" className="rounded-lg text-right">
+                چهار ماه اخیر
+              </SelectItem>
+              <SelectItem value="30d" className="rounded-lg">
+                یک ماه اخیر
+              </SelectItem>
+
+              <SelectItem value="7d" className="rounded-lg">
+                یک هفته اخیر
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+      </div>
+      <CardContent className={"p-0 m-0 max-h-[500px]"}>
         <ChartContainer config={chartConfig}>
           <AreaChart
             accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
+            data={filteredData}
+            margin={
+              {
+                // left: 20,
+                // right: 20,
+              }
+            }
           >
-            <CartesianGrid vertical={false} />
+            {/* <CartesianGrid vertical={false} /> */}
             <XAxis
-              dataKey="month"
+              dataKey="date"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 5)}
+              minTickGap={32}
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                });
+              }}
             />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(value) => {
+                    console.log(value);
+                    return new Date(value).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    });
+                  }}
+                  indicator="dot"
+                  areaChart2={true}
+                />
+              }
+            />
             <defs>
               <linearGradient id="fillbuy" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
                   stopColor="var(--color-buy)"
-                  stopOpacity={0.8}
+                  stopOpacity={0.6}
                 />
                 <stop
                   offset="95%"
                   stopColor="var(--color-buy)"
-                  stopOpacity={0.1}
+                  stopOpacity={0.01}
                 />
               </linearGradient>
               <linearGradient id="fillsale" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
                   stopColor="var(--color-sale)"
-                  stopOpacity={0.8}
+                  stopOpacity={0.6}
                 />
                 <stop
                   offset="95%"
                   stopColor="var(--color-sale)"
-                  stopOpacity={0.1}
+                  stopOpacity={0.01}
                 />
               </linearGradient>
             </defs>
@@ -155,39 +174,11 @@ export function ChartAreaGradient({ buyData, saleData }) {
               fill="url(#fillbuy)"
               fillOpacity={0.4}
               stroke="var(--color-buy)"
-              stackId="b"
+              stackId="a"
             />
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div
-              className={`flex items-center gap-2 leading-none font-medium ${
-                improvement > 0 ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              {improvement > 0
-                ? `  ${Math.abs(
-                    improvement.toFixed(2)
-                  )}% بهبود عمل کرد نسبت به ماه قبل`
-                : `  ${Math.abs(
-                    improvement.toFixed(2)
-                  )}% کاهش عمل کرد نسبت به ماه قبل`}
-
-              {improvement > 0 ? (
-                <TrendingUp className="h-4 w-4" color="green" />
-              ) : (
-                <TrendingDown className="h-4 w-4" color="red" />
-              )}
-            </div>
-            <div className="text-muted-foreground flex items-center gap-2 leading-none">
-              {chartData[0]?.month + "-" + chartData.slice(-1)[0]?.month}
-            </div>
-          </div>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

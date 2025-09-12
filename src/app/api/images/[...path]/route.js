@@ -6,9 +6,9 @@ export async function GET(request, { params }) {
   try {
     const myparams = await params;
     const paths = myparams.path;
-    console.log(paths);
+
     const filePath = path.join(process.cwd(), ...paths);
-    console.log(filePath);
+
     // بررسی وجود فایل
     if (!fs.existsSync(filePath)) {
       return NextResponse.json({ error: "فایل یافت نشد" }, { status: 404 });
@@ -20,7 +20,7 @@ export async function GET(request, { params }) {
 
     // تعیین نوع محتوا بر اساس پسوند فایل
     const contentType = getContentType(fileExtension);
-    console.log(fileBuffer, "hhhhhhhhhhhhh");
+
     // بازگرداندن فایل به عنوان پاسخ
     return new NextResponse(fileBuffer, {
       status: 200,

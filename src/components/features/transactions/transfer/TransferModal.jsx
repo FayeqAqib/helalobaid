@@ -39,8 +39,7 @@ const schema = z.object({
   to: z.string({ required_error: " الزامی میباشد" }),
   amount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
-    .min(0, "مقدار پول الزامی است")
-    .default(0),
+    .min(0, "مقدار پول الزامی است"),
   image: z
     .any()
     .refine(
@@ -54,12 +53,7 @@ const schema = z.object({
   details: z.string().optional(),
 });
 
-export function TransferModal({
-  children,
-
-  open,
-  onOpen,
-}) {
+export function TransferModal({ children, open, onOpen }) {
   const [dateType, setDateType] = useState(false);
   const [isPending, startTransition] = useTransition();
   const form = useForm({

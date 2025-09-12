@@ -25,7 +25,7 @@ export const BuyerCard = () => {
             key={index}
             className={`size-34  border-2 py-2 flex flex-col items-center gap-2 hover:z-30 absolute  transition-all duration-300 bg-[var(--background)] ${
               index === 0 &&
-              "bg-[var(--chart-2)] translate-y-8 z-10  self-start hover:translate-y-1"
+              "bg-[var(--chart-1)] translate-y-8 z-10  self-start hover:translate-y-1"
             }  rounded-2xl shadow-2xl shadow-[#00000088] dark:shadow-black mt-8 
             ${
               index === 1 &&

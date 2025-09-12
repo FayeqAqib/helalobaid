@@ -1,16 +1,14 @@
-import { DataTableBankAndBuy } from "@/components/features/home/bankAndBuyTable";
 import { BuyerCard } from "@/components/features/home/BuyerCard";
-import { DataTableTransferBuy } from "@/components/features/home/buyTable";
+
 import ChartContiner from "@/components/features/home/ChartContiner";
 import LoanAccount from "@/components/features/home/LoanAccount";
 import { ShowCard } from "@/components/features/home/ShowCard";
 import { SmallShowCard } from "@/components/features/home/smallShowCard";
+
 import { getCompanyAccount } from "@/services/accountService";
 import { getSixMonthBuyData } from "@/services/buyService";
-import {
-  getAllTransferBank,
-  getAllTransferMoneySeller,
-} from "@/services/ledgarServer";
+import { getSalesPurchaseSummary } from "@/services/itemsService";
+
 import { getSixMonthSaleData } from "@/services/saleService";
 
 import React, { use } from "react";
@@ -19,9 +17,7 @@ export default function Page() {
   const { result } = use(getCompanyAccount());
   const buySixMonthData = use(getSixMonthBuyData());
   const SaleSixMonthData = use(getSixMonthSaleData());
-  const banks = use(getAllTransferBank());
-  const buy = use(getAllTransferMoneySeller());
-
+  const fourMonthData = use(getSalesPurchaseSummary());
   const saleCent =
     ((Number(SaleSixMonthData.result?.slice(-1)[0]?.totalSale || 0) -
       Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 0)) *
@@ -47,8 +43,8 @@ export default function Page() {
       <div className="flex w-full flex-col items-center justify-center gap-4 p-1">
         <div className="w-full grid xl:grid-cols-[0.5fr_1fr_1fr_1fr] md:grid-cols-2 grid-cols-1 items-center xs:justify-center md:justify-around  gap-4 p-1 ">
           <SmallShowCard
-            tital={"METU"}
-            balance={result?.[0]?.METUbalance}
+            tital={"کالا ها"}
+            balance={result?.[0]?.count}
             buy={buySixMonthData.result?.slice(-1)?.[0]?.totalMETU}
             sale={SaleSixMonthData.result?.slice(-1)?.[0]?.totalMETU}
           />
@@ -57,23 +53,26 @@ export default function Page() {
             cent={buyCent}
             amount={buySixMonthData.result?.slice(-1)?.[0]?.totalBuy}
             count={buySixMonthData.result?.slice(-1)?.[0]?.count}
+            chart="../line-chart.png"
           />
           <ShowCard
             tital={"مجموع فروش "}
             cent={saleCent}
             amount={SaleSixMonthData.result?.slice(-1)?.[0]?.totalSale}
             count={SaleSixMonthData.result?.slice(-1)?.[0]?.count}
+            chart="../line-chart-2.png"
           />
-          <ShowCard tital={"موجودی سرمایه"} amount={result?.[0]?.balance} />
+          <ShowCard
+            tital={"موجودی سرمایه"}
+            amount={result?.[0]?.balance}
+            chart="../bar-chart (2).png"
+          />
         </div>
         <ChartContiner
+          data={fourMonthData.result}
           buyData={buySixMonthData.result || []}
           saleData={SaleSixMonthData.result || []}
         />
-        <div className="flex flex-col gap-5 w-full md:flex-row">
-          <DataTableBankAndBuy data={banks || []} />
-          <DataTableTransferBuy data={buy || []} />
-        </div>
       </div>
     </div>
   );

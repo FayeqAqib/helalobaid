@@ -1,11 +1,5 @@
-
 @import "tailwindcss";
 @import "tw-animate-css";
-
-
-
-
-
 
 @custom-variant dark (&:is(.dark *));
 
@@ -69,11 +63,12 @@
   --border: oklch(0.923 0.003 48.717);
   --input: oklch(0.923 0.003 48.717);
   --ring: oklch(0.709 0.01 56.259);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-1: oklch(0.71 0.13 215);
+  --chart-2: oklch(0.525 0.223 3.958);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+  --chart-6: oklch(0.45 0.03 257);
   --sidebar: oklch(0.985 0.001 106.423);
   --sidebar-foreground: oklch(0.147 0.004 49.25);
   --sidebar-primary: oklch(0.216 0.006 56.043);
@@ -85,9 +80,9 @@
 }
 
 .dark {
-  --background: oklch(0.147 0.004 49.25);
+  --background: oklch(0.13 0.03 262);
   --foreground: oklch(0.985 0.001 106.423);
-  --card: oklch(0.216 0.006 56.043);
+  --card: oklch(0.21 0.03 265);
   --card-foreground: oklch(0.985 0.001 106.423);
   --popover: oklch(0.216 0.006 56.043);
   --popover-foreground: oklch(0.985 0.001 106.423);
@@ -95,27 +90,29 @@
   --primary-foreground: oklch(0.216 0.006 56.043);
   --secondary: oklch(0.268 0.007 34.298);
   --secondary-foreground: oklch(0.985 0.001 106.423);
-  --muted: oklch(0.268 0.007 34.298);
+  --muted: oklch(0.37 0.03 260);
   --muted-foreground: oklch(0.709 0.01 56.259);
-  --accent: oklch(0.268 0.007 34.298);
+  --accent: oklch(31.303% 0.04891 226.152);
   --accent-foreground: oklch(0.985 0.001 106.423);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.553 0.013 58.071);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
+  --input: oklch(57.951% 0.00007 271.152 / 0.815);
+  --ring: oklch(46.76% 0.00005 271.152);
+
+  --chart-1: oklch(0.52 0.09 223);
+  --chart-2: oklch(0.656 0.241 354.308);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.216 0.006 56.043);
+  --chart-6: oklch(0.71 0.02 261);
+  --sidebar: oklch(0.28 0.03 257);
   --sidebar-foreground: oklch(0.985 0.001 106.423);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-accent: oklch(0.268 0.007 34.298);
+  --sidebar-accent: oklch(0.45 0.03 257);
   --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.553 0.013 58.071);
+  --sidebar-ring: oklch(35.532% 0.00754 59.286);
 }
 
 @layer base {
@@ -125,8 +122,7 @@
   body {
     @apply bg-background text-foreground;
   }
-} 
-
+}
 
 .heroui-datepicker {
   --rmdp-primary: var(--primary);
@@ -150,7 +146,9 @@
   background-color: var(--background);
 }
 
-.heroui-datepicker .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
+.heroui-datepicker
+  .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden)
+  span:hover {
   background-color: var(--primary);
   color: var(--primary-foreground);
 }

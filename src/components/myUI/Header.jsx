@@ -4,11 +4,17 @@ import { SidebarTrigger } from "../ui/sidebar";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
 
-const Header = () => {
+const Header = ({ width }) => {
   const { setTheme } = useTheme();
   return (
-    <header className="w-full h-16 flex items-center justify-between px-4 bg-[var(--sidebar-border)] border-b-2 border-[--sidebar-foreground]">
+    <header
+      className={cn(
+        "w-full h-16 z-100 fixed flex items-center backdrop-blur-sm justify-between px-4 bg-[var(--sidebar)]/20 border-b-2 border-[--sidebar-foreground] transition-[width] duration-200 ease-linear",
+        width
+      )}
+    >
       <SidebarTrigger />
       <Button
         variant="outline"

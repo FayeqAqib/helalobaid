@@ -32,16 +32,20 @@ import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
-  externalProceedTitle: z.string().min(1, " ذکر عنوان عاید الزامی است"),
+  externalProceedTitle: z.string({
+    required_error: " ذکر عنوان عاید الزامی است",
+  }),
   income: z.string({ required_error: "دریافت کننده الزامی میباشد" }),
   amount: z
     .number({ invalid_type_error: "ذکر مقدار پول الزامی می باشد" })
     .min(1, " مقدار پول نمیتواند کمتر از 1 باشد"),
   image: z
     .any()
-    .refine((file) => file?.length === 1, "یک عکس انتخاب کنید")
     .refine(
-      (files) => !files || files[0]?.size <= 2.5 * 1024 * 1024,
+      (files) =>
+        !files ||
+        typeof files === "string" ||
+        files[0]?.size <= 2.5 * 1024 * 1024,
       "حجم عکس نباید بیشتر از ۲.۵ مگابایت باشد"
     )
     .optional(),
@@ -65,6 +69,10 @@ export function ExternalProceedModal({
             ...data,
             date: new Date(data.date),
             income: data.income.name + "_" + data.income._id,
+            externalProceedTitle:
+              data.externalProceedTitle.name +
+              "_" +
+              data.externalProceedTitle._id,
           }
         : {},
   });
@@ -73,6 +81,7 @@ export function ExternalProceedModal({
       ...newData,
       image: newData.image?.[0],
       income: newData.income.split("_")[1],
+      externalProceedTitle: newData.externalProceedTitle.split("_")[1],
     };
     startTransition(async () => {
       if (type === "create") {
@@ -88,7 +97,11 @@ export function ExternalProceedModal({
         }
       }
       if (type === "update") {
-        const currentData = { ...data, income: data.income._id };
+        const currentData = {
+          ...data,
+          income: data.income._id,
+          externalProceedTitle: data.externalProceedTitle._id,
+        };
         const result = await updateExternalProceedAction(
           currentData,
           myNewData
@@ -154,10 +167,11 @@ export function ExternalProceedModal({
                 render={({ field }) => (
                   <FormItem className={"flex-1"}>
                     <FormLabel>عنوان عاید</FormLabel>
-                    <Input
-                      className={"flex-1"}
+                    <AutoCompleteV2
                       value={field.value}
                       onChange={field.onChange}
+                      dataType="proceed"
+                      label="عنوان را انتخاب کنید.."
                     />
                     <FormMessage />
                   </FormItem>

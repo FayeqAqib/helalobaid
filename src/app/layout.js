@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export const metadata = {
   title: "MEGABYTE",
@@ -14,13 +15,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body
-        style={{ fontFamily: "'Scheherazade New', serif" }}
-        // className={gulzar.className}
-      >
+      <body style={{ fontFamily: "'Scheherazade New', serif" }}>
         <SessionProvider>
           <Toaster />
-          {children}
+          <SidebarProvider>{children}</SidebarProvider>
         </SessionProvider>
       </body>
     </html>

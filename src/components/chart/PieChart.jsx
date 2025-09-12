@@ -30,7 +30,7 @@ export function ChartPieDonutActive({ costs }) {
   });
 
   return (
-    <Card className="flex flex-col w-full max-w-lg h-[350px] shadow-lg">
+    <Card className="flex flex-col w-full max-w-lg h-[375px] shadow-lg">
       <CardHeader className="items-center pb-0">
         <CardTitle>مصارف</CardTitle>
         <CardDescription>مجموعه مصارف ماه جاری</CardDescription>

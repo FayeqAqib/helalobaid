@@ -10,6 +10,12 @@ const saleSchema = new mongoose.Schema({
   afgDate: {
     type: String,
   },
+  billNumber: {
+    type: String,
+    unique: true,
+    required: true,
+    index: true,
+  },
   income: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
@@ -18,6 +24,45 @@ const saleSchema = new mongoose.Schema({
   buyer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
+    required: true,
+  },
+  items: [
+    {
+      product: {
+        type: mongoose.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
+      unit: {
+        type: mongoose.Types.ObjectId,
+        ref: "Unit",
+        required: true,
+      },
+      count: {
+        type: Number,
+        min: [1, "تعداد باید بزرگتر از 0 باشد"],
+        required: true,
+      },
+      saleAmount: {
+        type: Number,
+        min: [0, "تعداد باید بزرگتر از 0 باشد"],
+        required: true,
+      },
+      profit: {
+        type: Number,
+        min: [0, "تعداد باید بزرگتر از 0 باشد"],
+        required: true,
+      },
+      details: String,
+    },
+  ],
+  totalAmount: {
+    type: Number,
+    required: true,
+    min: [1, "مقدار مجموع پول باید یک عدد مثبت باشد"],
+  },
+  totalCount: {
+    type: Number,
     required: true,
   },
   cashAmount: {
@@ -30,27 +75,12 @@ const saleSchema = new mongoose.Schema({
     required: false,
     min: [0, "مقدار باقی باید 0 یا یک عدد مثبت باشد"],
   },
-  totalAmount: {
+  totalProfit: {
     type: Number,
-    required: true,
-    min: [1, "مقدار مجموع پول باید یک عدد مثبت باشد"],
-  },
-  cent: {
-    type: Number,
-    required: true,
-    min: [0, "  قیصدی باید 0 یا بزرگ تر از 0 باشد"],
-    max: [100, " فیصدی با 100 یا کمتر از 100 باشد"],
-  },
-  metuAmount: {
-    type: Number,
-    required: true,
-    min: [0, "مقدار  میتیو باید یک عدد مثبت  باشد"],
+    required: false,
+    min: [0, "مقدار باقی باید 0 یا یک عدد مثبت باشد"],
   },
   image: { type: String },
-  details: {
-    type: String,
-    required: false,
-  },
 });
 
 saleSchema.pre("save", function (next) {

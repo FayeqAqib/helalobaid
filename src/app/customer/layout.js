@@ -1,10 +1,12 @@
-import { SidebarProvider } from "@/components/ui/sidebar";
 import "../globals.css";
 import { AppSidebar } from "@/components/myUI/appSideBar";
 import { ThemeProvider } from "@/components/theme-provider";
-import Header from "@/components/myUI/Header";
-import { redirect } from "next/navigation";
+
 import { auth } from "@/lib/auth";
+import { SidebarChildren } from "@/components/ui/sidebar";
+import Header from "@/components/myUI/Header";
+// import { redirect } from "next/navigation";
+// import { auth } from "@/lib/auth";
 
 export default async function RootLayout({ children }) {
   const session = await auth();
@@ -14,7 +16,6 @@ export default async function RootLayout({ children }) {
   if (session.user._doc.role === "vendee") {
     return redirect("/vendee/home");
   }
-
   return (
     <ThemeProvider
       attribute="class"
@@ -22,14 +23,10 @@ export default async function RootLayout({ children }) {
       enableSystem
       disableTransitionOnChange
     >
-      <SidebarProvider>
-        <AppSidebar />
-        <div className="w-full">
-          <Header />
-
-          <main className="p-6 ">{children}</main>
-        </div>
-      </SidebarProvider>
+      <AppSidebar />
+      <SidebarChildren>
+        <main className="p-6 pt-22 ">{children}</main>
+      </SidebarChildren>
     </ThemeProvider>
   );
 }

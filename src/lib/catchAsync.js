@@ -10,7 +10,6 @@ export const catchAsync = (fn) => async (data) => {
     };
   try {
     await connectDB();
-
     const result = await fn(data, session.user._doc.owner);
 
     return { result: JSON.parse(JSON.stringify(result)), err: false };

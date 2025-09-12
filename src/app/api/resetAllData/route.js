@@ -62,7 +62,6 @@ export async function GET(req, { params }) {
       },
     });
   } catch (err) {
-    console.log(err);
     return Response.json({ error: err.message }, { status: 500 });
   }
 }

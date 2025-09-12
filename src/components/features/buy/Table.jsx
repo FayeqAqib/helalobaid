@@ -41,7 +41,7 @@ import {
 import { useEffect, useState } from "react";
 import { BuyModal } from "./BuyModal";
 
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 
@@ -71,6 +71,23 @@ export const columns = [
       <div className="capitalize">
         {moment(row.getValue("date")).format("jYYYY/jMM/jDD")}
       </div>
+    ),
+  },
+  {
+    accessorKey: "billNumber",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          بل نمبر
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("billNumber")}</div>
     ),
   },
   {
@@ -106,6 +123,29 @@ export const columns = [
     cell: ({ row }) => (
       <div className="lowercase">{row.getValue("income").name}</div>
     ),
+  },
+  {
+    accessorKey: "totalAmount",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          مجموع قیمت
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const totalAmount = parseFloat(row.getValue("totalAmount"));
+
+      return (
+        <div className="text-right font-medium">
+          {formatCurrency(totalAmount)}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "cashAmount",
@@ -154,73 +194,30 @@ export const columns = [
     },
   },
   {
-    accessorKey: "totalAmount",
+    accessorKey: "transportCost",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          مجموع پول
+          مصرف انتقال
           <ArrowUpDown />
         </Button>
       );
     },
+
     cell: ({ row }) => {
-      const totalAmount = parseFloat(row.getValue("totalAmount"));
+      const transportCost = parseFloat(row.getValue("transportCost"));
 
       return (
         <div className="text-right font-medium">
-          {formatCurrency(totalAmount)}
+          {formatCurrency(transportCost)}
         </div>
       );
     },
   },
-  {
-    accessorKey: "cent",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          فیصدی
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("cent")}%</div>,
-  },
-  {
-    accessorKey: "metuAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          اندازه METU
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const metuAmount = parseFloat(row.getValue("metuAmount"));
 
-      return (
-        <div className="text-right font-medium">{formatNumber(metuAmount)}</div>
-      );
-    },
-  },
-  {
-    accessorKey: "details",
-    header: "تفصیلات",
-    cell: ({ row }) => (
-      <div className="lowercase max-w-[250px] overflow-clip">
-        {row.getValue("details")}
-      </div>
-    ),
-  },
   {
     id: "actions",
     enableHiding: false,
@@ -484,6 +481,10 @@ export function DataTableBuy({ data, count }) {
                     "totalAmount",
                     "borrowAmount",
                     "cashAmount",
+
+                    "unitAmount",
+                    "finalPrice",
+                    "transportCost",
                   ].includes(footer.id)
                     ? formatCurrency(
                         table

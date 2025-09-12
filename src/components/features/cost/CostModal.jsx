@@ -32,7 +32,7 @@ import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
-  costTitle: z.string().min(1, " ذکر عنوان مصرف الزامی است"),
+  costTital: z.string({ required_error: " ذکر عنوان مصرف الزامی است" }),
   income: z.string({ required_error: "پرداخت کننده الزامی میباشد" }),
   amount: z
     .number({ invalid_type_error: "ذکر مقدار پول الزامی می باشد" })
@@ -68,6 +68,7 @@ export function CostModal({
             ...data,
             date: new Date(data.date),
             income: data.income.name + "_" + data.income._id,
+            costTital: data.costTital.name + "_" + data.costTital._id,
           }
         : {},
   });
@@ -77,6 +78,8 @@ export function CostModal({
       ...newData,
       image: newData.image?.[0],
       income: newData.income.split("_")[1],
+      costTital: newData.costTital.split("_")[1],
+      createBy: "cost",
     };
     startTransition(async () => {
       if (type === "create") {
@@ -94,7 +97,11 @@ export function CostModal({
         }
       }
       if (type === "update") {
-        const currentData = { ...data, income: data.income._id };
+        const currentData = {
+          ...data,
+          income: data.income._id,
+          costTital: data.costTital._id,
+        };
         const result = await updateCostAction(currentData, myNewData);
         if (result.result?.message)
           return toast.warning(result.result?.message);
@@ -155,14 +162,15 @@ export function CostModal({
               />
               <FormField
                 control={form.control}
-                name="costTitle"
+                name="costTital"
                 render={({ field }) => (
                   <FormItem className={"flex-1"}>
                     <FormLabel>عنوان مصرف</FormLabel>
-                    <Input
-                      className={"flex flex-1"}
+                    <AutoCompleteV2
                       value={field.value}
                       onChange={field.onChange}
+                      dataType="cost"
+                      label="عنوان را انتخاب کنید.."
                     />
                     <FormMessage />
                   </FormItem>

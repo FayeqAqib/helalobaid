@@ -5,6 +5,7 @@ import {
   ChevronDown,
   FilePenLine,
   MoreHorizontal,
+  ShieldUser,
   Trash2,
 } from "lucide-react";
 
@@ -248,7 +249,7 @@ export function DataTableUser({ data, count }) {
             <DialogTrigger asChild>
               <Button>
                 ایجاد کاربر
-                <HiCurrencyRupee className="size-6" />
+                <ShieldUser className="size-6" />
               </Button>
             </DialogTrigger>
           </UserModal>

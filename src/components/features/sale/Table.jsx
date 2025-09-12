@@ -74,6 +74,23 @@ export const columns = [
     ),
   },
   {
+    accessorKey: "billNumber",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          بل نمبر
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("billNumber")}</div>
+    ),
+  },
+  {
     accessorKey: "income",
     header: ({ column }) => {
       return (
@@ -107,52 +124,7 @@ export const columns = [
       <div className="lowercase">{row.getValue("buyer")?.name}</div>
     ),
   },
-  {
-    accessorKey: "cashAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          مقدار رسید
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const cashAmount = parseFloat(row.getValue("cashAmount"));
 
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(cashAmount)}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "lendAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          مقدار باقی
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const lendAmount = parseFloat(row.getValue("lendAmount"));
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(lendAmount)}
-        </div>
-      );
-    },
-  },
   {
     accessorKey: "totalAmount",
     header: ({ column }) => {
@@ -177,49 +149,73 @@ export const columns = [
     },
   },
   {
-    accessorKey: "cent",
+    accessorKey: "cashAmount",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          فیصدی
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("cent")}%</div>,
-  },
-  {
-    accessorKey: "metuAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          مقدار METU
+          نقد
           <ArrowUpDown />
         </Button>
       );
     },
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("metuAmount"));
+      const cashAmount = parseFloat(row.getValue("cashAmount"));
 
       return (
-        <div className="text-right font-medium">{formatNumber(amount)}</div>
+        <div className="text-right font-medium">
+          {formatCurrency(cashAmount)}
+        </div>
       );
     },
   },
   {
-    accessorKey: "details",
-    header: "تفصیلات",
-    cell: ({ row }) => (
-      <div className="lowercase max-w-[250px] overflow-clip">
-        {row.getValue("details")}
-      </div>
-    ),
+    accessorKey: "lendAmount",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          قرض
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const lendAmount = parseFloat(row.getValue("lendAmount"));
+
+      return (
+        <div className="text-right font-medium">
+          {formatCurrency(lendAmount)}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "totalProfit",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          مجموع مفاد
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const totalProfit = parseFloat(row.getValue("totalProfit"));
+
+      return (
+        <div className="text-right font-medium">
+          {formatCurrency(totalProfit)}
+        </div>
+      );
+    },
   },
   {
     id: "actions",
@@ -485,6 +481,8 @@ export function DataTableSale({ data, count }) {
                     "lendAmount",
                     "totalAmount",
                     "metuAmount",
+                    "totalProfit",
+                    "saleAmount",
                   ].includes(footer.id)
                     ? formatCurrency(
                         table

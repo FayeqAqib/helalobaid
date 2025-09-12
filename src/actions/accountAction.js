@@ -7,13 +7,13 @@ import {
   updateAccount,
 } from "@/services/accountService";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export default async function createAccountAction(data) {
   const result = await createAccount(data);
 
   if (!result.err) {
-    revalidatePath("/register");
+    revalidateTag("account");
     revalidatePath("/home");
   }
   return result;
@@ -32,7 +32,7 @@ export async function getAllSallerAndBuyerAction(type, lend, borrow) {
 export async function updateAccountAction(data) {
   const result = await updateAccount(data);
   if (!result.err) {
-    revalidatePath("/register");
+    revalidateTag("account");
     revalidatePath("/home");
   }
   return result;
@@ -41,7 +41,7 @@ export async function updateAccountAction(data) {
 export async function deleteAccountAction(data) {
   const result = await deleteAccount(data);
   if (!result.err) {
-    revalidatePath("/register");
+    revalidateTag("account");
     revalidatePath("/home");
   }
   return result;

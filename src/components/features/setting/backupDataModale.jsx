@@ -40,7 +40,6 @@ export function BackupModal({
             onOpen(false);
           }
         } catch (err) {
-          console.log(err);
           toast.error(
             "در ایجاد دیتای پشتیبان شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
           );

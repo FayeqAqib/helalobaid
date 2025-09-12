@@ -82,7 +82,7 @@ export function DatePickerWithPresets({
           variant={"outline"}
           className={cn(
             className,
-            "justify-start text-left font-normal flex-1 ",
+            "justify-start text-left font-normal flex-1  bg-primary/20 backdrop-blur-md",
             !date && "text-muted-foreground"
           )}
         >
@@ -95,6 +95,12 @@ export function DatePickerWithPresets({
             ? type === "jalali"
               ? moment(date ? date : new Date()).format("jYYYY/jMM/jDD")
               : format(date ? date : new Date(), "yyyy/MM/dd")
+            : type === "jalali"
+            ? date
+              ? moment(date).format("jYYYY/jMM/jDD")
+              : placeholder
+            : date
+            ? format(date, "yyyy/MM/dd")
             : placeholder}
         </Button>
       </PopoverTrigger>

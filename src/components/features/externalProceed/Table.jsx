@@ -101,7 +101,9 @@ export const columns = [
       );
     },
     cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("externalProceedTitle")}</div>
+      <div className="lowercase">
+        {row.getValue("externalProceedTitle")?.name}
+      </div>
     ),
   },
   {
@@ -160,7 +162,7 @@ export const columns = [
             <DetailsModal
               data={{
                 ...payment,
-                name: payment.externalProceedTitle,
+                name: payment.externalProceedTitle.name,
                 income: payment.income.name,
               }}
               open={openDetails}
