@@ -16,6 +16,10 @@ export const getAllItemsForBarChart = catchAsync(async (depot) => {
     "name"
   );
 });
+export const getAllItems = catchAsync(async () => {
+  return await Items.find({}, { count: 1 });
+});
+
 export const getAllItemsForTable = catchAsync(async (filter) => {
   const page = Number(filter.page) || 0;
   const limit = Number(filter.limit) || 10;

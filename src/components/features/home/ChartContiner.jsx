@@ -1,7 +1,7 @@
 import { ChartAreaGradient } from "@/components/chart/AreaChart";
 import { ChartPieDonutActive } from "@/components/chart/PieChart";
 import { ShowCard } from "./ShowCard";
-import { use } from "react";
+import React, { use } from "react";
 import { getCostInThisMonth } from "@/services/costService";
 import { Card } from "@/components/ui/card";
 import { DataTableBankAndBuy } from "./bankAndBuyTable";
@@ -10,30 +10,47 @@ import {
   getAllTransferBank,
   getAllTransferMoneySeller,
 } from "@/services/ledgarServer";
+import jalaliMoment from "moment-jalaali";
 
-function ChartContiner({ buyData, saleData, data }) {
+function ChartContiner({ data, totalProfit }) {
   const banks = use(getAllTransferBank());
 
   const buy = use(getAllTransferMoneySeller());
   const allCost = use(getCostInThisMonth());
+
   const totalCost = allCost.result?.reduce(
-    (acc, cur) => acc + cur.totalCost,
+    (acc, cur) => acc + cur.totalAmount,
     0
   );
-  const buyAvgCent =
-    buyData?.reduce((acc, cur) => acc + cur.avgCent, 0) / buyData?.length;
-  const currentMonthSaleAvgCent = saleData.slice(-1)[0]?.avgCent;
-  const pastMonthSaleAvgCent = saleData.slice(-2)[0]?.avgCent;
-  const currentMonthSale = saleData.slice(-1)[0]?.totalSale;
-  const pastMonthSale = saleData.slice(-2)[0]?.totalSale;
-  const currentMonthUsance =
-    ((buyAvgCent - currentMonthSaleAvgCent) * currentMonthSale) / 100;
-  const pastMonthUsance =
-    ((buyAvgCent - pastMonthSaleAvgCent) * pastMonthSale) / 100;
-  const UsanceCent =
-    ((currentMonthUsance - pastMonthUsance) * 100) / pastMonthUsance;
 
-  const currentROI = currentMonthUsance - totalCost;
+  const firstDayOfLastMonth = jalaliMoment()
+    .subtract(1, "jMonth") // یک ماه کم می‌کنیم
+    .startOf("jMonth") // به اول ماه می‌رویم
+    .toDate(); // به تاریخ تبدیل می‌کنیم
+
+  // آخر ماه شمسی قبل
+  const lastDayOfLastMonth = jalaliMoment()
+    .subtract(1, "jMonth") // یک ماه کم می‌کنیم
+    .endOf("jMonth") // به آخر ماه می‌رویم
+    .toDate();
+
+  const pastMonthTotalProfit = React.useMemo(
+    () =>
+      data.reduce(
+        (acc, curr) =>
+          new Date(curr.date) > firstDayOfLastMonth &&
+          new Date(curr.date) < lastDayOfLastMonth
+            ? acc + curr.totalProfit
+            : acc,
+        0
+      ),
+
+    [data]
+  );
+  const UsanceCent =
+    ((totalProfit - pastMonthTotalProfit) * 100) / pastMonthTotalProfit;
+
+  const currentROI = totalProfit - totalCost;
 
   return (
     <div className="w-full flex xl:flex-row flex-col-reverse items-start justify-items-stretch gap-4">
@@ -44,7 +61,7 @@ function ChartContiner({ buyData, saleData, data }) {
           <ShowCard
             tital={"مفاد سرمایه"}
             cent={UsanceCent}
-            amount={currentMonthUsance}
+            amount={totalProfit}
             chart="../candlestick-chart.png"
           />
           <ShowCard
@@ -55,7 +72,7 @@ function ChartContiner({ buyData, saleData, data }) {
         </div>
       </div>
       <div className="w-full flex flex-col gap-5">
-        <ChartAreaGradient buyData={buyData} saleData={saleData} data={data} />
+        <ChartAreaGradient data={data} />
         <div className="flex flex-col gap-5 w-full md:flex-row">
           <Card className={"p-0 m-0 w-full"}>
             <DataTableBankAndBuy data={banks || []} />

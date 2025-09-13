@@ -1,4 +1,5 @@
 import { BuyerCard } from "@/components/features/home/BuyerCard";
+import jalaliMoment from "moment-jalaali";
 
 import ChartContiner from "@/components/features/home/ChartContiner";
 import LoanAccount from "@/components/features/home/LoanAccount";
@@ -7,7 +8,7 @@ import { SmallShowCard } from "@/components/features/home/smallShowCard";
 
 import { getCompanyAccount } from "@/services/accountService";
 import { getSixMonthBuyData } from "@/services/buyService";
-import { getSalesPurchaseSummary } from "@/services/itemsService";
+import { getAllItems, getSalesPurchaseSummary } from "@/services/itemsService";
 
 import { getSixMonthSaleData } from "@/services/saleService";
 
@@ -18,6 +19,8 @@ export default function Page() {
   const buySixMonthData = use(getSixMonthBuyData());
   const SaleSixMonthData = use(getSixMonthSaleData());
   const fourMonthData = use(getSalesPurchaseSummary());
+  const allItems = use(getAllItems());
+
   const saleCent =
     ((Number(SaleSixMonthData.result?.slice(-1)[0]?.totalSale || 0) -
       Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 0)) *
@@ -29,6 +32,50 @@ export default function Page() {
       100) /
     Number(buySixMonthData.result?.slice(-2)[0]?.totalBuy || 1);
 
+  const totalAvalible = React.useMemo(
+    () => allItems.result.reduce((acc, curr) => acc + curr.count, 0),
+
+    [allItems]
+  );
+
+  // اول ماه شمسی جاری
+  const firstDayOfMonth = jalaliMoment().startOf("jMonth").toDate();
+
+  // آخر ماه شمسی جاری
+  const lastDayOfMonth = jalaliMoment().endOf("jMonth").toDate();
+  const total = React.useMemo(() => {
+    const buy = fourMonthData.result.reduce(
+      (acc, curr) =>
+        new Date(curr.date) > firstDayOfMonth &&
+        new Date(curr.date) < lastDayOfMonth
+          ? acc + curr.buyCount
+          : acc,
+      0
+    );
+    const sale = fourMonthData.result.reduce(
+      (acc, curr) =>
+        new Date(curr.date) > firstDayOfMonth &&
+        new Date(curr.date) < lastDayOfMonth
+          ? acc + curr.saleCount
+          : acc,
+      0
+    );
+    return { buy, sale };
+  }, [fourMonthData.result]);
+
+  const totalProfit = React.useMemo(
+    () =>
+      fourMonthData.result.reduce(
+        (acc, curr) =>
+          new Date(curr.date) > firstDayOfMonth &&
+          new Date(curr.date) < lastDayOfMonth
+            ? acc + curr.totalProfit
+            : acc,
+        0
+      ),
+
+    [fourMonthData.result]
+  );
   return (
     <div className="flex size-full flex-col-reverse 2xl:flex-row  items-start justify-center gap-4 p-1">
       <div
@@ -44,9 +91,9 @@ export default function Page() {
         <div className="w-full grid xl:grid-cols-[0.5fr_1fr_1fr_1fr] md:grid-cols-2 grid-cols-1 items-center xs:justify-center md:justify-around  gap-4 p-1 ">
           <SmallShowCard
             tital={"کالا ها"}
-            balance={result?.[0]?.count}
-            buy={buySixMonthData.result?.slice(-1)?.[0]?.totalMETU}
-            sale={SaleSixMonthData.result?.slice(-1)?.[0]?.totalMETU}
+            balance={totalAvalible}
+            buy={total.buy}
+            sale={total.sale}
           />
           <ShowCard
             tital={"مجموع خرید"}
@@ -70,6 +117,7 @@ export default function Page() {
         </div>
         <ChartContiner
           data={fourMonthData.result}
+          totalProfit={totalProfit}
           buyData={buySixMonthData.result || []}
           saleData={SaleSixMonthData.result || []}
         />

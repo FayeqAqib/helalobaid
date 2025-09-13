@@ -132,20 +132,45 @@ export const getCostInThisMonth = catchAsync(async () => {
   const result = await Cost.aggregate([
     {
       $match: {
-        afgDate: { $regex: `^${thisMonth}` }, // مثل "1403/3/..." همه‌ی روزهای این ماه
+        afgDate: `${thisMonth}`,
+      },
+    },
+    {
+      $lookup: {
+        from: "costtitals", // توجه: نام collection باید با حالت جمع mongoose مطابقت داشته باشد
+        localField: "costTital", // اصلاح: باید به costTital اشاره کند نه name
+        foreignField: "_id",
+        as: "categoryInfo",
+      },
+    },
+    {
+      $unwind: {
+        path: "$categoryInfo",
+        preserveNullAndEmptyArrays: true, // برای مدیریت رکوردهای بدون دسته‌بندی
       },
     },
     {
       $group: {
-        _id: "$costTitle",
-        totalCost: { $sum: "$amount" },
-        numCosts: { $sum: 1 },
+        _id: "$costTital", // گروه‌بندی بر اساس costTital نه name
+        categoryName: { $first: "$categoryInfo.name" },
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+    {
+      $sort: { totalAmount: -1 },
+    },
+    {
+      $project: {
+        categoryId: "$_id",
+        categoryName: 1,
+        totalAmount: 1,
+        _id: 0,
       },
     },
   ]);
+
   return result;
 });
-
 ////////////////////////////////// GET COST TITAL/////////////////////////////////////
 
 export const getCostTital = catchAsync(async () => {

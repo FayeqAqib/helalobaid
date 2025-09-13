@@ -4,7 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import { auth } from "@/lib/auth";
 import { SidebarChildren } from "@/components/ui/sidebar";
-import Header from "@/components/myUI/Header";
+import DarkVeil from "@/components/DarkVeil";
+
 // import { redirect } from "next/navigation";
 // import { auth } from "@/lib/auth";
 
@@ -25,7 +26,7 @@ export default async function RootLayout({ children }) {
     >
       <AppSidebar />
       <SidebarChildren>
-        <main className="p-6 pt-22 ">{children}</main>
+        <main className="p-6 pt-22   ">{children}</main>
       </SidebarChildren>
     </ThemeProvider>
   );

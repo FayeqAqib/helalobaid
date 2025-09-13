@@ -45,7 +45,7 @@ const chartConfig = {
 export function ChartAreaGradient({ data }) {
   const [timeRange, setTimeRange] = useState("120d");
   const chartData = data.map((item) => {
-    return { date: item.date, sale: item.totalBuy, buy: item.totalSale };
+    return { date: item.date, sale: item.totalSale, buy: item.totalBuy };
   });
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);

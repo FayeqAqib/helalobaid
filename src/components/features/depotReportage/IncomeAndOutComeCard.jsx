@@ -47,7 +47,7 @@ const IncomeAndOutComeCard = ({ avalible, data }) => {
       0
     );
     return { buy, sale };
-  }, [avalible]);
+  }, [data]);
 
   return (
     <Card className=" shadow-lg flex flex-row-reverse p-3  size-full bg-[var(--chart-1)] items-center">

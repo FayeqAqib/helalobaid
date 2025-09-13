@@ -22,7 +22,7 @@ export default async function page({ searchParams }) {
   const barChart = await getAllItemsForBarChart(filter.depot);
   const table = await getAllItemsForTable(filter);
   const areaChart = await getSalesPurchaseSummary();
-  console.log(areaChart, "table");
+
   return (
     <div className={"p-5"}>
       <SelectDepot />
