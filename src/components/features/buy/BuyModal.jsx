@@ -147,8 +147,9 @@ export function BuyModal({
           return toast.warning(result.result?.message);
         if (!result.err) {
           toast.success("خرید شما با موفقیت ثبت شد");
-          // onOpen(false);
-          // formA.reset();
+          onOpen(false);
+          formA.reset();
+          setBuyList([]);
         } else {
           toast.error(
             "در ثبت خرید شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"

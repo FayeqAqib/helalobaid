@@ -128,8 +128,8 @@ export function SaleModal({
         if (!result.err) {
           toast.success("فروش شما با موفقیت ثبت شد");
           handlePrint();
-
           formA.reset();
+          setSaleList([])
           onOpen(false);
         } else {
           toast.error(
