@@ -24,7 +24,6 @@ export const createSale = catchAsync(async (data) => {
 
   const buyer = await Account.findById(newData.buyer, {
     lend: 1,
-    balance: 1,
   });
 
   newData.items.forEach(async (item) => {
@@ -71,7 +70,6 @@ export const createSale = catchAsync(async (data) => {
     if (newData.lendAmount >= 1) {
       const newBuyerData = {
         lend: Number(buyer.lend) + Number(newData.lendAmount),
-        balance: Number(buyer.balance) - Number(newData.cashAmount),
       };
       await Account.findByIdAndUpdate(newData.buyer, newBuyerData);
     }
@@ -102,7 +100,10 @@ export const getAllSales = catchAsync(async (filter) => {
     .filter()
     .sort()
     .paginate();
-  const result = await features.query.populate(["buyer", "income"], "name");
+  const result = await features.query.populate(
+    ["buyer", "income", "items.product", "items.unit", "items.depot"],
+    "name"
+  );
 
   return { result, count };
 });
@@ -124,12 +125,9 @@ export const deleteSale = catchAsync(async (data) => {
   });
   const company_id = await Account.findById(process.env.COMPANY_ID, {
     borrow: 1,
-    METUbalance: 1,
   });
   const buyer = await Account.findById(data.buyer._id, {
     lend: 1,
-    balance: 1,
-    METUbalance: 1,
   });
 
   if (company.balance < data.cashAmount)
@@ -164,7 +162,6 @@ export const deleteSale = catchAsync(async (data) => {
     };
     const newCompany_idData = {
       borrow: Number(company_id.borrow) - Number(data.lendAmount),
-      METUbalance: Number(company_id.METUbalance) + Number(data.metuAmount),
     };
 
     await Account.findByIdAndUpdate(data.income, newCompanyData);
@@ -172,8 +169,6 @@ export const deleteSale = catchAsync(async (data) => {
     if (data.lendAmount >= 1) {
       const newBuyerData = {
         lend: Number(buyer.lend) - Number(data.lendAmount),
-        balance: Number(buyer.balance) + Number(data.cashAmount),
-        METUbalance: Number(buyer.METUbalance) - Number(data.metuAmount),
       };
       await Account.findByIdAndUpdate(data.buyer, newBuyerData);
     }
@@ -202,7 +197,6 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
   });
   const company_id = await Account.findById(process.env.COMPANY_ID, {
     lend: 1,
-    METUbalance: 1,
   });
 
   if (company.METUbalance < myNewData.metuAmount)
@@ -213,28 +207,19 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
   if (currentData.buyer !== myNewData.buyer) {
     const newBuyer = await Account.findById(myNewData.buyer, {
       lend: 1,
-      balance: 1,
-      METUbalance: 1,
       _id: 0,
     });
     const currentBuyer = await Account.findById(currentData.buyer, {
       lend: 1,
-      balance: 1,
-      METUbalance: 1,
       _id: 0,
     });
 
     const newBuyerData = {
       lend: Number(newBuyer.lend) + Number(myNewData.lendAmount),
-      balance: Number(newBuyer.lend) - Number(myNewData.cashAmount),
-      METUbalance: Number(newBuyer.METUbalance) + Number(myNewData.metuAmount),
     };
 
     const currentBuyerData = {
       lend: Number(currentBuyer.lend) - Number(currentData.lendAmount),
-      balance: Number(currentBuyer.balance) + Number(currentData.cashAmount),
-      METUbalance:
-        Number(currentBuyer.METUbalance) - Number(currentData.metuAmount),
     };
 
     await Account.findByIdAndUpdate(myNewData.buyer, newBuyerData);
@@ -242,8 +227,7 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
   } else {
     const buyer = await Account.findById(myNewData.buyer, {
       lend: 1,
-      balance: 1,
-      METUbalance: 1,
+
       _id: 0,
     });
 
@@ -251,16 +235,54 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
       lend:
         Number(buyer.lend) -
         (Number(currentData.lendAmount) - Number(myNewData.lendAmount)),
-      balance:
-        Number(buyer.balance) +
-        (Number(currentData.cashAmount) - Number(myNewData.cashAmount)),
-      METUbalance:
-        Number(buyer.METUbalance) -
-        (Number(currentData.metuAmount) - Number(myNewData.metuAmount)),
     };
 
     await Account.findByIdAndUpdate(myNewData.buyer, buyerData);
   }
+
+  const isEqual = (obj1, obj2) => {
+    return (
+      obj1.unit === obj2.unit._id.toString() &&
+      obj1.product === obj2.product._id.toString() &&
+      obj1.depot === obj2.depot._id.toString()
+    );
+  };
+
+  const itemForDelete = currentData.items
+    .filter((objY) => !myNewData.items.some((objX) => isEqual(objX, objY)))
+    .map((item) => item._id);
+
+  const itemForCreate = myNewData.items.filter(
+    (objX) => !currentData.items.some((objY) => isEqual(objX, objY))
+  );
+
+  const itemForUpdate = currentData.items.filter((objY) =>
+    myNewData.items.some((objX) => isEqual(objX, objY))
+  );
+
+  if (itemForCreate.length > 0) await Items.insertMany(itemForCreate);
+  if (itemForDelete.length > 0)
+    await Items.deleteMany({ _id: { $in: itemForCreate } });
+
+  itemForUpdate.forEach(async (item) => {
+    const itemData = await Items.findOne({
+      $and: [
+        { depot: item.depot },
+        { product: item.product },
+        { unit: item.unit },
+      ],
+    });
+    myNewData.item.forEach(async (i) => {
+      if (isEqual(i, item)) {
+        const updateData = {
+          myId: itemData._id,
+          count: itemData.count + item.count - i.count,
+        };
+        await Items.findByIdAndUpdate(updateData._id, updateData);
+      }
+    });
+  });
+
   const result = await Sale.findByIdAndUpdate(currentData._id, myNewData);
 
   if (result?._id) {
@@ -273,9 +295,6 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
       borrow:
         Number(company_id.lend) -
         (Number(currentData.lendAmount) - Number(myNewData.lendAmount)),
-      METUbalance:
-        Number(company_id.METUbalance) +
-        (Number(currentData.metuAmount) - Number(myNewData.metuAmount)),
     };
 
     await Account.findByIdAndUpdate(currentData.income, newCompanyData);
@@ -358,3 +377,5 @@ export const getBiggestSeller = catchAsync(async () => {
 
   return result;
 });
+
+

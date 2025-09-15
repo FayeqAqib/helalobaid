@@ -265,6 +265,9 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
               </DialogDescription>
             </div>
           )}
+          {data?.items&&{
+            
+          }}
           <div className="flex flex-col gap-3 justify-center ">
             <DialogTitle className={"text-right"}>تفصیلات</DialogTitle>
             <DialogDescription className={"text-lg"}>

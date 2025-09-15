@@ -107,6 +107,8 @@ const buySchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+buySchema.index({ saller: 1, billNumber: 1 }); // سرچ سریع
+buySchema.index({ "items.product": 1, "items.depot": 1, "items.unit": 1 });
 
 buySchema.pre("save", function (next) {
   if (this.date) {

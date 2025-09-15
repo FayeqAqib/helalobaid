@@ -98,6 +98,15 @@ export function SaleModal({
 
   const formA = useForm({
     resolver: zodResolver(schemaA),
+    defaultValues:
+      type !== "create"
+        ? {
+            ...data,
+            date: new Date(data.date),
+            buyer: data.buyer.name + "_" + data.buyer._id,
+            income: data.income.name + "_" + data.income._id,
+          }
+        : {},
   });
   const formB = useForm({
     resolver: zodResolver(schemaB),
@@ -110,14 +119,20 @@ export function SaleModal({
 
   async function submiteForm(newData) {
     const newSaleList = saleList.map((item) => {
-      return {};
+      return {
+        ...item,
+        product: item.product._id,
+        unit: item.unit._id,
+        depot: item.depot._id,
+        createBy: "buy",
+      };
     });
     const myNewData = {
       ...newData,
       buyer: newData.buyer.split("_")[1],
       income: newData.income.split("_")[1],
       image: newData.image?.[0],
-      items: saleList,
+      items: newSaleList,
     };
 
     startTransition(async () => {
@@ -129,7 +144,7 @@ export function SaleModal({
           toast.success("فروش شما با موفقیت ثبت شد");
           handlePrint();
           formA.reset();
-          setSaleList([])
+          setSaleList([]);
           onOpen(false);
         } else {
           toast.error(
@@ -142,8 +157,6 @@ export function SaleModal({
           ...data,
           buyer: data.buyer._id,
           income: data.income._id,
-          product: data.product._id,
-          incunitome: data.unit._id,
         };
         const result = await updateSaleAction(currentData, myNewData);
         if (result.result?.message)
@@ -226,7 +239,37 @@ export function SaleModal({
         formB.clearErrors("count");
       }
     }
-  }, [total, cashAmount, saleAmount, aveUnitAmount, product, count]);
+  }, [
+    total,
+    cashAmount,
+    saleAmount,
+    aveUnitAmount,
+    product,
+    count,
+    saleList.length,
+  ]);
+
+  useEffect(() => {
+    if (type !== "create") {
+      const myData = data.items?.map((item) => {
+        return {
+          ...item,
+          product: {
+            name: item.product?.name,
+            _id: item.product._id,
+          },
+          unit: { name: item.unit.name, _id: item.unit._id },
+          depot: {
+            name: item.depot?.name,
+            _id: item.depot?._id,
+          },
+          id: Math.random().toString(36).substring(2, 9),
+        };
+      });
+      console.log(data.items);
+      setSaleList(myData);
+    }
+  }, []);
 
   /////////////////////////////// ADD TO LIST ///////////////////////////////////
 

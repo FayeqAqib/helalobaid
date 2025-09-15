@@ -33,7 +33,7 @@ export default function Page() {
     Number(buySixMonthData.result?.slice(-2)[0]?.totalBuy || 1);
 
   const totalAvalible = React.useMemo(
-    () => allItems.result.reduce((acc, curr) => acc + curr.count, 0),
+    () => allItems.result?.reduce((acc, curr) => acc + curr.count, 0),
 
     [allItems]
   );
@@ -44,7 +44,7 @@ export default function Page() {
   // آخر ماه شمسی جاری
   const lastDayOfMonth = jalaliMoment().endOf("jMonth").toDate();
   const total = React.useMemo(() => {
-    const buy = fourMonthData.result.reduce(
+    const buy = fourMonthData.result?.reduce(
       (acc, curr) =>
         new Date(curr.date) > firstDayOfMonth &&
         new Date(curr.date) < lastDayOfMonth
@@ -52,7 +52,7 @@ export default function Page() {
           : acc,
       0
     );
-    const sale = fourMonthData.result.reduce(
+    const sale = fourMonthData.result?.reduce(
       (acc, curr) =>
         new Date(curr.date) > firstDayOfMonth &&
         new Date(curr.date) < lastDayOfMonth
@@ -65,7 +65,7 @@ export default function Page() {
 
   const totalProfit = React.useMemo(
     () =>
-      fourMonthData.result.reduce(
+      fourMonthData.result?.reduce(
         (acc, curr) =>
           new Date(curr.date) > firstDayOfMonth &&
           new Date(curr.date) < lastDayOfMonth

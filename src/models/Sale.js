@@ -38,10 +38,20 @@ const saleSchema = new mongoose.Schema({
         ref: "Unit",
         required: true,
       },
+      depot: {
+        type: mongoose.Types.ObjectId,
+        ref: "Depot",
+        required: true,
+      },
       count: {
         type: Number,
         min: [1, "تعداد باید بزرگتر از 0 باشد"],
         required: true,
+      },
+      aveUnitAmount: {
+        type: Number,
+        required: true,
+        min: [1, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
       },
       saleAmount: {
         type: Number,

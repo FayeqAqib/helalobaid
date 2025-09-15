@@ -95,6 +95,15 @@ export function BuyModal({
   const [isPending, startTransition] = useTransition();
   const formA = useForm({
     resolver: zodResolver(schemaA),
+    defaultValues:
+      type !== "create"
+        ? {
+            ...data,
+            date: new Date(data.date),
+            saller: data.saller.name + "_" + data.saller._id,
+            income: data.income.name + "_" + data.income._id,
+          }
+        : {},
   });
   const formB = useForm({
     resolver: zodResolver(schemaB),
@@ -162,9 +171,6 @@ export function BuyModal({
           ...data,
           saller: data.saller._id,
           income: data.income._id,
-          product: data.product._id,
-          unit: data.unit._id,
-          depot: data.depot._id,
         };
 
         const result = await updateBuyAction(currentData, myNewData);
@@ -222,6 +228,28 @@ export function BuyModal({
       );
     }
   }, [totalAmount, cashAmount, transportCost, buyList.length]);
+
+  useEffect(() => {
+    if (type !== "create") {
+      const myData = data.items?.map((item) => {
+        console.log(data);
+        return {
+          ...item,
+          product: {
+            name: item.product?.name,
+            _id: item.product._id,
+          },
+          unit: { name: item.unit.name, _id: item.unit._id },
+          depot: {
+            name: item.depot.name,
+            _id: item.depot._id,
+          },
+          id: Math.random().toString(36).substring(2, 9),
+        };
+      });
+      setBuyList(myData);
+    }
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpen}>

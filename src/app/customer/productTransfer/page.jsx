@@ -1,12 +1,11 @@
 import { DataTableProductTransfer } from "@/components/features/productTransfer/Table";
 import { Card, CardHeader } from "@/components/ui/card";
-import { getAllExternalProceed } from "@/services/externalProceedService";
+
 import React from "react";
 
 export default async function Page({ searchParams }) {
   const filter = await searchParams;
 
-  const data = await getAllExternalProceed(filter);
   return (
     <Card className={"p-5 shadow-xl gap-0"}>
       <CardHeader className={"text-right "}>
@@ -14,8 +13,8 @@ export default async function Page({ searchParams }) {
       </CardHeader>
 
       <DataTableProductTransfer
-        data={data.result?.result || []}
-        count={data.result?.count}
+        data={[]}
+        // count={data.result?.count}
       />
     </Card>
   );

@@ -24,7 +24,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import createcostAction, { updateCostAction } from "@/actions/costAction";
 import { toast } from "sonner";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
 import { SwitchDemo } from "@/components/myUI/Switch";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
@@ -51,6 +51,7 @@ export function ProductTransferModal({
   onOpen,
 }) {
   const [dateType, setDateType] = useState(false);
+  const [filter, setfilter] = useState("");
   const [isPending, startTransition] = useTransition();
   const form = useForm({
     resolver: zodResolver(schema),
@@ -67,10 +68,11 @@ export function ProductTransferModal({
   });
 
   function submiteForm(newData) {
+    if (product?.split("_")[0].split(")")[1] < Number(count)) return null;
     const myNewData = {
       ...newData,
       image: newData.image?.[0],
-      product: newData.product.split("_")[1],
+      product: newData.product.split("_")[1].split("-")[0],
       from: newData.from.split("_")[1],
       to: newData.to.split("_")[1],
     };
@@ -111,6 +113,22 @@ export function ProductTransferModal({
       }
     });
   }
+  const from = form.watch("from");
+  const product = form.watch("product");
+  const count = form.watch("count");
+  useEffect(() => {
+    if (from !== "") setfilter(from?.split("_")[1]);
+    if (
+      product !== "" &&
+      product?.split("_")[0].split(")")[1] < Number(count)
+    ) {
+      form.setError("count", {
+        message: "تعداد انتقال باید مساوی یا کمتر از تعداد موجود باشد",
+      });
+    } else {
+      form.clearErrors("count");
+    }
+  }, [from, product, count]);
 
   return (
     <Dialog open={open} onOpenChange={onOpen}>
@@ -155,43 +173,7 @@ export function ProductTransferModal({
                 )}
               />
             </div>
-            <div className="flex flex-row gap-4">
-              <FormField
-                control={form.control}
-                name="product"
-                render={({ field }) => (
-                  <FormItem className={"flex-1"}>
-                    <FormLabel> محصول</FormLabel>
-                    <AutoCompleteV2
-                      value={field.value}
-                      onChange={field.onChange}
-                      dataType="product"
-                      label="محصول  را انتخاب کنید.."
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <FormField
-                control={form.control}
-                name="count"
-                render={({ field }) => (
-                  <FormItem className={"flex-1"}>
-                    <FormLabel> تعداد </FormLabel>
-                    <Input
-                      type={"number"}
-                      value={field.value}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? "" : Number(value));
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
             <div className=" flex flex-row gap-4">
               <FormField
                 control={form.control}
@@ -221,6 +203,44 @@ export function ProductTransferModal({
                       onChange={field.onChange}
                       dataType="depot"
                       label=" گدام را انتخاب کنید.."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex flex-row gap-4">
+              <FormField
+                control={form.control}
+                name="product"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel> محصول</FormLabel>
+                    <AutoCompleteV2
+                      value={field.value}
+                      onChange={field.onChange}
+                      dataType="items"
+                      filter={filter}
+                      label="محصول  را انتخاب کنید.."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="count"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel> تعداد </FormLabel>
+                    <Input
+                      type={"number"}
+                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? "" : Number(value));
+                      }}
                     />
                     <FormMessage />
                   </FormItem>

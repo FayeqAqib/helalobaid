@@ -34,7 +34,7 @@ export async function GET() {
     // 1. گرفتن بکاپ
     await new Promise((resolve, reject) => {
       exec(
-        `mongodump --uri="${backUp}/blank?authSource=admin" --archive="mongodump-test-db"`,
+        `mongodump --uri="${backUp}/black?authSource=admin" --archive="mongodump-test-db"`,
         (err) => {
           if (err) return reject(err);
           resolve();
@@ -50,7 +50,7 @@ export async function GET() {
     // 2. بازگردانی دیتابیس به نام backup
     await new Promise((resolve, reject) => {
       exec(
-        ` mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --nsFrom="blank.*" --nsTo="blankbackUp.*"`,
+        ` mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --nsFrom="black.*" --nsTo="blackbackUp.*"`,
         (err) => {
           if (err) return reject(err);
           resolve();

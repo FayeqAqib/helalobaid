@@ -42,6 +42,7 @@ export function AutoCompleteV2({
   dataType = "customer",
   lend = false,
   borrow = false,
+  filter = "",
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState([]);
@@ -63,8 +64,8 @@ export function AutoCompleteV2({
       } else if (dataType === "depot") {
         result = await getAllDepotAction();
       } else if (dataType === "items") {
-        result = await getListOfItemsActions();
-        console.log("fayeqeq", result);
+        result = await getListOfItemsActions(filter);
+        console.log(filter);
       }
 
       if (!["customer", "items"].includes(dataType)) {
@@ -108,7 +109,7 @@ export function AutoCompleteV2({
       setIsLoading(false);
     }
     get();
-  }, []);
+  }, [filter]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

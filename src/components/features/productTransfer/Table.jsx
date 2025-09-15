@@ -37,7 +37,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import { CreateDepotModal, ProductTransferModal } from "./ProductTransferModal";
+import { ProductTransferModal } from "./ProductTransferModal";
 
 import { usePathname, useRouter } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";

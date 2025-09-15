@@ -2,11 +2,17 @@ import { catchAsync } from "@/lib/catchAsync";
 import { Buy } from "@/models/Buy";
 import { Items } from "@/models/items";
 
-export const getListOfItems = catchAsync(async () => {
-  const result = await Items.find(
-    { count: { $gt: 0 } },
-    { aveUnitAmount: 1, product: 1, unit: 1, depot: 1, count: 1 }
-  ).populate(["product", "unit", "depot"], "name");
+export const getListOfItems = catchAsync(async (filter) => {
+  const filt = { count: { $gt: 0 } };
+  if (filter !== "") filt.depot = filter;
+  console.log(filter, "filter");
+  const result = await Items.find(filt, {
+    aveUnitAmount: 1,
+    product: 1,
+    unit: 1,
+    depot: 1,
+    count: 1,
+  }).populate(["product", "unit", "depot"], "name");
   return result;
 });
 

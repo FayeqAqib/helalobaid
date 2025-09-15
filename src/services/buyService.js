@@ -15,7 +15,7 @@ import { Items } from "@/models/items";
 ////////////////////////////////////////////////// create ////////////////////////////////////////////////
 
 export const createBuy = catchAsync(async (data) => {
-  const newData = { ...data };
+  const newData = { ...data, items: data.buyLists };
 
   //////////////////////////////// GENERATE BILL //////////////////////////////////
 
@@ -55,7 +55,7 @@ export const createBuy = catchAsync(async (data) => {
     };
   }
 
-  newData.buyLists.forEach(async (item) => {
+  newData.items.forEach(async (item) => {
     const itemData = await Items.findOne({
       $and: [
         { depot: item.depot },
@@ -111,10 +111,7 @@ export const createBuy = catchAsync(async (data) => {
   if (newData.transportCost > 0) {
     newData.cost = cost._id;
   }
-  newData.totalCount = newData.buyLists.reduce(
-    (acc, item) => item.count + acc,
-    0
-  );
+  newData.totalCount = newData.items.reduce((acc, item) => item.count + acc, 0);
   const result = await Buy.create(newData);
   /////////////////////////////////////////////////// UPDATE ACCOUNT DATA /////////////////////////////////////////////////
   if (result?._id) {
@@ -150,7 +147,10 @@ export const getAllbuy = catchAsync(async (filter) => {
     .filter()
     .sort()
     .paginate();
-  const result = await features.query.populate(["saller", "income"], "name");
+  const result = await features.query.populate(
+    ["saller", "income", "items.product", "items.unit", "items.depot"],
+    "name"
+  );
 
   return { result, count };
 });
@@ -163,8 +163,6 @@ export const deleteBuy = catchAsync(async (data) => {
   });
   const company_id = await Account.findById(process.env.COMPANY_ID, {
     lend: 1,
-
-    METUbalance: 1,
   });
 
   const saller = await Account.findById(data.saller._id, {
@@ -172,14 +170,39 @@ export const deleteBuy = catchAsync(async (data) => {
   });
   ////////////////////////////////////////////////// DELETE BUY /////////////////////////////////
 
+  newData.items.forEach(async (item) => {
+    const itemData = await Items.findOne({
+      $and: [
+        { depot: item.depot },
+        { product: item.product },
+        { unit: item.unit },
+      ],
+    });
+
+    if (itemData.count > item.count) {
+      const updateData = {
+        count: itemData.count - item.count,
+        unitAmount:
+          (itemData.unitAmount * itemData.count -
+            item.unitAmount * item.count) /
+          (itemData.count - item.count),
+        aveUnitAmount:
+          (itemData.aveUnitAmount * itemData.count -
+            item.aveUnitAmount * item.count) /
+          (itemData.count - item.count),
+      };
+      await Items.findByIdAndUpdate(itemData._id, updateData);
+    } else {
+      await Items.findByIdAndUpdate(itemData._id, {
+        count: 0,
+        unitAmount: 0,
+        aveUnitAmount: 0,
+      });
+    }
+  });
+
   const result = await Buy.findByIdAndDelete(data._id);
   await deleteFile(data.image);
-
-  ///////////////////////////////////////////////// DETELE DEPOT ITEMS //////////////////////////
-
-  await DepotItems.deleteMany({
-    _id: { $in: data.items },
-  });
 
   //////////////////////////////////////////// DELETE COST ///////////////////////////////////////
 
@@ -212,22 +235,23 @@ export const deleteBuy = catchAsync(async (data) => {
 ////////////////////////////////////////////////// update ////////////////////////////////////////////////
 
 export const updateBuy = catchAsync(async ({ currentData, newData }) => {
-  const myNewData = { ...newData, image: currentData.image };
+  const myNewData = {
+    ...newData,
+    items: newData.buyLists,
+    image: currentData.image,
+  };
 
   const company = await Account.findById(myNewData.income, {
     balance: 1,
   });
   const company_id = await Account.findById(process.env.COMPANY_ID, {
     lend: 1,
-    METUbalance: 1,
   });
 
   if (company.balance < myNewData.cashAmount - currentData.cashAmount)
     return {
       message: `برای پرداخت  در حساب خود بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
     };
-  // let newSaller;
-  // let currentSaller;
 
   if (currentData.saller !== myNewData.saller) {
     const newSaller = await Account.findById(myNewData.saller, {
@@ -255,8 +279,67 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
       (Number(currentData.borrowAmount) - Number(myNewData.borrowAmount));
     await Account.findByIdAndUpdate(myNewData.saller, saller);
   }
+  const isEqual = (obj1, obj2) => {
+    return (
+      obj1.unit === obj2.unit._id.toString() &&
+      obj1.product === obj2.product._id.toString() &&
+      obj1.depot === obj2.depot._id.toString()
+    );
+  };
+
+  const itemForDelete = currentData.items
+    .filter((objY) => !myNewData.items.some((objX) => isEqual(objX, objY)))
+    .map((item) => item._id);
+
+  const itemForCreate = myNewData.items
+    .filter((objX) => !currentData.items.some((objY) => isEqual(objX, objY)))
+    .map((item) => {
+      delete item._id;
+      return item;
+    });
+
+  const itemForUpdate = currentData.items.filter((objY) =>
+    myNewData.items.some((objX) => isEqual(objX, objY))
+  );
+
+  if (itemForCreate.length > 0) await Items.insertMany(itemForCreate);
+
+  if (itemForDelete.length > 0)
+    await Items.deleteMany({ _id: { $in: itemForDelete } });
+
+  itemForUpdate.forEach(async (item) => {
+    const itemData = await Items.findOne({
+      $and: [
+        { depot: item.depot },
+        { product: item.product },
+        { unit: item.unit },
+      ],
+    });
+
+    myNewData.items.forEach(async (i) => {
+      if (isEqual(i, item)) {
+        const updateData = {
+          myId: itemData._id,
+          count: itemData.count - item.count + i.count,
+          unitAmount:
+            (itemData.unitAmount * itemData.count -
+              item.unitAmount * item.count +
+              i.unitAmount * i.count) /
+            (itemData.count - item.count + i.count),
+          aveUnitAmount:
+            (itemData.aveUnitAmount * itemData.count -
+              item.aveUnitAmount * item.count +
+              i.aveUnitAmount * i.count) /
+            (itemData.count - item.count + i.count),
+        };
+
+        await Items.findByIdAndUpdate(updateData._id, updateData);
+      }
+    });
+  });
 
   const result = await Buy.findByIdAndUpdate(currentData._id, myNewData);
+  Cost.findByIdAndUpdate(currentData.cost, { amount: newData.transportCost });
 
   if (result?._id) {
     const newCompanyData = {
@@ -268,9 +351,6 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
       lend:
         Number(company_id.lend) -
         (Number(currentData.borrowAmount) - Number(myNewData.borrowAmount)),
-      METUbalance:
-        Number(company_id.METUbalance) -
-        (Number(currentData.metuAmount) - Number(myNewData.metuAmount)),
     };
     await Account.findByIdAndUpdate(myNewData.income, newCompanyData);
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);

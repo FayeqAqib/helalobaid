@@ -79,7 +79,7 @@ export function AppSidebarContent({ list }) {
                 } else {
                   return (
                     <Collapsible key={item.title} className="group/collapsible">
-                      <SidebarMenuItem>
+                      <SidebarMenuItem noList={false}>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton asChild size="lg">
                             <Link href={"#"} className="  ">
