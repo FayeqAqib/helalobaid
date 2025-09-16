@@ -28,20 +28,16 @@ import { useEffect, useState, useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
 import { SwitchDemo } from "@/components/myUI/Switch";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
+import { createProductTransferAction } from "@/actions/productTransferAction";
 
-const schema = z
-  .object({
-    date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
-    product: z.string({ required_error: " ذکر نام محصول الزامی است" }),
-    count: z.number({ required_error: " ذکر تعداد محصول الزامی است" }),
-    from: z.string({ required_error: " ذکر نام گدام منبع الزامی است" }),
-    to: z.string({ required_error: " ذکر نام گدامی مقصدالزامی است" }),
-    details: z.string().optional(),
-  })
-  .refine(
-    (data) => data.from !== data.to,
-    "لطفا برای گدام مقصد گذینه متفاوتی را انتخاب کنید."
-  );
+const schema = z.object({
+  date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
+  product: z.string({ required_error: " ذکر نام محصول الزامی است" }),
+  count: z.number({ required_error: " ذکر تعداد محصول الزامی است" }),
+  from: z.string({ required_error: " ذکر نام گدام منبع الزامی است" }),
+  to: z.string({ required_error: " ذکر نام گدامی مقصدالزامی است" }),
+  details: z.string().optional(),
+});
 
 export function ProductTransferModal({
   children,
@@ -55,19 +51,13 @@ export function ProductTransferModal({
   const [isPending, startTransition] = useTransition();
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues:
-      type === "update"
-        ? {
-            ...data,
-            date: new Date(data.date),
-            product: data.product.name + "_" + data.product._id,
-            from: data.from.name + "_" + data.from._id,
-            to: data.to.name + "_" + data.to._id,
-          }
-        : {},
   });
 
   function submiteForm(newData) {
+    if (newData.from === newData.to) {
+      toast.warning("برای انتقال دو گدام متفاوت انتخاب کنید.");
+      return null;
+    }
     if (product?.split("_")[0].split(")")[1] < Number(count)) return null;
     const myNewData = {
       ...newData,
@@ -75,10 +65,12 @@ export function ProductTransferModal({
       product: newData.product.split("_")[1].split("-")[0],
       from: newData.from.split("_")[1],
       to: newData.to.split("_")[1],
+      unit: product.split("_")[1].split("-")[3].split(",")[0],
     };
+    console.log();
     startTransition(async () => {
       if (type === "create") {
-        const result = await createcostAction(myNewData);
+        const result = await createProductTransferAction(myNewData);
         if (result.result?.message)
           return toast.warning(result.result?.message);
         if (!result.err) {
@@ -88,26 +80,6 @@ export function ProductTransferModal({
         } else {
           toast.error(
             "در ثبت انتقال شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
-          );
-        }
-      }
-      if (type === "update") {
-        const currentData = {
-          ...data,
-          product: newData.product._id,
-          from: newData.from._id,
-          to: newData.to._id,
-        };
-        const result = await updateCostAction(currentData, myNewData);
-        if (result.result?.message)
-          return toast.warning(result.result?.message);
-        if (!result.err) {
-          toast.success("انتقال شما با موفقیت آپدیت شد");
-          onOpen(false);
-          form.reset();
-        } else {
-          toast.error(
-            "در آپدیت انتقال شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
           );
         }
       }

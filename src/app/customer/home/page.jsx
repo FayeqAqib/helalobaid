@@ -1,36 +1,18 @@
 import { BuyerCard } from "@/components/features/home/BuyerCard";
 import jalaliMoment from "moment-jalaali";
-
 import ChartContiner from "@/components/features/home/ChartContiner";
 import LoanAccount from "@/components/features/home/LoanAccount";
 import { ShowCard } from "@/components/features/home/ShowCard";
 import { SmallShowCard } from "@/components/features/home/smallShowCard";
-
 import { getCompanyAccount } from "@/services/accountService";
-import { getSixMonthBuyData } from "@/services/buyService";
 import { getAllItems, getSalesPurchaseSummary } from "@/services/itemsService";
-
-import { getSixMonthSaleData } from "@/services/saleService";
 
 import React, { use } from "react";
 
 export default function Page() {
   const { result } = use(getCompanyAccount());
-  const buySixMonthData = use(getSixMonthBuyData());
-  const SaleSixMonthData = use(getSixMonthSaleData());
   const fourMonthData = use(getSalesPurchaseSummary());
   const allItems = use(getAllItems());
-
-  const saleCent =
-    ((Number(SaleSixMonthData.result?.slice(-1)[0]?.totalSale || 0) -
-      Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 0)) *
-      100) /
-    Number(SaleSixMonthData.result?.slice(-2)[0]?.totalSale || 1);
-  const buyCent =
-    ((Number(buySixMonthData.result?.slice(-1)[0]?.totalBuy || 0) -
-      Number(buySixMonthData.result?.slice(-2)[0]?.totalBuy || 0)) *
-      100) /
-    Number(buySixMonthData.result?.slice(-2)[0]?.totalBuy || 1);
 
   const totalAvalible = React.useMemo(
     () => allItems.result?.reduce((acc, curr) => acc + curr.count, 0),
@@ -43,19 +25,32 @@ export default function Page() {
 
   // آخر ماه شمسی جاری
   const lastDayOfMonth = jalaliMoment().endOf("jMonth").toDate();
+
+  const firstDayOfLastMonth = jalaliMoment()
+    .subtract(1, "jMonth") // یک ماه کم می‌کنیم
+    .startOf("jMonth") // به اول ماه می‌رویم
+    .toDate(); // به تاریخ تبدیل می‌کنیم
+
+  // آخر ماه شمسی قبل
+  const lastDayOfLastMonth = jalaliMoment()
+    .subtract(1, "jMonth") // یک ماه کم می‌کنیم
+    .endOf("jMonth") // به آخر ماه می‌رویم
+    .toDate();
+
+  console.log(fourMonthData, "fourmoonth");
   const total = React.useMemo(() => {
     const buy = fourMonthData.result?.reduce(
       (acc, curr) =>
-        new Date(curr.date) > firstDayOfMonth &&
-        new Date(curr.date) < lastDayOfMonth
+        new Date(curr.date) >= firstDayOfMonth &&
+        new Date(curr.date) <= lastDayOfMonth
           ? acc + curr.buyCount
           : acc,
       0
     );
     const sale = fourMonthData.result?.reduce(
       (acc, curr) =>
-        new Date(curr.date) > firstDayOfMonth &&
-        new Date(curr.date) < lastDayOfMonth
+        new Date(curr.date) >= firstDayOfMonth &&
+        new Date(curr.date) <= lastDayOfMonth
           ? acc + curr.saleCount
           : acc,
       0
@@ -67,8 +62,8 @@ export default function Page() {
     () =>
       fourMonthData.result?.reduce(
         (acc, curr) =>
-          new Date(curr.date) > firstDayOfMonth &&
-          new Date(curr.date) < lastDayOfMonth
+          new Date(curr.date) >= firstDayOfMonth &&
+          new Date(curr.date) <= lastDayOfMonth
             ? acc + curr.totalProfit
             : acc,
         0
@@ -76,6 +71,73 @@ export default function Page() {
 
     [fourMonthData.result]
   );
+
+  const buyAndSale = React.useMemo(() => {
+    const currrentSale = fourMonthData.result?.reduce(
+      (acc, curr) =>
+        new Date(curr.date) >= firstDayOfMonth &&
+        new Date(curr.date) <= lastDayOfMonth
+          ? acc + curr.totalSale
+          : acc,
+      0
+    );
+    const pastSale = fourMonthData.result?.reduce(
+      (acc, curr) =>
+        new Date(curr.date) >= firstDayOfLastMonth &&
+        new Date(curr.date) <= lastDayOfLastMonth
+          ? acc + curr.totalSale
+          : acc,
+      0
+    );
+    const currrentBuy = fourMonthData.result?.reduce(
+      (acc, curr) =>
+        new Date(curr.date) >= firstDayOfMonth &&
+        new Date(curr.date) <= lastDayOfMonth
+          ? acc + curr.totalBuy
+          : acc,
+      0
+    );
+    const pastBuy = fourMonthData.result?.reduce(
+      (acc, curr) =>
+        new Date(curr.date) >= firstDayOfLastMonth &&
+        new Date(curr.date) <= lastDayOfLastMonth
+          ? acc + curr.totalBuy
+          : acc,
+      0
+    );
+    const saleCount = fourMonthData.result?.reduce(
+      (acc, curr) =>
+        new Date(curr.date) >= firstDayOfMonth &&
+        new Date(curr.date) <= lastDayOfMonth
+          ? acc + curr.transactionSale
+          : acc,
+      0
+    );
+    const buyCount = fourMonthData.result?.reduce(
+      (acc, curr) =>
+        new Date(curr.date) >= firstDayOfMonth &&
+        new Date(curr.date) <= lastDayOfMonth
+          ? acc + curr.transactionBuy
+          : acc,
+      0
+    );
+
+    return {
+      currrentBuy,
+      pastBuy,
+      currrentSale,
+      pastSale,
+      buyCount,
+      saleCount,
+    };
+  }, [fourMonthData.result]);
+  console.log(buyAndSale);
+  const saleCent =
+    ((buyAndSale.currrentSale - buyAndSale.pastSale) * 100) /
+    buyAndSale.pastSale;
+  const buyCent =
+    ((buyAndSale.currrentBuy - buyAndSale.pastBuy) * 100) / buyAndSale.pastBuy;
+
   return (
     <div className="flex size-full flex-col-reverse 2xl:flex-row  items-start justify-center gap-4 p-1">
       <div
@@ -98,15 +160,15 @@ export default function Page() {
           <ShowCard
             tital={"مجموع خرید"}
             cent={buyCent}
-            amount={buySixMonthData.result?.slice(-1)?.[0]?.totalBuy}
-            count={buySixMonthData.result?.slice(-1)?.[0]?.count}
+            amount={buyAndSale.currrentBuy}
+            count={buyAndSale.buyCount}
             chart="../line-chart.png"
           />
           <ShowCard
             tital={"مجموع فروش "}
             cent={saleCent}
-            amount={SaleSixMonthData.result?.slice(-1)?.[0]?.totalSale}
-            count={SaleSixMonthData.result?.slice(-1)?.[0]?.count}
+            amount={buyAndSale.currrentSale}
+            count={buyAndSale.saleCount}
             chart="../line-chart-2.png"
           />
           <ShowCard
@@ -115,12 +177,7 @@ export default function Page() {
             chart="../bar-chart (2).png"
           />
         </div>
-        <ChartContiner
-          data={fourMonthData.result}
-          totalProfit={totalProfit}
-          buyData={buySixMonthData.result || []}
-          saleData={SaleSixMonthData.result || []}
-        />
+        <ChartContiner data={fourMonthData.result} totalProfit={totalProfit} />
       </div>
     </div>
   );

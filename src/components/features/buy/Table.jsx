@@ -244,6 +244,7 @@ export const columns = [
                 ...payment,
                 name: payment?.saller.name,
                 income: payment?.income.name,
+                borrow: payment.borrowAmount,
               }}
               open={openDetails}
               onChange={setOpenDetails}
@@ -311,6 +312,7 @@ export function DataTableBuy({ data, count }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  console.log(data);
 
   function setFilter() {
     router.push(

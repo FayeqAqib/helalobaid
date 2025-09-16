@@ -157,86 +157,57 @@ export const columns = [
     cell: ({ row }) => {
       const payment = row.original;
       const [openDelete, setOpenDelete] = useState(false);
-      const [openProductTransfer, setOpenProductTransfer] = useState(false);
       const [openDetails, setOpenDetails] = useState(false);
       return (
-        <ProductTransferModal
-          key={openProductTransfer}
-          data={payment}
-          type="update"
-          open={openProductTransfer}
-          onOpen={setOpenProductTransfer}
-        >
-          <ConfirmDelete
-            data={payment}
-            open={openDelete}
-            onOpen={setOpenDelete}
+        <ConfirmDelete data={payment} open={openDelete} onOpen={setOpenDelete}>
+          <DetailsModal
+            data={{
+              ...payment,
+              product: payment.product.name,
+              from: payment.from.name,
+              to: payment.to.name,
+            }}
+            open={openDetails}
+            onChange={setOpenDetails}
           >
-            <DetailsModal
-              data={{
-                ...payment,
-                product: payment.product.name,
-                from: payment.from.name,
-                to: payment.to.name,
-              }}
-              open={openDetails}
-              onChange={setOpenDetails}
-            >
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel className={" text-right"}>
-                    صلاحیت ها
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Button
-                      onClick={() =>
-                        setOpenDetails((openDetails) => !openDetails)
-                      }
-                      variant={"ghost"}
-                      className={"w-full justify-end"}
-                    >
-                      <span>دیدن جذیات</span>
-                      <HiEye size={32} strokeWidth={1.75} />
-                    </Button>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => navigator.clipboard.writeText(payment.id)}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel className={" text-right"}>
+                  صلاحیت ها
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Button
+                    onClick={() =>
+                      setOpenDetails((openDetails) => !openDetails)
+                    }
+                    variant={"ghost"}
+                    className={"w-full justify-end"}
                   >
-                    <Button
-                      onClick={() =>
-                        setOpenProductTransfer(
-                          (openProductTransfer) => !openProductTransfer
-                        )
-                      }
-                      variant={"ghost"}
-                      className={"w-full justify-end"}
-                    >
-                      <span>تصحیح</span>
-                      <FilePenLine size={32} strokeWidth={1.75} color="green" />
-                    </Button>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Button
-                      onClick={() => setOpenDelete((openDelete) => !openDelete)}
-                      variant={"ghost"}
-                      className={"w-full justify-end"}
-                    >
-                      <span>حذف</span>
-                      <Trash2 size={32} strokeWidth={1.75} color={"red"} />
-                    </Button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </DetailsModal>
-          </ConfirmDelete>
-        </ProductTransferModal>
+                    <span>دیدن جذیات</span>
+                    <HiEye size={32} strokeWidth={1.75} />
+                  </Button>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Button
+                    onClick={() => setOpenDelete((openDelete) => !openDelete)}
+                    variant={"ghost"}
+                    className={"w-full justify-end"}
+                  >
+                    <span>حذف</span>
+                    <Trash2 size={32} strokeWidth={1.75} color={"red"} />
+                  </Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </DetailsModal>
+        </ConfirmDelete>
       );
     },
   },

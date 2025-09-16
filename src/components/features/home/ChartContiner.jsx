@@ -38,8 +38,8 @@ function ChartContiner({ data, totalProfit }) {
     () =>
       data.reduce(
         (acc, curr) =>
-          new Date(curr.date) > firstDayOfLastMonth &&
-          new Date(curr.date) < lastDayOfLastMonth
+          new Date(curr.date) >= firstDayOfLastMonth &&
+          new Date(curr.date) <= lastDayOfLastMonth
             ? acc + curr.totalProfit
             : acc,
         0
@@ -71,7 +71,7 @@ function ChartContiner({ data, totalProfit }) {
           />
         </div>
       </div>
-      <div className="w-full flex flex-col gap-5">
+      <div className=" w-full  flex flex-col gap-5">
         <ChartAreaGradient data={data} />
         <div className="flex flex-col gap-5 w-full md:flex-row">
           <Card className={"p-0 m-0 w-full"}>

@@ -12,6 +12,7 @@ import Image from "next/image";
 import { Separator } from "../ui/separator";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { useRef } from "react";
+import { ModalTable } from "../features/buy/ModalTable";
 
 export function DetailsModal({ data = {}, open, onChange, children }) {
   const imgRef = useRef(null);
@@ -33,7 +34,7 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
   return (
     <Dialog open={open} onOpenChange={onChange}>
       {children}
-      <DialogContent className="flex flex-col ">
+      <DialogContent className="flex flex-col md:max-w-4xl overflow-auto max-h-[cals(100vh-150px)]">
         <DialogHeader className={"flex flex-row gap-6 flex-1 items-center"}>
           <DialogTitle className={"text-right text-2xl"}>
             {data.name}
@@ -47,6 +48,30 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
             {moment(data.date).format("jYYYY/jMM/jDD")}
           </DialogTitle>
         </DialogHeader>
+        {data?.billNumber && (
+          <>
+            <div className="flex gap-6 items-center justify-between pe-4">
+              <DialogTitle className={"text-right"}>بل نمبر</DialogTitle>
+              <DialogDescription className={"text-lg"}>
+                {data.billNumber}
+              </DialogDescription>
+            </div>
+
+            <Separator />
+          </>
+        )}
+        {data?.income && (
+          <>
+            <div className="flex gap-6 items-center justify-between pe-4">
+              <DialogTitle className={"text-right"}>حساب</DialogTitle>
+              <DialogDescription className={"text-lg"}>
+                {data.income}
+              </DialogDescription>
+            </div>
+
+            <Separator />
+          </>
+        )}
         {data?.image && (
           <>
             <div
@@ -113,6 +138,17 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
                 </DialogDescription>
               </div>
 
+              <Separator />
+            </>
+          )}
+          {data?.product && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>محصول</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {data.product}
+                </DialogDescription>
+              </div>
               <Separator />
             </>
           )}
@@ -213,6 +249,19 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
               <Separator />
             </>
           )}
+          {data?.transportCost && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>
+                  هزینه ترانسپورت{" "}
+                </DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {formatCurrency(data.transportCost)}
+                </DialogDescription>
+              </div>
+              <Separator />
+            </>
+          )}
           {data?.amount && (
             <>
               <div className="flex gap-6 items-center justify-between pe-4">
@@ -224,39 +273,19 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
               <Separator />
             </>
           )}
-          {data?.cent && (
+
+          {data?.count && (
             <>
               <div className="flex gap-6 items-center justify-between pe-4">
-                <DialogTitle className={"text-right"}>فیصدی</DialogTitle>
+                <DialogTitle className={"text-right"}>تعداد</DialogTitle>
                 <DialogDescription className={"text-lg"}>
-                  {data.cent}٪
+                  {data.count}
                 </DialogDescription>
               </div>
               <Separator />
             </>
           )}
-          {data?.metuAmount && (
-            <>
-              <div className="flex gap-6 items-center justify-between pe-4">
-                <DialogTitle className={"text-right"}>مقدار METU</DialogTitle>
-                <DialogDescription className={"text-lg"}>
-                  {formatNumber(data.metuAmount)}
-                </DialogDescription>
-              </div>
-              <Separator />
-            </>
-          )}
-          {data?.status && (
-            <>
-              <div className="flex gap-6 items-center justify-between pe-4">
-                <DialogTitle className={"text-right"}>حالت </DialogTitle>
-                <DialogDescription className={"text-lg"}>
-                  {data.status}
-                </DialogDescription>
-              </div>
-              <Separator />
-            </>
-          )}
+
           {data?.buyerMessage && (
             <div className="flex flex-col gap-3 justify-center ">
               <DialogTitle className={"text-right"}>نظر خریدار</DialogTitle>
@@ -265,9 +294,9 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
               </DialogDescription>
             </div>
           )}
-          {data?.items&&{
-            
-          }}
+          {data?.items && data.items.length > 0 && (
+            <ModalTable data={data.items} Delete={false} />
+          )}
           <div className="flex flex-col gap-3 justify-center ">
             <DialogTitle className={"text-right"}>تفصیلات</DialogTitle>
             <DialogDescription className={"text-lg"}>

@@ -144,7 +144,9 @@ export function AutoCompleteV2({
                       key={option.value}
                       value={`${option.label}_${option.value}`}
                       onSelect={(currentValue) => {
-                        onChange(currentValue === value ? "" : currentValue);
+                        onChange(
+                          currentValue === value ? undefined : currentValue
+                        );
                         setOpen(false);
                       }}
                     >

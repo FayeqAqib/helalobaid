@@ -22,6 +22,7 @@ export const getAllItemsForBarChart = catchAsync(async (depot) => {
     "name"
   );
 });
+
 export const getAllItems = catchAsync(async () => {
   return await Items.find({}, { count: 1 });
 });
@@ -86,7 +87,7 @@ export const getSalesPurchaseSummary = catchAsync(async () => {
         },
         totalBuy: { $sum: "$totalAmount" },
         buyCount: { $sum: "$totalCount" }, // اضافه کردن buyCount
-        transactionCount: { $sum: 1 },
+        transactionBuy: { $sum: 1 },
       },
     },
 
@@ -99,7 +100,7 @@ export const getSalesPurchaseSummary = catchAsync(async () => {
         totalSale: { $literal: 0 },
         totalProfit: { $literal: 0 },
         saleCount: { $literal: 0 }, // مقدار پیش‌فرض برای saleCount
-        transactionCount: 1,
+        transactionBuy: 1,
         type: { $literal: "buy" },
         _id: 0,
       },
@@ -133,7 +134,7 @@ export const getSalesPurchaseSummary = catchAsync(async () => {
               totalSale: { $sum: "$totalAmount" },
               totalProfit: { $sum: "$totalProfit" }, // اضافه کردن saleCount
               saleCount: { $sum: "$totalCount" }, // اضافه کردن saleCount
-              transactionCount: { $sum: 1 },
+              transactionSale: { $sum: 1 },
             },
           },
 
@@ -147,7 +148,7 @@ export const getSalesPurchaseSummary = catchAsync(async () => {
               totalBuy: { $literal: 0 }, // تغییر از 0 به { $literal: 0 }
 
               buyCount: { $literal: 0 }, // مقدار پیش‌فرض برای buyCount
-              transactionCount: 1,
+              transactionSale: 1,
               type: { $literal: "sale" },
               _id: 0,
             },
@@ -165,17 +166,8 @@ export const getSalesPurchaseSummary = catchAsync(async () => {
         totalSale: { $sum: "$totalSale" },
         totalProfit: { $sum: "$totalProfit" },
         saleCount: { $sum: "$saleCount" }, // اضافه کردن saleCount
-        buyTransactions: {
-          $sum: {
-            $cond: [{ $eq: ["$type", "buy"] }, "$transactionCount", 0],
-          },
-        },
-        saleTransactions: {
-          $sum: {
-            $cond: [{ $eq: ["$type", "sale"] }, "$transactionCount", 0],
-          },
-        },
-        totalTransactions: { $sum: "$transactionCount" },
+        transactionBuy: { $sum: "$transactionBuy" },
+        transactionSale: { $sum: "$transactionSale" },
       },
     },
 
@@ -188,8 +180,8 @@ export const getSalesPurchaseSummary = catchAsync(async () => {
         totalSale: 1,
         saleCount: 1, // اضافه کردن saleCount
         totalProfit: 1,
-        buyTransactions: 1,
-        saleTransactions: 1,
+        transactionBuy: 1,
+        transactionSale: 1,
         totalTransactions: 1,
         _id: 0,
       },

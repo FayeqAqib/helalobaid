@@ -1,4 +1,4 @@
-import { deleteCostAction } from "@/actions/costAction";
+import { deleteProductTransferAction } from "@/actions/productTransferAction";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,30 +18,29 @@ export default function ConfirmDelete({ children, data, open, onOpen }) {
 
   const handleDelete = () => {
     startTransition(async () => {
-      const result = await deleteCostAction(data); // or whatever your delete logic is
+      const result = await deleteProductTransferAction(data); // or whatever your delete logic is
 
       if (result.result?.message) return toast.warning(result.result?.message);
       if (!result.err) {
-        toast.success("گدام شما با موفقیت حذف شد");
+        toast.success("انتقال از گدام شما با موفقیت حذف شد");
       } else {
         toast.error(
-          "در حذف گدام شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
+          "در حذف انتقال از گدام شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
         );
       }
       onOpen(false); // close dialog after delete
     });
   };
 
-  
   return (
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
 
       <DialogContent className=" flex flex-col text-right items-start">
         <DialogHeader className=" flex flex-col t items-start">
-          <DialogTitle>حذف گدام</DialogTitle>
+          <DialogTitle>حذف انتقال از گدام</DialogTitle>
           <DialogDescription className={"text-right"}>
-            آیا مطمئن هستید  گدام {data.costTitle?.name} را حذف کنید؟.
+            آیا مطمئن هستید انتقال از گدام {data.costTitle?.name} را حذف کنید؟.
           </DialogDescription>
         </DialogHeader>
 

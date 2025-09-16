@@ -12,7 +12,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import monent from "moment-jalaali";
 
-export function ModalTable({ data, onDelete }) {
+export function ModalTable({ data, onDelete, Delete = true }) {
   const x = "";
   x.length;
   return (
@@ -36,7 +36,7 @@ export function ModalTable({ data, onDelete }) {
             <TableHead>گدام</TableHead>
             <TableHead>مجموع</TableHead>
             <TableHead>تمام شد</TableHead>
-            <TableHead></TableHead>
+            {Delete && <TableHead></TableHead>}
           </TableRow>
         </TableHeader>
 
@@ -61,11 +61,13 @@ export function ModalTable({ data, onDelete }) {
               <TableCell>
                 {formatCurrency(item.aveUnitAmount * item.count)}
               </TableCell>
-              <TableCell>
-                <Button onClick={() => onDelete(item.id)} variant="ghost">
-                  <Trash className="text-red-400" />
-                </Button>
-              </TableCell>
+              {Delete && (
+                <TableCell>
+                  <Button onClick={() => onDelete(item.id)} variant="ghost">
+                    <Trash className="text-red-400" />
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
