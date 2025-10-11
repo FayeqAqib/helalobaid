@@ -334,7 +334,7 @@ export async function getAllTransferMoneySeller() {
   // اجرای کوئری‌ها به صورت موازی
   const [buy, receive] = await Promise.all([
     aggregateData(Buy, "cashAmount", "saller"), // خرید = پرداخت
-    aggregateData(Receive, "amount", "typa"), // دریافت وجه
+    aggregateData(Receive, "amount", "type"), // دریافت وجه
   ]);
   const allData = [...buy, ...receive];
 
