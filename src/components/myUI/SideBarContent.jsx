@@ -43,17 +43,13 @@ export function AppSidebarContent({ list }) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarHeader className={"flex-col gap-2"}>
-            <div className="relative w-[70%] mx-5 h-[90px]">
-              <Image src="/Ajmal.png" fill className="absolute " alt="image" />
-            </div>
-            <div className="flex h-[45px] flex-col italic justify-center  items-center w-full">
-              <Label
-                className={
-                  "font-extralight text-3xl bg-gradient-to-tr from-white dark:from-black via-slate-400 dark:via-slate-500 to-slate-950 dark:to-white bg-clip-text text-transparent  uppercasexz px-1 "
-                }
-              >
-                MEGABYTE
-              </Label>
+            <div className="relative w-full  h-36">
+              <Image
+                src="/Ajmal.png"
+                fill
+                className="absolute object-cover size-full"
+                alt="image"
+              />
             </div>
           </SidebarHeader>
 

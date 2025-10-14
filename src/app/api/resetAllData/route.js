@@ -32,12 +32,12 @@ export async function GET(req, { params }) {
     await Account.create({
       _id: process.env.COMPANY_ID,
       accountType: "company",
-      name: "company",
+      name: "خزانه شرکت",
     });
 
     await createUser({
-      username: "company",
-      password: "asdfghjk",
+      username: "admin",
+      password: "admin123",
       role: "admin",
       owner: process.env.COMPANY_ID,
     });

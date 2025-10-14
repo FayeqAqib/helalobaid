@@ -60,7 +60,7 @@ export default function SignInPage() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen p-4"
+      className="flex items-center justify-center min-h-screen w-full p-4"
       style={{
         animation: "gradientBG 5s ease-in-out infinite",
         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
