@@ -37,7 +37,6 @@ export default function Page() {
     .endOf("jMonth") // به آخر ماه می‌رویم
     .toDate();
 
-  console.log(fourMonthData, "fourmoonth");
   const total = React.useMemo(() => {
     const buy = fourMonthData.result?.reduce(
       (acc, curr) =>
@@ -131,7 +130,7 @@ export default function Page() {
       saleCount,
     };
   }, [fourMonthData.result]);
-  console.log(buyAndSale);
+
   const saleCent =
     ((buyAndSale.currrentSale - buyAndSale.pastSale) * 100) /
     buyAndSale.pastSale;

@@ -27,11 +27,13 @@ export function ModalTable({ data, onDelete, Delete = true }) {
         <TableHeader className={"text-center"}>
           <TableRow>
             <TableHead></TableHead>
+            <TableHead>بج نمبر</TableHead>
             <TableHead>محصول</TableHead>
             <TableHead>تعداد</TableHead>
             <TableHead>واحد</TableHead>
-            <TableHead>قیمت فی واحد</TableHead>
+            <TableHead>قیمت خرید </TableHead>
             <TableHead> اوسط </TableHead>
+            <TableHead> قیمت فروش </TableHead>
             <TableHead>تاریخ انقضا</TableHead>
             <TableHead>گدام</TableHead>
             <TableHead>مجموع</TableHead>
@@ -44,11 +46,13 @@ export function ModalTable({ data, onDelete, Delete = true }) {
           {data.map((item, i) => (
             <TableRow key={i} className={"text-center"}>
               <TableCell>{data.length - i}</TableCell>
-              <TableCell>{item.product?.name}</TableCell>
+              <TableCell>{item?.badgeNumber}</TableCell>
+              <TableCell className={"w-44"}>{item.product?.name}</TableCell>
               <TableCell>{item.count}</TableCell>
               <TableCell>{item.unit?.name}</TableCell>
               <TableCell>{formatCurrency(item.unitAmount)}</TableCell>
               <TableCell>{formatCurrency(item.aveUnitAmount)}</TableCell>
+              <TableCell>{formatCurrency(item.saleAmount)}</TableCell>
               <TableCell>
                 {item.expirationDate
                   ? monent(item.expirationDate).format("jYYYY/jMM/jDD")

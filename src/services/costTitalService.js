@@ -1,6 +1,7 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
 import { CostTital } from "@/models/constTital";
+import { Cost } from "@/models/cost";
 
 //////////////////////////// CREATE ///////////////////////////////////////
 export const createCostTital = catchAsync(async (data) => {
@@ -29,6 +30,13 @@ export const updateCostTital = catchAsync(async (data) => {
 
 ////////////////////////////DELETE ////////////////////////////
 export const deleteCostTital = catchAsync(async (_id) => {
+  const exiset = await Cost.findOne({
+    costTital: _id,
+  });
+  if (exiset)
+    return {
+      message: "نمی توانین این عنوان را پاک کنید چون با این عنوان مصارفی ثبت",
+    };
   const result = await CostTital.findByIdAndDelete(_id);
   return result;
 });

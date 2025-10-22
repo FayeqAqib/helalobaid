@@ -40,6 +40,9 @@ const authConfig = {
       },
     }),
   ],
+  session: {
+    maxAge: 86400,
+  },
 
   callbacks: {
     jwt: async ({ token, user }) => {

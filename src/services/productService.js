@@ -1,7 +1,11 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
 import { uploadImage } from "@/lib/uploadImage";
+import { Buy } from "@/models/Buy";
+import { DepotItems } from "@/models/depotItems";
+import { Items } from "@/models/items";
 import { Product } from "@/models/product";
+import { Sale } from "@/models/Sale";
 
 //////////////////////////// CREATE ///////////////////////////////////////
 export const createProduct = catchAsync(async (data) => {
@@ -31,6 +35,17 @@ export const getAllProduct = catchAsync(async (filter) => {
   return { result, count };
 });
 
+export const getAllProductInBuy = catchAsync(async (filter) => {
+  const result = await Product.find({}, { name: 1, brand: 1, companyName: 1 });
+  const newResult = await result?.map((item) => {
+    return {
+      value: item._id,
+      label: item.name + "-" + item.brand + "-" + item.companyName,
+    };
+  });
+  return newResult;
+});
+
 //////////////////////////// UPDATE ///////////////////////////////
 export const updateProduct = catchAsync(async (data) => {
   const newData = { ...data };
@@ -54,6 +69,23 @@ export const updateProduct = catchAsync(async (data) => {
 
 ////////////////////////////DELETE ////////////////////////////
 export const deleteProduct = catchAsync(async (_id) => {
+  const buy = await Buy.findOne({
+    "items.product": _id,
+  });
+  const sale = await Items.findOne({
+    product: _id,
+  });
+  const item = await Sale.findOne({
+    "items.product": _id,
+  });
+  const depotItems = await DepotItems.findOne({
+    product: _id,
+  });
+  if (buy || sale || item || depotItems)
+    return {
+      message:
+        "نمی توانین این عنوان را پاک کنید چون با این عنوان محصول در خرید فروش یا در انبار ثبت شده",
+    };
   const result = await Product.findByIdAndDelete(_id);
   return result;
 });

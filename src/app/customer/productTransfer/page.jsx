@@ -7,7 +7,7 @@ import React from "react";
 export default async function Page({ searchParams }) {
   const filter = await searchParams;
   const data = await getAllProducttransfer(filter);
-  console.log(data);
+
   return (
     <Card className={"p-5 shadow-xl gap-0"}>
       <CardHeader className={"text-right "}>

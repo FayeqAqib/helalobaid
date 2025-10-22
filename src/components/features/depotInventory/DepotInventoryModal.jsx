@@ -35,7 +35,7 @@ import createDepotItemsAction, {
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
-
+  badgeNumber: z.string({ required_error: " بج نمبر الزامی می باشد" }),
   product: z.string({ required_error: "مشخص بودن جنس الزامی می‌باشد" }),
   count: z
     .number({ invalid_type_error: " تعداد جنس الزامی می باشد" })
@@ -185,7 +185,19 @@ export function DepotInventoryModal({
                     </FormItem>
                   )}
                 />
-
+                <FormField
+                  control={form.control}
+                  name="badgeNumber"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel> بج نمبر </FormLabel>
+                      <Input value={field.value} onChange={field.onChange} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-row gap-4">
                 <FormField
                   control={form.control}
                   name="product"

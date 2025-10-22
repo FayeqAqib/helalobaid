@@ -7,7 +7,6 @@ import moment from "moment-jalaali";
 import { uploadImage } from "@/lib/uploadImage";
 import { deleteFile } from "@/lib/deleteImage";
 import { generateBillNumber } from "@/lib/billNumberGenerator";
-import { DepotItems } from "@/models/depotItems";
 import { Cost } from "@/models/cost";
 import { CostTital } from "@/models/constTital";
 import { Items } from "@/models/items";
@@ -55,32 +54,7 @@ export const createBuy = catchAsync(async (data) => {
     };
   }
 
-  newData.items.forEach(async (item) => {
-    const itemData = await Items.findOne({
-      $and: [
-        { depot: item.depot },
-        { product: item.product },
-        { unit: item.unit },
-      ],
-    });
-
-    if (itemData) {
-      const updateData = {
-        count: itemData.count + item.count,
-        unitAmount:
-          (itemData.unitAmount * itemData.count +
-            item.unitAmount * item.count) /
-          (itemData.count + item.count),
-        aveUnitAmount:
-          (itemData.aveUnitAmount * itemData.count +
-            item.aveUnitAmount * item.count) /
-          (itemData.count + item.count),
-      };
-      await Items.findByIdAndUpdate(itemData._id, updateData);
-    } else {
-      await Items.create(item);
-    }
-  });
+  await Items.insertMany(newData.items);
 
   ////////////////////////////////////////// CREATE TRANSPORT COST//////////////////////////////////////////////
   const costTital = await CostTital.findOneAndUpdate(
@@ -157,7 +131,6 @@ export const getAllbuy = catchAsync(async (filter) => {
   return { result, count };
 });
 
-
 // ////////////////////////////////////////////////// DELETE  ////////////////////////////////////////////////
 
 export const deleteBuy = catchAsync(async (data) => {
@@ -173,36 +146,9 @@ export const deleteBuy = catchAsync(async (data) => {
   });
   ////////////////////////////////////////////////// DELETE BUY /////////////////////////////////
 
-  newData.items.forEach(async (item) => {
-    const itemData = await Items.findOne({
-      $and: [
-        { depot: item.depot },
-        { product: item.product },
-        { unit: item.unit },
-      ],
-    });
+  const ids = newData.items.map((item) => item._id);
 
-    if (itemData.count > item.count) {
-      const updateData = {
-        count: itemData.count - item.count,
-        unitAmount:
-          (itemData.unitAmount * itemData.count -
-            item.unitAmount * item.count) /
-          (itemData.count - item.count),
-        aveUnitAmount:
-          (itemData.aveUnitAmount * itemData.count -
-            item.aveUnitAmount * item.count) /
-          (itemData.count - item.count),
-      };
-      await Items.findByIdAndUpdate(itemData._id, updateData);
-    } else {
-      await Items.findByIdAndUpdate(itemData._id, {
-        count: 0,
-        unitAmount: 0,
-        aveUnitAmount: 0,
-      });
-    }
-  });
+  await Items.deleteMany(ids);
 
   const result = await Buy.findByIdAndDelete(data._id);
   await deleteFile(data.image);
@@ -282,64 +228,13 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
       (Number(currentData.borrowAmount) - Number(myNewData.borrowAmount));
     await Account.findByIdAndUpdate(myNewData.saller, saller);
   }
-  const isEqual = (obj1, obj2) => {
-    return (
-      obj1.unit === obj2.unit._id.toString() &&
-      obj1.product === obj2.product._id.toString() &&
-      obj1.depot === obj2.depot._id.toString()
-    );
-  };
 
-  const itemForDelete = currentData.items
-    .filter((objY) => !myNewData.items.some((objX) => isEqual(objX, objY)))
-    .map((item) => item._id);
 
-  const itemForCreate = myNewData.items
-    .filter((objX) => !currentData.items.some((objY) => isEqual(objX, objY)))
-    .map((item) => {
-      delete item._id;
-      return item;
-    });
 
-  const itemForUpdate = currentData.items.filter((objY) =>
-    myNewData.items.some((objX) => isEqual(objX, objY))
-  );
+  const oldIds = currentData.items.map(item=>item._id)
+  await Items.deleteMany(oldIds);
+  await Items.insertMany(myNewData.items)
 
-  if (itemForCreate.length > 0) await Items.insertMany(itemForCreate);
-
-  if (itemForDelete.length > 0)
-    await Items.deleteMany({ _id: { $in: itemForDelete } });
-
-  itemForUpdate.forEach(async (item) => {
-    const itemData = await Items.findOne({
-      $and: [
-        { depot: item.depot },
-        { product: item.product },
-        { unit: item.unit },
-      ],
-    });
-
-    myNewData.items.forEach(async (i) => {
-      if (isEqual(i, item)) {
-        const updateData = {
-          myId: itemData._id,
-          count: itemData.count - item.count + i.count,
-          unitAmount:
-            (itemData.unitAmount * itemData.count -
-              item.unitAmount * item.count +
-              i.unitAmount * i.count) /
-            (itemData.count - item.count + i.count),
-          aveUnitAmount:
-            (itemData.aveUnitAmount * itemData.count -
-              item.aveUnitAmount * item.count +
-              i.aveUnitAmount * i.count) /
-            (itemData.count - item.count + i.count),
-        };
-
-        await Items.findByIdAndUpdate(updateData._id, updateData);
-      }
-    });
-  });
 
   const result = await Buy.findByIdAndUpdate(currentData._id, myNewData);
   Cost.findByIdAndUpdate(currentData.cost, { amount: newData.transportCost });

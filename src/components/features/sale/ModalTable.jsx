@@ -27,11 +27,14 @@ export function ModalTable({ data, onDelete }) {
           <TableRow>
             <TableHead></TableHead>
             <TableHead>محصول</TableHead>
+            <TableHead>نام تجاری</TableHead>
+            <TableHead>نام کمپنی</TableHead>
             <TableHead>تعداد</TableHead>
             <TableHead>واحد</TableHead>
             <TableHead>گدام</TableHead>
             <TableHead> اوسط تمام شد </TableHead>
             <TableHead> قیمت فروش</TableHead>
+            <TableHead> تخفیف</TableHead>
             <TableHead>مفاد</TableHead>
             <TableHead>مجموع</TableHead>
             <TableHead></TableHead>
@@ -43,11 +46,14 @@ export function ModalTable({ data, onDelete }) {
             <TableRow key={i} className={"text-center"}>
               <TableCell>{data.length - i}</TableCell>
               <TableCell>{item.product?.name}</TableCell>
+              <TableCell>{item.product?.brand}</TableCell>
+              <TableCell>{item.product?.companyName}</TableCell>
               <TableCell>{item.count}</TableCell>
               <TableCell>{item.unit.name}</TableCell>
               <TableCell>{item.depot.name}</TableCell>
               <TableCell>{formatCurrency(item.aveUnitAmount)}</TableCell>
               <TableCell>{formatCurrency(item.saleAmount)}</TableCell>
+              <TableCell>{item.discount}%</TableCell>
               <TableCell>{formatCurrency(item.profit)}</TableCell>
               <TableCell>
                 {formatCurrency(item.saleAmount * item.count)}

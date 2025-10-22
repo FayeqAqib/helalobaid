@@ -11,6 +11,12 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  brand: {
+    type: String,
+  },
+  companyName: {
+    type: String,
+  },
   image: String,
   details: {
     type: String,

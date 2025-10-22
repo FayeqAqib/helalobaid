@@ -12,6 +12,7 @@ const depotItemsSchema = new mongoose.Schema(
     afgDate: {
       type: String,
     },
+    item: String,
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",

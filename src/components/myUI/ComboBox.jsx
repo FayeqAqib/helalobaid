@@ -65,16 +65,15 @@ export function AutoCompleteV2({
         result = await getAllDepotAction();
       } else if (dataType === "items") {
         result = await getListOfItemsActions(filter);
-        console.log(filter);
       }
 
-      if (!["customer", "items"].includes(dataType)) {
+      if (!["customer", "items", "product"].includes(dataType)) {
         const data = result.result.map((item) => {
           return { value: item._id, label: item.name };
         });
         setOptions(data);
         if (dataType === "depot") onChange(`${data[0].label}_${data[0].value}`);
-      } else if (dataType === "customer") {
+      } else if (dataType === "customer" || dataType === "product") {
         setOptions(result.result);
       } else if (dataType === "items") {
         const newResult = result.result.map((item) => {
@@ -90,16 +89,18 @@ export function AutoCompleteV2({
               "-" +
               item.unit._id +
               "," +
-              item.unit.name,
+              item.unit.name +
+              "," +
+              item.saleAmount,
             label:
               item.product.name +
-              " " +
               "-" +
-              " " +
+              item.product?.brand +
+              "-" +
+              item.product?.companyName +
               "(" +
               item.unit.name +
               ")" +
-              " " +
               item.count,
           };
         });

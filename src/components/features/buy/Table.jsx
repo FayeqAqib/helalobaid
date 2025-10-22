@@ -312,7 +312,6 @@ export function DataTableBuy({ data, count }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  console.log(data);
 
   function setFilter() {
     router.push(

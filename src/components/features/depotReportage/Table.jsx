@@ -37,6 +37,7 @@ import { formatCurrency } from "@/lib/utils";
 import { SelectInput } from "@/components/myUI/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import jalaali from "moment-jalaali";
 
 export const columns = [
   {
@@ -68,6 +69,38 @@ export const columns = [
         </div>
       );
     },
+  },
+  {
+    accessorKey: "brand",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          نام تجاری <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("product")?.brand}</div>
+    ),
+  },
+  {
+    accessorKey: "comanyName",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          نام کمپنی <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("product")?.companyName}</div>
+    ),
   },
   {
     accessorKey: "unit",
@@ -125,40 +158,27 @@ export const columns = [
       );
     },
   },
-  // {
-  //   accessorKey: "nearestExpiration",
-  //   header: ({ column }) => {
-  //     return (
-  //       <Button
-  //         variant="ghost"
-  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-  //       >
-  //         زود ترین تاریخ انقضا
-  //         <ArrowUpDown />
-  //       </Button>
-  //     );
-  //   },
-  //   cell: ({ row }) => (
-  //     <div className="lowercase">{row.getValue("nearestExpiration")}</div>
-  //   ),
-  // },
-  // {
-  //   accessorKey: "farthestExpiration",
-  //   header: ({ column }) => {
-  //     return (
-  //       <Button
-  //         variant="ghost"
-  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-  //       >
-  //         دیر ترین تاریخ انقضا
-  //         <ArrowUpDown />
-  //       </Button>
-  //     );
-  //   },
-  //   cell: ({ row }) => (
-  //     <div className="lowercase">{row.getValue("farthestExpiration")}</div>
-  //   ),
-  // },
+  {
+    accessorKey: "expirationDate",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          نام کمپنی <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const date = row.getValue("expirationDate");
+      return (
+        <div className="lowercase">
+          {date && jalaali(date).format("jYYYY/jMM/jDD")}
+        </div>
+      );
+    },
+  },
   {
     accessorKey: "status",
     header: ({ column }) => {
@@ -175,6 +195,10 @@ export const columns = [
     cell: ({ row }) => {
       const original = row.original;
 
+      const today = new Date();
+      const fifteenDaysLater = new Date();
+      fifteenDaysLater.setDate(today.getDate() + 15);
+
       if (original.count <= 0) {
         return (
           <div className="text-right font-medium">
@@ -182,18 +206,30 @@ export const columns = [
           </div>
         );
       }
-      // if (
-      //   original.nearestExpiration !== null &&
-      //   original.nearestExpiration < new Date()
-      // ) {
-      //   return (
-      //     <div className="text-right font-medium">
-      //       <Badge className={"bg-yellow-500 px-2 pb-1 pt-0"}>
-      //         تاریخ گذشته
-      //       </Badge>
-      //     </div>
-      //   );
-      // }
+      if (
+        original.expirationDate !== null &&
+        new Date(original.expirationDate) <= today
+      ) {
+        return (
+          <div className="text-right font-medium">
+            <Badge className={"bg-violet-500 px-2 pb-1 pt-0"}>
+              تاریخ گذشته
+            </Badge>
+          </div>
+        );
+      }
+      if (
+        // original.expirationDate !== null &&
+        new Date(original.expirationDate) <= fifteenDaysLater
+      ) {
+        return (
+          <div className="text-right font-medium">
+            <Badge className={"bg-yellow-500 px-2 pb-1 pt-0"}>
+              رو به انقضاء
+            </Badge>
+          </div>
+        );
+      }
       if (original.count <= 10) {
         return (
           <div className="text-right font-medium">
@@ -220,7 +256,7 @@ export function DataTableDepotReportage({ data, count, params }) {
   const [columnVisibility, setColumnVisibility] = useState({});
   const router = useRouter();
   const pathname = usePathname();
-  console.log(data);
+
   function setFilter() {
     router.push(
       `${pathname}?${

@@ -42,12 +42,13 @@ const chartConfig = {
   },
 };
 
-export function ChartAreaGradient({ data }) {
+export function ChartAreaGradient({ data = [] }) {
   const [timeRange, setTimeRange] = useState("120d");
-  const chartData = data.map((item) => {
-    return { date: item.date, sale: item.totalSale, buy: item.totalBuy };
-  });
-  const filteredData = chartData.filter((item) => {
+  const chartData =
+    data?.map((item) => {
+      return { date: item.date, sale: item.totalSale, buy: item.totalBuy };
+    }) || [];
+  const filteredData = chartData?.filter((item) => {
     const date = new Date(item.date);
     const referenceDate = new Date("2024-06-30");
     let daysToSubtract = 120;
@@ -123,7 +124,6 @@ export function ChartAreaGradient({ data }) {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {
-                    console.log(value);
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",

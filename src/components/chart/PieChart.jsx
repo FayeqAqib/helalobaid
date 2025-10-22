@@ -21,7 +21,6 @@ import {
 export const description = "A donut chart with an active sector";
 
 export function ChartPieDonutActive({ costs }) {
-  console.log(costs, "coshsakjdhaks");
   const chartData = costs?.map((item, i) => {
     return {
       title: `${item.categoryName}`,

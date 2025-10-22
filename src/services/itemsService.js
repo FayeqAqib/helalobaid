@@ -5,14 +5,17 @@ import { Items } from "@/models/items";
 export const getListOfItems = catchAsync(async (filter) => {
   const filt = { count: { $gt: 0 } };
   if (filter !== "") filt.depot = filter;
-  console.log(filter, "filter");
+
   const result = await Items.find(filt, {
     aveUnitAmount: 1,
+    saleAmount: 1,
     product: 1,
     unit: 1,
     depot: 1,
     count: 1,
-  }).populate(["product", "unit", "depot"], "name");
+  })
+    .populate(["unit", "depot"], "name")
+    .populate("product", ["name", "brand", "companyName"]);
   return result;
 });
 
@@ -35,25 +38,33 @@ export const getAllItemsForTable = catchAsync(async (filter) => {
   const table = await Items.find({ depot: filter.depot })
     .limit(limit)
     .skip(skip)
-    .populate(["product", "unit"], "name");
+    .populate(["unit"], "name")
+    .populate("product", ["name", "brand", "companyName"]);
   const count = await Items.countDocuments(filter);
-  console.log(table, "dsfadsfsffffsa");
+
   return { table, count };
 });
 
 //////////////////////////////////////////////////////////// COUNT BY Expiration ///////////////////////////////
 
 export const getExpiration = catchAsync(async () => {
-  const fifteenDaysLater = new Date();
+  const today = new Date();
+  let fifteenDaysLater = new Date();
   fifteenDaysLater.setDate(fifteenDaysLater.getDate() + 15);
-  const Expiring = Items.countDocuments({
+  const Expiring = await Items.countDocuments({
     count: { $gt: 0 },
-    expirationDate: { $ne: "", $gt: new Date(), $lt: fifteenDaysLater },
+    expirationDate: {
+      $exists: true,
+      $ne: null,
+      $gt: today,
+      $lt: fifteenDaysLater,
+    },
   });
-  const Expired = Items.countDocuments({
+  const Expired = await Items.countDocuments({
     count: { $gt: 0 },
-    expirationDate: { $lte: new Date() },
+    expirationDate: { $exists: true, $ne: null, $lte: today },
   });
+
   return { Expired, Expiring };
 });
 

@@ -16,7 +16,7 @@ import React from "react";
 
 const IncomeAndOutComeCard = ({ avalible, data }) => {
   const router = useRouter();
-  console.log(avalible, "avalible");
+
   const totalAvalible = React.useMemo(
     () => avalible.reduce((acc, curr) => acc + curr.count, 0),
 

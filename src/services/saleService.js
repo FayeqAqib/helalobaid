@@ -27,20 +27,11 @@ export const createSale = catchAsync(async (data) => {
   });
 
   newData.items.forEach(async (item) => {
-    const itemData = await Items.findOne({
-      $and: [
-        { depot: item.depot },
-        { product: item.product },
-        { unit: item.unit },
-      ],
-    });
-    if (itemData.count >= item.count) {
-      const updateData = {
-        count: itemData.count - item.count,
-      };
-      await Items.findByIdAndUpdate(itemData._id, updateData);
+    const itemData = await Items.findById(item.id);
+    if (itemData.count > item.count) {
+      await Items.findByIdAndUpdate(item.id, { $inc: { count: -item.count } });
     } else {
-      throw new Error("تعداد معتبر نیست");
+      Items.deleteOne({ _id: item.id });
     }
   });
 
@@ -135,22 +126,8 @@ export const deleteSale = catchAsync(async (data) => {
       message: `برای پرداخت پول مشتری در حساب  بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
     };
 
-  data.items.forEach(async (item) => {
-    const itemData = await Items.findOne({
-      $and: [
-        { depot: item.depot },
-        { product: item.product },
-        { unit: item.unit },
-      ],
-    });
-    if (itemData.length > 0) {
-      const updateData = {
-        count: itemData.count + item.count,
-      };
-      await Items.findByIdAndUpdate(itemData._id, updateData);
-    } else {
-      throw new Error("تعداد معتبر نیست");
-    }
+  newData.items.forEach(async (item) => {
+    await Items.findByIdAndUpdate(item.id, { $inc: { count: item.count } });
   });
 
   const result = await Sale.findByIdAndDelete(data._id);
@@ -240,47 +217,22 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
     await Account.findByIdAndUpdate(myNewData.buyer, buyerData);
   }
 
-  const isEqual = (obj1, obj2) => {
-    return (
-      obj1.unit === obj2.unit._id.toString() &&
-      obj1.product === obj2.product._id.toString() &&
-      obj1.depot === obj2.depot._id.toString()
-    );
-  };
+  currentData.items.forEach(async (item) => {
+    const itemData = await Items.findById(item.id);
+    if (itemData) {
+      await Items.findByIdAndUpdate(item.id, { $inc: { count: item.count } });
+    } else {
+      Items.create(item);
+    }
+  });
 
-  const itemForDelete = currentData.items
-    .filter((objY) => !myNewData.items.some((objX) => isEqual(objX, objY)))
-    .map((item) => item._id);
-
-  const itemForCreate = myNewData.items.filter(
-    (objX) => !currentData.items.some((objY) => isEqual(objX, objY))
-  );
-
-  const itemForUpdate = currentData.items.filter((objY) =>
-    myNewData.items.some((objX) => isEqual(objX, objY))
-  );
-
-  if (itemForCreate.length > 0) await Items.insertMany(itemForCreate);
-  if (itemForDelete.length > 0)
-    await Items.deleteMany({ _id: { $in: itemForCreate } });
-
-  itemForUpdate.forEach(async (item) => {
-    const itemData = await Items.findOne({
-      $and: [
-        { depot: item.depot },
-        { product: item.product },
-        { unit: item.unit },
-      ],
-    });
-    myNewData.item.forEach(async (i) => {
-      if (isEqual(i, item)) {
-        const updateData = {
-          myId: itemData._id,
-          count: itemData.count + item.count - i.count,
-        };
-        await Items.findByIdAndUpdate(updateData._id, updateData);
-      }
-    });
+  newData.items.forEach(async (item) => {
+    const itemData = await Items.findById(item.id);
+    if (itemData.count > item.count) {
+      await Items.findByIdAndUpdate(item.id, { $inc: { count: -item.count } });
+    } else {
+      Items.deleteOne({ _id: item.id });
+    }
   });
 
   const result = await Sale.findByIdAndUpdate(currentData._id, myNewData);
@@ -377,5 +329,3 @@ export const getBiggestSeller = catchAsync(async () => {
 
   return result;
 });
-
-

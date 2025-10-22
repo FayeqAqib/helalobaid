@@ -1,5 +1,6 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
+import { ExternalProceed } from "@/models/externalProceed";
 import { ProceedTital } from "@/models/ProceedTital";
 import { Unit } from "@/models/unit";
 //////////////////////////// CREATE ///////////////////////////////////////
@@ -29,6 +30,13 @@ export const updateProceedTital = catchAsync(async (data) => {
 
 ////////////////////////////DELETE ////////////////////////////
 export const deleteProceedTital = catchAsync(async (_id) => {
+  const exiset = await ExternalProceed.findOne({
+    externalProceedTitle: _id,
+  });
+  if (exiset)
+    return {
+      message: "نمی توانین این عنوان را پاک کنید چون با این عنوان عوایدی ثبت",
+    };
   const result = await ProceedTital.findByIdAndDelete(_id);
   return result;
 });

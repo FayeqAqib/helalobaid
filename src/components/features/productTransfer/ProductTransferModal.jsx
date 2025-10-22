@@ -67,7 +67,7 @@ export function ProductTransferModal({
       to: newData.to.split("_")[1],
       unit: product.split("_")[1].split("-")[3].split(",")[0],
     };
-    console.log();
+
     startTransition(async () => {
       if (type === "create") {
         const result = await createProductTransferAction(myNewData);

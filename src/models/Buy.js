@@ -42,6 +42,10 @@ const buySchema = new mongoose.Schema(
           ref: "Product",
           required: true,
         },
+        badgeNumber: {
+          type: String,
+          required: true,
+        },
         count: {
           type: Number,
           required: true,
@@ -62,6 +66,10 @@ const buySchema = new mongoose.Schema(
           required: true,
           min: [1, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
         },
+        saleAmount: {
+          type: Number,
+          min: 0,
+        },
         expirationDate: {
           type: Date,
           required: false,
@@ -71,7 +79,6 @@ const buySchema = new mongoose.Schema(
           ref: "Depot",
           required: true,
         },
-        details: String,
       },
     ],
     totalAmount: {
@@ -100,6 +107,7 @@ const buySchema = new mongoose.Schema(
     },
 
     image: { type: String },
+    details: String,
   },
   {
     timestamps: true, // اضافه کردن createdAt و updatedAt به صورت خودکار

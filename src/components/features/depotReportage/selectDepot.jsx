@@ -20,7 +20,6 @@ const SelectDepot = () => {
     },
     [searchParams]
   );
-  console.log(depot);
 
   useEffect(() => {
     router.push(

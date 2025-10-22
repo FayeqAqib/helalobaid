@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import jalaliMoment from "moment-jalaali";
+import jalaliMoment, { min } from "moment-jalaali";
 
 const itemsSchema = new mongoose.Schema(
   {
@@ -11,6 +11,10 @@ const itemsSchema = new mongoose.Schema(
     },
     afgDate: {
       type: String,
+    },
+    badgeNumber: {
+      type: String,
+      required: true,
     },
     product: {
       type: mongoose.Schema.Types.ObjectId,
@@ -36,6 +40,10 @@ const itemsSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: [1, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
+    },
+    saleAmount: {
+      type: Number,
+      min: [0, ""],
     },
     expirationDate: {
       type: Date,

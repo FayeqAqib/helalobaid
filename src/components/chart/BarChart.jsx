@@ -29,7 +29,6 @@ const chartConfig = {
 };
 
 export function ChartBarInteractive({ data }) {
-  console.log(data, "data");
   const chartData = data.map((item) => {
     return { name: item.product.name, product: item.count };
   });

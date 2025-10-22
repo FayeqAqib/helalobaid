@@ -12,7 +12,7 @@ import {
 } from "@/services/ledgarServer";
 import jalaliMoment from "moment-jalaali";
 
-function ChartContiner({ data, totalProfit }) {
+function ChartContiner({ data = [], totalProfit }) {
   const banks = use(getAllTransferBank());
 
   const buy = use(getAllTransferMoneySeller());
@@ -36,7 +36,7 @@ function ChartContiner({ data, totalProfit }) {
 
   const pastMonthTotalProfit = React.useMemo(
     () =>
-      data.reduce(
+      data?.reduce(
         (acc, curr) =>
           new Date(curr.date) >= firstDayOfLastMonth &&
           new Date(curr.date) <= lastDayOfLastMonth

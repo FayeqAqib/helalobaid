@@ -8,7 +8,7 @@ export default async function Page({ searchParams }) {
   const filter = await searchParams;
 
   const data = await getAllbuy(filter);
-  console.log(data, "data");
+
   return (
     <Card className={"p-5 shadow-xl size-full gap-0"}>
       <CardHeader className={"text-right "}>

@@ -4,6 +4,7 @@ import {
   createProduct,
   deleteProduct,
   getAllProduct,
+  getAllProductInBuy,
   updateProduct,
 } from "@/services/productService";
 
@@ -41,7 +42,7 @@ export async function deleteProductAction(data) {
 
 ////////////////////////////////////////////////GET//////////////////////////////////
 export async function getAllProductAction() {
-  const result = await getAllProduct({ fields: "name" });
+  const result = await getAllProductInBuy();
 
-  return result.result;
+  return result;
 }

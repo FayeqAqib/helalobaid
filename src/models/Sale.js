@@ -28,6 +28,7 @@ const saleSchema = new mongoose.Schema({
   },
   items: [
     {
+      id: String,
       product: {
         type: mongoose.Types.ObjectId,
         ref: "Product",
@@ -58,12 +59,15 @@ const saleSchema = new mongoose.Schema({
         min: [0, "تعداد باید بزرگتر از 0 باشد"],
         required: true,
       },
+      discount: {
+        type: Number,
+        min: [0, "تعداد باید بزرگتر از 0 باشد"],
+      },
       profit: {
         type: Number,
         min: [0, "تعداد باید بزرگتر از 0 باشد"],
         required: true,
       },
-      details: String,
     },
   ],
   totalAmount: {
@@ -91,6 +95,7 @@ const saleSchema = new mongoose.Schema({
     min: [0, "مقدار باقی باید 0 یا یک عدد مثبت باشد"],
   },
   image: { type: String },
+  details: String,
 });
 
 saleSchema.pre("save", function (next) {

@@ -69,14 +69,16 @@ const schemaA = z.object({
 
 ////////////////////////////////////////////////////////////////////// ADD TO LIST SCHEMA ///////////////////////////////////
 const schemaB = z.object({
+  badgeNumber: z.string({ required_error: " بج نمبر الزامی می باشد" }),
   product: z.string({ required_error: "مشخص بودن جنس الزامی می‌باشد" }),
+  unit: z.string({ required_error: "مشخص بودن واحد جنس الزامی می‌باشد" }),
   count: z
     .number({ invalid_type_error: " تعداد جنس الزامی می باشد" })
-    .min(1, "مقدار پول الزامی است"),
-  unit: z.string({ required_error: "مشخص بودن واحد جنس الزامی می‌باشد" }),
+    .min(1, "یک یا بزرگتر  قابل قبول است"),
   unitAmount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
-    .min(1, "مقدار پول الزامی است"),
+    .min(0, "مقدار پول باید بزرگتر از صفر باشد است"),
+  saleAmount: z.number().min(0, "مقدار پول الزامی است").optional(),
   depot: z.string({ required_error: "محل دپو الزامی می‌باشد" }),
   expirationDate: z.date().optional(),
   details: z.string().optional(),
@@ -232,19 +234,18 @@ export function BuyModal({
   useEffect(() => {
     if (type !== "create") {
       const myData = data.items?.map((item) => {
-        console.log(data);
         return {
           ...item,
           product: {
-            name: item.product?.name,
-            _id: item.product._id,
+            name: item?.product?.name,
+            _id: item?.product?._id,
           },
-          unit: { name: item.unit.name, _id: item.unit._id },
+          unit: { name: item?.unit?.name, _id: item?.unit?._id },
           depot: {
-            name: item.depot.name,
-            _id: item.depot._id,
+            name: item?.depot?.name,
+            _id: item?.depot?._id,
           },
-          id: Math.random().toString(36).substring(2, 9),
+          id: item.id,
         };
       });
       setBuyList(myData);
@@ -255,7 +256,7 @@ export function BuyModal({
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
       <DialogContent
-        className={"overflow-auto max-h-[calc(100vh-80px)] md:max-w-4xl"}
+        className={"overflow-auto max-h-[calc(100vh-80px)] md:max-w-6xl"}
       >
         <DialogHeader>
           <DialogTitle className={"text-right"}>
@@ -282,6 +283,21 @@ export function BuyModal({
               <div className="flex flex-row gap-4">
                 <FormField
                   control={formB.control}
+                  name="badgeNumber"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>بج نمبر</FormLabel>
+                      <Input
+                        type={"text"}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={formB.control}
                   name="product"
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
@@ -296,7 +312,6 @@ export function BuyModal({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={formB.control}
                   name="unit"
@@ -312,7 +327,7 @@ export function BuyModal({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                />{" "}
                 <FormField
                   control={formB.control}
                   name="count"
@@ -338,7 +353,25 @@ export function BuyModal({
                   name="unitAmount"
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
-                      <FormLabel> قیمت فی واحد </FormLabel>
+                      <FormLabel> قیمت خرید </FormLabel>
+                      <Input
+                        type={"number"}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={formB.control}
+                  name="saleAmount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel> قیمت فروش </FormLabel>
                       <Input
                         type={"number"}
                         value={field.value}
@@ -386,26 +419,10 @@ export function BuyModal({
                   )}
                 />
               </div>
-              <div className=" flex flex-row gap-4">
-                <FormField
-                  control={formB.control}
-                  name="details"
-                  render={({ field }) => (
-                    <FormItem className={"flex-1"}>
-                      <FormLabel> تفصیلات</FormLabel>
-                      <Textarea
-                        className={"w-auto max-h-[60px]"}
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+
               <Button
                 type="submit"
-                className=" self-center mb-1  flex-1 h-full"
+                className=" self-center mb-1  flex-1 w-full h-full"
               >
                 افزودن
               </Button>
@@ -453,8 +470,6 @@ export function BuyModal({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className=" flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="cashAmount"
@@ -493,6 +508,8 @@ export function BuyModal({
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className=" flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="transportCost"
@@ -512,8 +529,7 @@ export function BuyModal({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="flex flex-row gap-4">
+
                 <FormField
                   control={formA.control}
                   name="saller"
@@ -566,6 +582,21 @@ export function BuyModal({
                   )}
                 />
               </div>
+              <FormField
+                control={formB.control}
+                name="details"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel> تفصیلات</FormLabel>
+                    <Textarea
+                      className={"w-auto max-h-[60px]"}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="flex justify-end gap-2.5">

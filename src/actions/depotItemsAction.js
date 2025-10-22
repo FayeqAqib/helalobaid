@@ -4,9 +4,15 @@ import {
   createDepotItems,
   deleteDepotItems,
   getAllDepotItems,
-  getOneDepotItems,
   updateDepotItems,
 } from "@/services/depotItemsService";
+// import {
+//   createDepotItems,
+//   deleteDepotItems,
+//   getAllDepotItems,
+//   getOneDepotItems,
+//   updateDepotItems,
+// } from "@/services/depotItemsService";
 
 import { revalidatePath } from "next/cache";
 
@@ -46,8 +52,8 @@ export async function getAllDepotItemsAction() {
   return result.result;
 }
 ////////////////////////////////////////////// GET ONE ///////////////////////////////////////////////
-export async function getOneDepotItemsAction(_id) {
-  const result = await getOneDepotItems(_id);
+// export async function getOneDepotItemsAction(_id) {
+//   const result = await getOneDepotItems(_id);
 
-  return result.result;
-}
+//   return result.result;
+// }

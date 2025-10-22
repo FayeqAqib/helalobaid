@@ -52,6 +52,7 @@ const schemaA = z.object({
   totalProfit: z
     .number({ invalid_type_error: "سود الزامی می باشد" })
     .min(0, "مقدار مجموع سود  صفر و یا بزرگتر از صفر باشد"),
+  details: z.string().optional(),
   image: z
     .any()
 
@@ -68,7 +69,7 @@ const schemaB = z.object({
   product: z.string({ required_error: "مشخص بودن جنس الزامی می‌باشد" }),
   count: z
     .number({ invalid_type_error: " تعداد جنس الزامی می باشد" })
-    .min(1, "مقدار پول الزامی است")
+    .min(1, "حد اقل یک دانه")
     .default(1),
   unit: z.string({ required_error: "مشخص بودن واحد جنس الزامی می‌باشد" }),
   aveUnitAmount: z
@@ -77,10 +78,14 @@ const schemaB = z.object({
   saleAmount: z
     .number({ invalid_type_error: " قیمت فروش الزامی می باشد" })
     .min(1, "مقدار پول الزامی است"),
+  discount: z
+    .number()
+    .min(0, "تخفیف باید بزرگ تر ای 0 باشد")
+    .max(100, "تخفیف باید کوچک تر ای 100 باشد")
+    .default(0),
   profit: z
     .number({ invalid_type_error: "سود الزامی می باشد" })
     .min(0, "مقدار سود  صفر و یا بزرگتر از صفر باشد"),
-  details: z.string().optional(),
 });
 
 export function SaleModal({
@@ -196,16 +201,18 @@ export function SaleModal({
   const count = formB.watch("count") || 0;
   const aveUnitAmount = formB.watch("aveUnitAmount") || 0;
   const cashAmount = formA.watch("cashAmount") || 0;
+  const discount = formB.watch("discount") || 0;
 
   async function getProduct() {
     const _ids = product.split("_");
     const unit = _ids[0].split("(")[1].split(")")[0];
     const aveUnitAmount = _ids[1].split("-")[1];
-
+    const saleAmount = product.split(",")?.[3];
     formB.setValue("unit", unit, { shouldValidate: true });
     formB.setValue("aveUnitAmount", Math.round(aveUnitAmount * 10) / 10, {
       shouldValidate: true,
     });
+    formB.setValue("saleAmount", Math.round(saleAmount * 10) / 10);
   }
 
   useEffect(() => {
@@ -219,8 +226,8 @@ export function SaleModal({
     }
 
     if (saleAmount > 0 && count > 0 && aveUnitAmount > 0) {
-      const myProfit =
-        Math.round((saleAmount - aveUnitAmount) * count * 10) / 10;
+      const pro = (saleAmount - aveUnitAmount) * count;
+      const myProfit = Math.round((pro - (pro * discount) / 100) * 10) / 10;
 
       formB.setValue("profit", myProfit, { shouldValidate: true });
     }
@@ -245,6 +252,7 @@ export function SaleModal({
     saleAmount,
     aveUnitAmount,
     product,
+    discount,
     count,
     saleList.length,
   ]);
@@ -263,10 +271,10 @@ export function SaleModal({
             name: item.depot?.name,
             _id: item.depot?._id,
           },
-          id: Math.random().toString(36).substring(2, 9),
+          id: item.id,
         };
       });
-      console.log(data.items);
+
       setSaleList(myData);
     }
   }, []);
@@ -274,7 +282,22 @@ export function SaleModal({
   /////////////////////////////// ADD TO LIST ///////////////////////////////////
 
   function handleAddToList(data) {
-    if (count > Number(product.split("_")[0].split(")")[1])) {
+    const name = data.product?.split("_")?.[0].split("-")?.[0];
+    const brand = data.product?.split("_")?.[0]?.split("-")?.[1];
+    const companyName = data.product
+      ?.split("_")[0]
+      ?.split("-")[2]
+      ?.split("(")[0];
+    const exiset = saleList.filter(
+      (item) =>
+        item.name !== name &&
+        item.brand !== brand &&
+        item.companyName !== companyName
+    );
+
+    const totalcount = exiset?.reduce((acc, item) => acc + item.count, 0);
+    const count = Number(product.split("_")[0].split(")")[1]);
+    if (totalcount + data.count > count) {
       formB.setError("count", {
         message: "تعداد فروش از تعداد موجود بیشتر بوده نمی تواند",
       });
@@ -287,14 +310,16 @@ export function SaleModal({
     const myData = {
       ...data,
       product: {
-        name: data.product.split("_")[0].split("-")[0],
+        name,
+        brand,
+        companyName,
         _id: pro[0],
       },
       depot: { name: pro[2].split(",")[1], _id: pro[2].split(",")[0] },
       unit: { name: pro[3].split(",")[1], _id: pro[3].split(",")[0] },
-      id: Math.random().toString(36).substring(2, 9),
+      id: product.split("_")[1].split("-")[0],
     };
-    setSaleList((prev) => [...prev, myData]);
+    setSaleList((prev) => [myData, ...prev]);
     formB.reset();
   }
 
@@ -335,6 +360,7 @@ export function SaleModal({
                     <FormItem className={"flex-1"}>
                       <FormLabel>محصول</FormLabel>
                       <AutoCompleteV2
+                        ompleteV2
                         value={field.value}
                         onChange={field.onChange}
                         dataType="items"
@@ -420,6 +446,24 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={formB.control}
+                  name="discount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>تخفیف</FormLabel>
+                      <Input
+                        type={"number"}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={formB.control}
@@ -441,23 +485,7 @@ export function SaleModal({
                   )}
                 />
               </div>
-              <div className=" flex flex-row gap-4">
-                <FormField
-                  control={formA.control}
-                  name="details"
-                  render={({ field }) => (
-                    <FormItem className={"flex-1"}>
-                      <FormLabel> تفصیلات</FormLabel>
-                      <Textarea
-                        className={"w-auto max-h-[60px]"}
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+
               <Button type="submit" className=" self-center   flex-1 h-full">
                 افزودن
               </Button>
@@ -616,6 +644,23 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
+                <div className=" flex flex-row gap-4">
+                  <FormField
+                    control={formA.control}
+                    name="details"
+                    render={({ field }) => (
+                      <FormItem className={"flex-1"}>
+                        <FormLabel> تفصیلات</FormLabel>
+                        <Textarea
+                          className={"w-auto max-h-[60px]"}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-2.5">

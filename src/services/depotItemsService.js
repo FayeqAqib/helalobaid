@@ -4,7 +4,6 @@ import { uploadImage } from "@/lib/uploadImage";
 import { Depot } from "@/models/depot";
 import { DepotItems } from "@/models/depotItems";
 import { Items } from "@/models/items";
-import mongoose from "mongoose";
 
 //////////////////////////// CREATE ///////////////////////////////////////
 export const createDepotItems = catchAsync(async (data) => {
@@ -23,32 +22,12 @@ export const createDepotItems = catchAsync(async (data) => {
     delete newData.image;
   }
 
-  const itemData = await Items.findOne({
-    $and: [
-      { depot: newData.depot },
-      { product: newData.product },
-      { unit: newData.unit },
-    ],
+  const dataID = await Items.create(newData);
+
+  const result = await DepotItems.create({
+    ...newData,
+    item: dataID._id,
   });
-
-  if (itemData) {
-    const updateData = {
-      count: itemData.count + newData.count,
-      unitAmount:
-        (itemData.unitAmount * itemData.count +
-          newData.unitAmount * newData.count) /
-        (itemData.count + newData.count),
-      aveUnitAmount:
-        (itemData.aveUnitAmount * itemData.count +
-          newData.aveUnitAmount * newData.count) /
-        (itemData.count + newData.count),
-    };
-    await Items.findByIdAndUpdate(itemData._id, updateData);
-  } else {
-    await Items.create(newData);
-  }
-
-  const result = await DepotItems.create(newData);
   return result;
 });
 
@@ -83,6 +62,7 @@ export const updateDepotItems = catchAsync(async (data) => {
   } else {
     delete newData.image;
   }
+  await Items.findByIdAndUpdate(data.item, newData);
 
   const result = await DepotItems.findByIdAndUpdate(data._id, newData);
 
@@ -90,31 +70,9 @@ export const updateDepotItems = catchAsync(async (data) => {
 });
 
 ////////////////////////////DELETE ////////////////////////////
+
 export const deleteDepotItems = catchAsync(async (data) => {
-  // const itemData = await Items.findOne({
-  //   $and: [
-  //     { depot: newData.depot },
-  //     { product: newData.product },
-  //     { unit: newData.unit },
-  //   ],
-  // });
-
-  // if (itemData) {
-  //   const updateData = {
-  //     count: itemData.count - data.count,
-  //     unitAmount:
-  //       itemData.unitAmount * itemData.count * (data.unitAmount * data.count) -
-  //       (itemData.count + data.count),
-  //     aveUnitAmount:
-  //       (itemData.aveUnitAmount * itemData.count +
-  //         data.aveUnitAmount * data.count) /
-  //       (itemData.count + newData.count),
-  //   };
-
-  //   await Items.findByIdAndUpdate(itemData._id, updateData);
-  // } else {
-  //   await Items.create(newData);
-  // }
+  await Items.findByIdAndDelete(data.item);
   const result = await DepotItems.findByIdAndDelete(data._id);
   return result;
 });

@@ -35,6 +35,8 @@ import createProductAction, {
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
   name: z.string({ required_error: '" ذکر نام محصول الزامی است "' }),
+  brand: z.string().optional(),
+  companyName: z.string().optional(),
   image: z
     .any()
 
@@ -155,6 +157,38 @@ export function ProductModal({
                 render={({ field }) => (
                   <FormItem className={"flex-1"}>
                     <FormLabel>اسم محصول </FormLabel>
+                    <Input
+                      className={""}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex flex-row gap-4 ">
+              <FormField
+                control={form.control}
+                name="brand"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>اسم تجاری </FormLabel>
+                    <Input
+                      className={""}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="companyName"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>اسم کمپنی </FormLabel>
                     <Input
                       className={""}
                       value={field.value}
