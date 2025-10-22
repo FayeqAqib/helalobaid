@@ -22,7 +22,7 @@ export async function GET() {
 
     await new Promise((resolve, reject) => {
       exec(
-        `mongodump --uri="${backUp}nabchoobBackUp?authSource=admin" --archive="mongodump-test-db" `,
+        `mongodump --uri="${backUp}helalobaidBackUp?authSource=admin" --archive="mongodump-test-db" `,
         (err) => {
           if (err) return reject(err);
           resolve();
@@ -32,7 +32,7 @@ export async function GET() {
 
     await new Promise((resolve, reject) => {
       exec(
-        `mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --nsFrom="nabchoobBackUp.*" --nsTo="nabchoob.*"`,
+        `mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom="helalobaidBackUp.*" --nsTo="helalobaid.*"`,
         (err) => {
           if (err) return reject(err);
           resolve();
