@@ -83,7 +83,7 @@ export default function SignInPage() {
 
       <Card className={"w-md p-1 pb-8"}>
         <div className="">
-          <img src="/Ajmal.png" className="size-42 mx-auto mt-4" />
+          <img src="/Ajmal.png" className="h-42 w-64 mx-auto mt-4" />
         </div>
         <Form {...form}>
           <form
@@ -138,17 +138,6 @@ export default function SignInPage() {
                 <Loader2Icon className="animate-spin mr-2" />
               ) : (
                 "ورود"
-              )}
-            </Button>
-            <Button
-              type="button"
-              className="w-full bg-[var(--chart-2)] hover:bg-[var(--chart-3)] shadow-lg hover:shadow-sm transition-all duration-300 shadow-black"
-              onClick={() => onSubmit({ username: "demo", password: "123456" })}
-            >
-              {isPending ? (
-                <Loader2Icon className="animate-spin mr-2" />
-              ) : (
-                "کاربر مهمان"
               )}
             </Button>
           </form>

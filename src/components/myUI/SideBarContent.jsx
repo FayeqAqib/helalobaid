@@ -43,7 +43,7 @@ export function AppSidebarContent({ list }) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarHeader className={"flex-col gap-2"}>
-            <div className="relative w-full  h-36">
+            <div className="relative w-full  h-[83px]">
               <Image
                 src="/Ajmal.png"
                 fill

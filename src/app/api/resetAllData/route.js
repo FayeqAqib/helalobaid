@@ -47,12 +47,6 @@ export async function GET(req, { params }) {
       role: "admin",
       owner: process.env.COMPANY_ID,
     });
-    await createUser({
-      username: "demo",
-      password: "123456",
-      role: "employe",
-      owner: process.env.COMPANY_ID,
-    });
 
     return new Response(JSON.stringify("بکاپ همه کالکشن‌ها با موفقیت حذف شد"), {
       status: 200,
