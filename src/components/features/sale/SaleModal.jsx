@@ -212,6 +212,7 @@ export function SaleModal({
     formB.setValue("aveUnitAmount", Math.round(aveUnitAmount * 10) / 10, {
       shouldValidate: true,
     });
+
     formB.setValue("saleAmount", Math.round(saleAmount * 10) / 10);
   }
 
@@ -236,6 +237,18 @@ export function SaleModal({
       const lend = total - cashAmount;
       formA.setValue("lendAmount", lend, { shouldValidate: true });
     }
+  }, [
+    total,
+    cashAmount,
+    aveUnitAmount,
+    saleAmount,
+    product,
+    discount,
+    count,
+    saleList.length,
+  ]);
+
+  useEffect(() => {
     if (product) {
       getProduct();
       if (count > Number(product.split("_")[0].split(")")[1])) {
@@ -246,16 +259,7 @@ export function SaleModal({
         formB.clearErrors("count");
       }
     }
-  }, [
-    total,
-    cashAmount,
-    saleAmount,
-    aveUnitAmount,
-    product,
-    discount,
-    count,
-    saleList.length,
-  ]);
+  }, [product]);
 
   useEffect(() => {
     if (type !== "create") {
@@ -556,8 +560,7 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="flex flex-row gap-4">
+
                 <FormField
                   control={formA.control}
                   name="lendAmount"
@@ -577,6 +580,8 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="date"
@@ -594,8 +599,7 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="flex flex-row gap-4">
+
                 <FormField
                   control={formA.control}
                   name="buyer"
@@ -644,23 +648,23 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-                <div className=" flex flex-row gap-4">
-                  <FormField
-                    control={formA.control}
-                    name="details"
-                    render={({ field }) => (
-                      <FormItem className={"flex-1"}>
-                        <FormLabel> تفصیلات</FormLabel>
-                        <Textarea
-                          className={"w-auto max-h-[60px]"}
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              </div>
+              <div className=" flex flex-row gap-4">
+                <FormField
+                  control={formA.control}
+                  name="details"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel> تفصیلات</FormLabel>
+                      <Textarea
+                        className={"w-auto max-h-[60px]"}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
             <div className="flex justify-end gap-2.5">

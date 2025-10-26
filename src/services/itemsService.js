@@ -16,6 +16,7 @@ export const getListOfItems = catchAsync(async (filter) => {
   })
     .populate(["unit", "depot"], "name")
     .populate("product", ["name", "brand", "companyName"]);
+
   return result;
 });
 
