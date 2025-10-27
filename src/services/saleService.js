@@ -126,7 +126,7 @@ export const deleteSale = catchAsync(async (data) => {
       message: `برای پرداخت پول مشتری در حساب  بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
     };
 
-  newData.items.forEach(async (item) => {
+  data.items.forEach(async (item) => {
     await Items.findByIdAndUpdate(item.id, { $inc: { count: item.count } });
   });
 

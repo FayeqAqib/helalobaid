@@ -56,7 +56,10 @@ export function ModalTable({ data, onDelete }) {
               <TableCell>{item.discount}%</TableCell>
               <TableCell>{formatCurrency(item.profit)}</TableCell>
               <TableCell>
-                {formatCurrency(item.saleAmount * item.count)}
+                {formatCurrency(
+                  item.saleAmount * item.count -
+                    (item.saleAmount * item.count * item?.discount) / 100
+                )}
               </TableCell>
               <TableCell>
                 <Button onClick={() => onDelete(item.id)} variant="ghost">

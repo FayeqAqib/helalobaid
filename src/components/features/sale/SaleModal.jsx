@@ -180,21 +180,6 @@ export function SaleModal({
   }
 
   ////////////////////////////////// CALCULATE TOTAL FROM LIST ///////////////////////////////////
-  const total = useMemo(
-    () => saleList.reduce((acc, item) => acc + item.count * item.saleAmount, 0),
-
-    [saleList]
-  );
-  const totalProfit = useMemo(
-    () =>
-      saleList.reduce(
-        (acc, item) =>
-          acc + (item.saleAmount - item.aveUnitAmount) * item.count,
-        0
-      ),
-
-    [saleList]
-  );
 
   const product = formB.watch("product") || "";
   const saleAmount = formB.watch("saleAmount") || 0;
@@ -216,19 +201,45 @@ export function SaleModal({
     formB.setValue("saleAmount", Math.round(saleAmount * 10) / 10);
   }
 
+  const total = useMemo(
+    () =>
+      saleList.reduce(
+        (acc, item) =>
+          acc +
+          (item.count * item.saleAmount -
+            (item.count * item.saleAmount * item?.discount) / 100),
+        0
+      ),
+    [saleList]
+  );
+
+  const totalProfit = useMemo(
+    () =>
+      saleList.reduce(
+        (acc, item) =>
+          acc +
+          (item.count * item.saleAmount -
+            (item.count * item.saleAmount * item?.discount) / 100) -
+          item?.aveUnitAmount * item?.count,
+        0
+      ),
+
+    [saleList]
+  );
   useEffect(() => {
-    if (saleList.length) {
-      formA.setValue("totalAmount", total, {
-        shouldValidate: true,
-      });
-      formA.setValue("totalProfit", totalProfit, {
-        shouldValidate: true,
-      });
-    }
+    formA.setValue("totalAmount", total, {
+      shouldValidate: true,
+    });
+    formA.setValue("totalProfit", totalProfit, {
+      shouldValidate: true,
+    });
 
     if (saleAmount > 0 && count > 0 && aveUnitAmount > 0) {
-      const pro = (saleAmount - aveUnitAmount) * count;
-      const myProfit = Math.round((pro - (pro * discount) / 100) * 10) / 10;
+      const pro = saleAmount * count;
+      const myProfit =
+        Math.round(
+          (pro - (pro * discount) / 100 - aveUnitAmount * count) * 10
+        ) / 10;
 
       formB.setValue("profit", myProfit, { shouldValidate: true });
     }
