@@ -37,6 +37,7 @@ export function ModalTable({ data, onDelete }) {
             <TableHead> تخفیف</TableHead>
             <TableHead>مفاد</TableHead>
             <TableHead>مجموع</TableHead>
+            <TableHead>قابل پرداخت</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
@@ -56,11 +57,9 @@ export function ModalTable({ data, onDelete }) {
               <TableCell>{item.discount}%</TableCell>
               <TableCell>{formatCurrency(item.profit)}</TableCell>
               <TableCell>
-                {formatCurrency(
-                  item.saleAmount * item.count -
-                    (item.saleAmount * item.count * item?.discount) / 100
-                )}
+                {formatCurrency(item.saleAmount * item.count)}
               </TableCell>
+              <TableCell>{formatCurrency(item.amountBeforDiscount)}</TableCell>
               <TableCell>
                 <Button onClick={() => onDelete(item.id)} variant="ghost">
                   <Trash className="text-red-400" />

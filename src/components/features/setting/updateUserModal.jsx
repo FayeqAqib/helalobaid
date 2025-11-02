@@ -21,47 +21,47 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { toast } from "sonner";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
-import { SwitchDemo } from "@/components/myUI/Switch";
-import { createUserAction } from "@/actions/user";
-import { Label } from "@/components/ui/label";
-import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
-const RoleEnum = z.enum(["vendee", "admin", "employe"]);
+import { Label } from "@/components/ui/label";
+import { updateUserAction } from "@/actions/user";
+
 const signupSchema = z
   .object({
-    username: z.string().min(3, "حداقل 3 کاراکتر وارد کنید"),
-    password: z.string().min(4, "حداقل 4 کاراکتر وارد کنید"),
-    confirmPassword: z.string().min(4, "لطفا تایید رمز عبور را وارد کنید"),
-    owner: z.string({ required_error: "نام فروشنده الزامی می‌باشد" }),
-    role: RoleEnum,
+    username: z
+      .string({ required_error: "الزامی" })
+      .min(3, "حداقل 3 کاراکتر وارد کنید"),
+    password: z
+      .string({ required_error: "الزامی" })
+      .min(4, "حداقل 4 کاراکتر وارد کنید"),
+    confirmPassword: z
+      .string({ required_error: "الزامی" })
+      .min(4, "لطفا تایید رمز عبور را وارد کنید"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "رمز عبور و تایید آن مطابقت ندارند",
     path: ["confirmPassword"],
   });
 
-export function UserModal({ children, data = {}, open, onOpen }) {
+const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL || `http://localhost:3000`;
+
+export function UpdateUserModal({ children, data, open, onOpen }) {
   const [isPending, startTransition] = useTransition();
   const form = useForm({
     resolver: zodResolver(signupSchema),
-    defaultValues: data,
   });
 
   function submiteForm(myData) {
-    const newData = { ...myData, owner: myData.owner?.split("_")?.[1] };
-
     startTransition(async () => {
-      const result = await createUserAction(newData);
-      if (result.result?.message) return toast.warning(result.result?.message);
+      const result = await updateUserAction({ ...myData, _id: data._id });
       if (!result.err) {
-        toast.success("حساب کاربری با موفقیت ثبت شد");
+        toast.success("حساب کاربری با موفقیت آپدیت شد");
         form.reset();
         onOpen(false);
       } else {
         toast.error(
-          "در ایجاد حساب کاربری شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
+          "در آپدیت حساب کاربری شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
         );
       }
     });
@@ -72,7 +72,7 @@ export function UserModal({ children, data = {}, open, onOpen }) {
       {children}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className={"text-right"}>ایجاد کاربر جدید</DialogTitle>
+          <DialogTitle className={"text-right"}> آپدیت کاربر </DialogTitle>
           <DialogDescription className={"text-right"}>
             لطف نموده در درج اطلاعات دقت نمایید.
           </DialogDescription>
@@ -92,6 +92,7 @@ export function UserModal({ children, data = {}, open, onOpen }) {
                     <Label>نام کاربری</Label>
 
                     <Input
+                      className={"flex-1"}
                       placeholder="نام کاربری خود را وارد کنید"
                       {...field}
                       disabled={isPending}
@@ -145,51 +146,7 @@ export function UserModal({ children, data = {}, open, onOpen }) {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="owner"
-                render={({ field }) => (
-                  <FormItem className={"flex-1 mx-auto"}>
-                    <FormLabel>برای</FormLabel>
-                    <AutoCompleteV2
-                      value={field.value}
-                      onChange={field.onChange}
-                      type="buyer-employe"
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <Label>نقش</Label>
-                  <SelectInput
-                    field={field}
-                    fullwidth={true}
-                    lable2={"نقش کار بر را انتخاب کنین"}
-                    options={[
-                      {
-                        value: "vendee",
-                        label: "مشتری",
-                      },
-                      {
-                        value: "employe",
-                        label: "کارمند",
-                      },
-                      {
-                        value: "admin",
-                        label: "ادمین",
-                      },
-                    ]}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? (

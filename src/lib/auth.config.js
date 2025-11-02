@@ -5,7 +5,8 @@ import Credentials from "next-auth/providers/credentials";
 // import { redirect } from "next/navigation"; //Unused import
 
 // import { checkUserAction } from "@/actions/user";
-const baseUrl = process.env.NEXTAUTH_URL || `https://helalobaid.mega-byte.info`;
+const baseUrl =
+  process.env.NEXT_PUBLIC_NEXTAUTH_URL || `https://helalobaid.mega-byte.info`;
 const authConfig = {
   trustHost: true,
   providers: [

@@ -5,8 +5,8 @@ import {
   ChevronDown,
   FilePenLine,
   MoreHorizontal,
-  ShieldUser,
   Trash2,
+  UserLockIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ import { SelectInput } from "@/components/myUI/select";
 
 import { UserModal } from "./createUserModal";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
+import { UpdateUserModal } from "./updateUserModal";
 
 export const columns = [
   {
@@ -63,9 +64,7 @@ export const columns = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("username")}</div>
-    ),
+    cell: ({ row }) => <div className="">{row.getValue("username")}</div>,
   },
   {
     accessorKey: "owner",
@@ -109,39 +108,59 @@ export const columns = [
     cell: ({ row }) => {
       const payment = row.original;
       const [openDelete, setOpenDelete] = useState(false);
-      if (
-        payment.username === "Kaaweshgaraan" ||
-        payment.username === "demo" ||
-        payment.username === "company"
-      )
-        return null;
+      const [openUpdate, setOpenUpdate] = useState(false);
+      if (payment.username === "Kaaweshgaraan") return null;
+
       return (
-        <ConfirmDelete data={payment} open={openDelete} onOpen={setOpenDelete}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel className={" text-right"}>
-                صلاحیت ها
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Button
-                  onClick={() => setOpenDelete((openDelete) => !openDelete)}
-                  variant={"ghost"}
-                  className={"w-full justify-end"}
-                >
-                  <span>حذف</span>
-                  <Trash2 size={32} strokeWidth={1.75} color={"red"} />
+        <UpdateUserModal
+          open={openUpdate}
+          onOpen={setOpenUpdate}
+          key={openUpdate}
+          data={payment}
+        >
+          <ConfirmDelete
+            data={payment}
+            open={openDelete}
+            onOpen={setOpenDelete}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal />
                 </Button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </ConfirmDelete>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel className={" text-right"}>
+                  صلاحیت ها
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {!(payment.owner?.accountType === "company") && (
+                  <DropdownMenuItem>
+                    <Button
+                      onClick={() => setOpenDelete((openDelete) => !openDelete)}
+                      variant={"ghost"}
+                      className={"w-full justify-end"}
+                    >
+                      <span>حذف</span>
+                      <Trash2 size={32} strokeWidth={1.75} color={"red"} />
+                    </Button>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem>
+                  <Button
+                    onClick={() => setOpenUpdate((openUpdate) => !openUpdate)}
+                    variant={"ghost"}
+                    className={"w-full justify-end"}
+                  >
+                    <span>تغییر مشخصات</span>
+                    <UserLockIcon />
+                  </Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </ConfirmDelete>
+        </UpdateUserModal>
       );
     },
   },
@@ -248,8 +267,8 @@ export function DataTableUser({ data, count }) {
           <UserModal open={open} onOpen={setOpen}>
             <DialogTrigger asChild>
               <Button>
-                ایجاد کاربر
-                <ShieldUser className="size-6" />
+                ساخت اکونت
+                <HiCurrencyRupee className="size-6" />
               </Button>
             </DialogTrigger>
           </UserModal>
@@ -278,8 +297,7 @@ export function DataTableUser({ data, count }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) =>
-                row.original.username === "Kaaweshgaraan" ||
-                row.original.username === "demo" ? null : (
+                row.original.username === "Kaaweshgaraan" ? null : (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}

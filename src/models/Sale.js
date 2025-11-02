@@ -28,7 +28,11 @@ const saleSchema = new mongoose.Schema({
   },
   items: [
     {
-      id: String,
+      id: {
+        type: mongoose.Types.ObjectId,
+        ref: "Items",
+        required: true,
+      },
       product: {
         type: mongoose.Types.ObjectId,
         ref: "Product",
@@ -63,6 +67,10 @@ const saleSchema = new mongoose.Schema({
         type: Number,
         min: [0, "تعداد باید بزرگتر از 0 باشد"],
       },
+      amountBeforDiscount: {
+        type: Number,
+        min: [0, "تعداد باید بزرگتر از 0 باشد"],
+      },
       profit: {
         type: Number,
         min: [0, "تعداد باید بزرگتر از 0 باشد"],
@@ -74,6 +82,10 @@ const saleSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: [1, "مقدار مجموع پول باید یک عدد مثبت باشد"],
+  },
+  totalAmountBeforDiscount: {
+    type: Number,
+    required: true,
   },
   totalCount: {
     type: Number,

@@ -4,7 +4,7 @@ import { Account } from "@/models/account";
 
 import { createUser } from "@/services/userServer";
 
-const baseUrl = process.env.NEXTAUTH_URL;
+const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL;
 export async function GET(req, { params }) {
   const x = await params;
   if (req.url.split("?")[1] !== "code=500-501")

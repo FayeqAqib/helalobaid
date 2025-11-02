@@ -65,7 +65,6 @@ export function AutoCompleteV2({
         result = await getAllDepotAction();
       } else if (dataType === "items") {
         result = await getListOfItemsActions(filter);
-     
       }
 
       if (!["customer", "items", "product"].includes(dataType)) {
@@ -77,7 +76,6 @@ export function AutoCompleteV2({
       } else if (dataType === "customer" || dataType === "product") {
         setOptions(result.result);
       } else if (dataType === "items") {
-
         const newResult = result.result.map((item) => {
           return {
             value:
@@ -93,7 +91,9 @@ export function AutoCompleteV2({
               "," +
               item.unit.name +
               "," +
-              item.saleAmount,
+              item.saleAmount +
+              "#" +
+              item._id,
             label:
               item.product.name +
               "-" +

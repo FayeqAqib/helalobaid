@@ -39,218 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import jalaali from "moment-jalaali";
 
-export const columns = [
-  {
-    accessorKey: "product",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          محصول
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const original = row.original;
-      return (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={original?.image} alt={original?.product.name} />
-            <AvatarFallback>
-              <span className="uppercase ">
-                {original?.product.name.slice(0, 2)}
-              </span>
-            </AvatarFallback>
-          </Avatar>
-          <div className="lowercase">{original.product.name}</div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "brand",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          نام تجاری <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("product")?.brand}</div>
-    ),
-  },
-  {
-    accessorKey: "comanyName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          نام کمپنی <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("product")?.companyName}</div>
-    ),
-  },
-  {
-    accessorKey: "unit",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          واحد <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("unit")?.name}</div>
-    ),
-  },
-  {
-    accessorKey: "count",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          تعداد
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("count")}</div>,
-  },
-  {
-    accessorKey: "aveUnitAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          قیمت فی واحد
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const totalAveUnitAmount = parseFloat(row.getValue("aveUnitAmount"));
-
-      // Format the amount as a dollar amount
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(totalAveUnitAmount)}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "expirationDate",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          نام کمپنی <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const date = row.getValue("expirationDate");
-      return (
-        <div className="lowercase">
-          {date && jalaali(date).format("jYYYY/jMM/jDD")}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          حالت
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const original = row.original;
-
-      const today = new Date();
-      const fifteenDaysLater = new Date();
-      fifteenDaysLater.setDate(today.getDate() + 15);
-
-      if (original.count <= 0) {
-        return (
-          <div className="text-right font-medium">
-            <Badge className={"bg-red-500 px-2 pb-1 pt-0"}>نا موجود</Badge>
-          </div>
-        );
-      }
-      if (
-        original.expirationDate !== null &&
-        new Date(original.expirationDate) <= today
-      ) {
-        return (
-          <div className="text-right font-medium">
-            <Badge className={"bg-violet-500 px-2 pb-1 pt-0"}>
-              تاریخ گذشته
-            </Badge>
-          </div>
-        );
-      }
-      if (
-        // original.expirationDate !== null &&
-        new Date(original.expirationDate) <= fifteenDaysLater
-      ) {
-        return (
-          <div className="text-right font-medium">
-            <Badge className={"bg-yellow-500 px-2 pb-1 pt-0"}>
-              رو به انقضاء
-            </Badge>
-          </div>
-        );
-      }
-      if (original.count <= 10) {
-        return (
-          <div className="text-right font-medium">
-            <Badge className={"bg-gray-500 px-2 pb-1 pt-0"}>روبه اتمام</Badge>
-          </div>
-        );
-      }
-      if (original.count > 10) {
-        return (
-          <div className="text-right font-medium">
-            <Badge className={"bg-green-500 backdrop-blur-md px-2 pb-1 pt-0"}>
-              موجود
-            </Badge>
-          </div>
-        );
-      }
-    },
-  },
-];
-
-export function DataTableDepotReportage({ data, count, params }) {
+export function DataTableDepotReportage({ data, count, expir, params }) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -275,6 +64,219 @@ export function DataTableDepotReportage({ data, count, params }) {
       }`
     );
   }
+
+  const columns = [
+    {
+      accessorKey: "product",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            محصول
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const original = row.original;
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage src={original?.image} alt={original?.product.name} />
+              <AvatarFallback>
+                <span className="uppercase ">
+                  {original?.product.name.slice(0, 2)}
+                </span>
+              </AvatarFallback>
+            </Avatar>
+            <div className="lowercase">{original.product.name}</div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "brand",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            نام تجاری <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue("product")?.brand}</div>
+      ),
+    },
+    {
+      accessorKey: "comanyName",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            نام کمپنی <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue("product")?.companyName}</div>
+      ),
+    },
+    {
+      accessorKey: "unit",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            واحد <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue("unit")?.name}</div>
+      ),
+    },
+    {
+      accessorKey: "count",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            تعداد
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue("count")}</div>
+      ),
+    },
+    {
+      accessorKey: "aveUnitAmount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            قیمت فی واحد
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const totalAveUnitAmount = parseFloat(row.getValue("aveUnitAmount"));
+
+        // Format the amount as a dollar amount
+
+        return (
+          <div className="text-right font-medium">
+            {formatCurrency(totalAveUnitAmount)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "expirationDate",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            نام کمپنی <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const date = row.getValue("expirationDate");
+        return (
+          <div className="lowercase">
+            {date && jalaali(date).format("jYYYY/jMM/jDD")}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            حالت
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const original = row.original;
+
+        const today = new Date();
+        const fifteenDaysLater = new Date();
+        fifteenDaysLater.setDate(today.getDate() + expir.expiring);
+
+        if (original.count <= 0) {
+          return (
+            <div className="text-right font-medium">
+              <Badge className={"bg-red-500 px-2 pb-1 pt-0"}>نا موجود</Badge>
+            </div>
+          );
+        }
+        if (
+          original.expirationDate !== null &&
+          new Date(original.expirationDate) <= today
+        ) {
+          return (
+            <div className="text-right font-medium">
+              <Badge className={"bg-violet-500 px-2 pb-1 pt-0"}>
+                تاریخ گذشته
+              </Badge>
+            </div>
+          );
+        }
+        if (
+          // original.expirationDate !== null &&
+          new Date(original.expirationDate) <= fifteenDaysLater
+        ) {
+          return (
+            <div className="text-right font-medium">
+              <Badge className={"bg-yellow-500 px-2 pb-1 pt-0"}>
+                رو به انقضاء
+              </Badge>
+            </div>
+          );
+        }
+        if (original.count <= expir.count) {
+          return (
+            <div className="text-right font-medium">
+              <Badge className={"bg-gray-500 px-2 pb-1 pt-0"}>روبه اتمام</Badge>
+            </div>
+          );
+        }
+        if (original.count > expir.count) {
+          return (
+            <div className="text-right font-medium">
+              <Badge className={"bg-green-500 backdrop-blur-md px-2 pb-1 pt-0"}>
+                موجود
+              </Badge>
+            </div>
+          );
+        }
+      },
+    },
+  ];
 
   const table = useReactTable({
     data,

@@ -6,7 +6,7 @@ import { BackUp } from "@/models/backUp";
 import { connectDB } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
-const baseUrl = process.env.NEXTAUTH_URL;
+const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL;
 const backUp = process.env.MONGODBBACKUP_URI;
 export async function GET() {
   try {
@@ -34,7 +34,7 @@ export async function GET() {
     // 1. گرفتن بکاپ
     await new Promise((resolve, reject) => {
       exec(
-        `mongodump --uri="${backUp}/helalobaid?authSource=admin" --archive="mongodump-test-db"`,
+        `mongodump --uri="${backUp}helalobaid?authSource=admin" --archive="mongodump-test-db"`,
         (err) => {
           if (err) return reject(err);
           resolve();
@@ -80,6 +80,7 @@ export async function GET() {
       }
     );
   } catch (err) {
+    console.log(err);
     return Response.json({ error: err.message }, { status: 500 });
   }
 }

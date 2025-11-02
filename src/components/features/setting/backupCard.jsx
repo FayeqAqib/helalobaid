@@ -16,7 +16,7 @@ import { DialogTrigger } from "@/components/ui/dialog";
 
 export const BackupCard = ({ backup }) => {
   const [Open1, setOpen1] = useState(false);
-  const [Open2, setOpen2] = useState(false);
+  // const [Open2, setOpen2] = useState(false);
   const [Open3, setOpen3] = useState(false);
 
   return (
@@ -24,7 +24,7 @@ export const BackupCard = ({ backup }) => {
       <CardHeader>
         <CardTitle> بشتیبان گیری</CardTitle>
       </CardHeader>
-      <CardContent className={"flex flex-row justify-center gap-4"}>
+      <CardContent className={"flex flex-row justify-center flex-wrap gap-4"}>
         <div className="flex flex-col gap-4 justify-center items-center">
           <BackupModal
             open={Open1}
@@ -48,6 +48,22 @@ export const BackupCard = ({ backup }) => {
             ""
           )}
         </div>
+        {/* <div className="flex flex-col gap-4 justify-center items-center">
+          <BackupModal
+            variant={"destructive"}
+            type={"reset"}
+            open={Open2}
+            onOpen={setOpen2}
+            tital={"حذف تمام اطلاعات"}
+            discreption={
+              "با اجرای این عمل مطمعن شوید که از اطلاعات خود پشتیبان گیری کرده باشین جود تمام اطلاعات شما به صورت کامل حذف می شود"
+            }
+          >
+            <DialogTrigger>
+              <Button variant={"destructive"}>حذف تمام دیتا ها</Button>
+            </DialogTrigger>
+          </BackupModal>
+        </div> */}
         <div className="flex flex-col gap-4 justify-center items-center">
           <BackupModal
             type={"update"}

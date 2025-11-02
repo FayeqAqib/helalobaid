@@ -54,3 +54,22 @@ export const deleteUser = catchAsync(async (_id) => {
   const result = await User.findByIdAndDelete(_id);
   return result;
 });
+
+//////////////////////////////////////////UPDATE ////////////////////////////////////////////
+
+export const updateUser = catchAsync(async (data) => {
+  const { username, password, _id } = data;
+
+  if (!username || !password) {
+    return { message: "نام یا رمز عبور وجود ندارد" };
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const result = await User.findByIdAndUpdate(_id, {
+    username,
+    password: hashedPassword,
+  });
+
+  return result;
+});

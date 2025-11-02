@@ -18,7 +18,7 @@ import React from "react";
 
 export default async function page({ searchParams }) {
   const filter = await searchParams;
-  const data = await getExpiration();
+  const data = await getExpiration(filter);
   const barChart = await getAllItemsForBarChart(filter.depot);
   const table = await getAllItemsForTable(filter);
   const areaChart = await getSalesPurchaseSummary();
@@ -39,12 +39,12 @@ export default async function page({ searchParams }) {
               <SmallCard
                 img={"../alarm.png"}
                 tital={"رو به انقضا"}
-                value={data?.result.Expiring || 0}
+                value={data?.result?.Expiring || 0}
               />
               <SmallCard
                 img={"../warning.png"}
                 tital={"تاریخ  گذشته"}
-                value={data?.result.Expired || 0}
+                value={data?.result?.Expired || 0}
               />
             </div>
           </div>
@@ -53,6 +53,7 @@ export default async function page({ searchParams }) {
           <DataTableDepotReportage
             data={table.result?.table || []}
             count={table.result?.count}
+            expir={table.result?.expir}
             params={filter?.depot}
           />
         </Card>

@@ -5,6 +5,7 @@ import {
   ChevronDown,
   FilePenLine,
   MoreHorizontal,
+  Receipt,
   ShoppingBasket,
   Trash2,
 } from "lucide-react";
@@ -45,7 +46,7 @@ import { usePathname, useRouter } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber, handlePrintReceipt } from "@/lib/utils";
 import moment from "moment-jalaali";
 import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
@@ -291,6 +292,16 @@ export const columns = [
                     >
                       <span>حذف</span>
                       <Trash2 size={32} strokeWidth={1.75} color={"red"} />
+                    </Button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Button
+                      onClick={() => handlePrintReceipt(payment._id)}
+                      variant={"ghost"}
+                      className={"w-full justify-end"}
+                    >
+                      <span>چاپ بل</span>
+                      <Receipt size={32} strokeWidth={1.75} color={"blue"} />
                     </Button>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

@@ -31,7 +31,7 @@ export const createSale = catchAsync(async (data) => {
     if (itemData.count > item.count) {
       await Items.findByIdAndUpdate(item.id, { $inc: { count: -item.count } });
     } else {
-      Items.deleteOne({ _id: item.id });
+      await Items.findByIdAndUpdate(item.id, { count: 0 });
     }
   });
 

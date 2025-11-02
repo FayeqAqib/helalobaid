@@ -1,5 +1,6 @@
 import { catchAsync } from "@/lib/catchAsync";
 import { Buy } from "@/models/Buy";
+import { Expiration } from "@/models/expiration";
 import { Items } from "@/models/items";
 
 export const getListOfItems = catchAsync(async (filter) => {
@@ -36,6 +37,7 @@ export const getAllItemsForTable = catchAsync(async (filter) => {
   const limit = Number(filter.limit) || 10;
   const skip = page * limit;
 
+  const expir = await Expiration.findOne();
   const table = await Items.find({ depot: filter.depot })
     .limit(limit)
     .skip(skip)
@@ -43,15 +45,17 @@ export const getAllItemsForTable = catchAsync(async (filter) => {
     .populate("product", ["name", "brand", "companyName"]);
   const count = await Items.countDocuments(filter);
 
-  return { table, count };
+  return { table, count, expir };
 });
 
 //////////////////////////////////////////////////////////// COUNT BY Expiration ///////////////////////////////
 
-export const getExpiration = catchAsync(async () => {
+export const getExpiration = catchAsync(async (filter) => {
+  const expir = await Expiration.findOne();
   const today = new Date();
+  console.log(filter);
   let fifteenDaysLater = new Date();
-  fifteenDaysLater.setDate(fifteenDaysLater.getDate() + 15);
+  fifteenDaysLater.setDate(fifteenDaysLater.getDate() + expir.expiring);
   const Expiring = await Items.countDocuments({
     count: { $gt: 0 },
     expirationDate: {
@@ -60,10 +64,12 @@ export const getExpiration = catchAsync(async () => {
       $gt: today,
       $lt: fifteenDaysLater,
     },
+    depot: filter?.depot,
   });
   const Expired = await Items.countDocuments({
     count: { $gt: 0 },
     expirationDate: { $exists: true, $ne: null, $lte: today },
+    depot: filter?.depot,
   });
 
   return { Expired, Expiring };

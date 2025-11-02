@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { exec } from "child_process";
 
-const baseUrl = process.env.NEXTAUTH_URL;
+const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL;
 const backUp = process.env.MONGODBBACKUP_URI;
 
 export async function GET() {

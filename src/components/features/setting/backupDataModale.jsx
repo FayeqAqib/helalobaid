@@ -12,10 +12,13 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
 
 import axios from "axios";
+
+// const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL || `https://helalobaid.mega-byte.info`;
+const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL || `http://localhost:3000`;
 
 export function BackupModal({
   children,
@@ -29,7 +32,6 @@ export function BackupModal({
   const [isPending, startTransition] = useTransition();
 
   function handleClick() {
-    const baseUrl = process.env.NEXTAUTH_URL || `http://localhost:3000`;
     startTransition(async () => {
       if (type === "create") {
         try {
@@ -58,18 +60,6 @@ export function BackupModal({
           );
         }
       } else {
-        try {
-          const result = await axios.get(`${baseUrl}/api/resetAllData`);
-
-          if (result.status === 200) {
-            toast.success(" دیتای پشتیبان با موفقیت حذف شد");
-            onOpen(false);
-          }
-        } catch {
-          toast.error(
-            "در حذف دیتای پشتیبان شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
-          );
-        }
       }
     });
   }
@@ -84,15 +74,15 @@ export function BackupModal({
             {discreption}
           </DialogDescription>
         </DialogHeader>
+
         <DialogFooter>
           <DialogClose asChild>
             <Button className=" cursor-pointer" variant={"outline"}>
-              انصراف
+              لغو
             </Button>
           </DialogClose>
           <Button
             variant={variant}
-            type="submit"
             className=" cursor-pointer px-6"
             onClick={handleClick}
             disabled={isPending}

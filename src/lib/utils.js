@@ -20,3 +20,19 @@ export const formatNumber = (value) => {
 
   return formatted;
 };
+
+export const handlePrintReceipt = async (id) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/bill?_id=${id}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  const html = await res.text();
+
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(html);
+  printWindow.document.close();
+};

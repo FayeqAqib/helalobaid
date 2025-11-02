@@ -54,7 +54,7 @@ export default function ConfirmDelete({ children, data, open, onOpen }) {
             </Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button variant={"outline"}>انصراف</Button>
+            <Button variant={"outline"}> لغو</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

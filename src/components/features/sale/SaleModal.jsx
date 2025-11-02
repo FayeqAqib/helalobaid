@@ -22,15 +22,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import createSaleAction, { updateSaleAction } from "@/actions/saleAction";
 import { Loader2Icon } from "lucide-react";
 import { SwitchDemo } from "@/components/myUI/Switch";
 
-import { useReactToPrint } from "react-to-print";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 import { ModalTable } from "./ModalTable";
+
+import { handlePrintReceipt } from "@/lib/utils";
 
 const schemaA = z.object({
   date: z
@@ -41,6 +42,9 @@ const schemaA = z.object({
   totalAmount: z
     .number({ invalid_type_error: "مجموع پول الزامی می باشد" })
     .min(1, { required_error: "مجموع پول الزامی می باشد" }),
+  totalAmountBeforDiscount: z
+    .number({ invalid_type_error: "مجموع پول الزامی می باشد" })
+    .min(0, { required_error: "مجموع پول الزامی می باشد" }),
   cashAmount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
     .min(0, "مقدار پول نقد صفر و یا بزرگتر از صفر باشد  ")
@@ -98,8 +102,6 @@ export function SaleModal({
   const [dateType, setDateType] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [saleList, setSaleList] = useState([]);
-  const contentRef = useRef(null);
-  const handlePrint = useReactToPrint({ contentRef });
 
   const formA = useForm({
     resolver: zodResolver(schemaA),
@@ -119,7 +121,7 @@ export function SaleModal({
 
   ///////////////////////////////// DELETE ITEM FROM LIST ///////////////////////////////////
   function handleDeleteItem(id) {
-    setSaleList((prev) => prev.filter((item) => item.id !== id));
+    setSaleList((prev) => prev.filter((item) => item.uId !== id));
   }
 
   async function submiteForm(newData) {
@@ -147,7 +149,7 @@ export function SaleModal({
           return toast.warning(result.result?.message);
         if (!result.err) {
           toast.success("فروش شما با موفقیت ثبت شد");
-          handlePrint();
+          handlePrintReceipt(result?.result?._id);
           formA.reset();
           setSaleList([]);
           onOpen(false);
@@ -192,7 +194,7 @@ export function SaleModal({
     const _ids = product.split("_");
     const unit = _ids[0].split("(")[1].split(")")[0];
     const aveUnitAmount = _ids[1].split("-")[1];
-    const saleAmount = product.split(",")?.[3];
+    const saleAmount = product.split(",")?.[3]?.split("#")[0];
     formB.setValue("unit", unit, { shouldValidate: true });
     formB.setValue("aveUnitAmount", Math.round(aveUnitAmount * 10) / 10, {
       shouldValidate: true,
@@ -201,32 +203,33 @@ export function SaleModal({
     formB.setValue("saleAmount", Math.round(saleAmount * 10) / 10);
   }
 
-  const total = useMemo(
-    () =>
-      saleList.reduce(
-        (acc, item) =>
-          acc +
-          (item.count * item.saleAmount -
-            (item.count * item.saleAmount * item?.discount) / 100),
-        0
-      ),
-    [saleList]
-  );
+  const { total, totalBeforDiscount, totalProfit } = useMemo(() => {
+    const total = saleList.reduce(
+      (acc, item) =>
+        acc +
+        (item.count * item.saleAmount -
+          (item.count * item.saleAmount * item?.discount) / 100),
+      0
+    );
+    const totalBeforDiscount = saleList.reduce(
+      (acc, item) => acc + item.count * item.saleAmount,
+      0
+    );
+    const totalProfit = saleList.reduce(
+      (acc, item) =>
+        acc +
+        (item.count * item.saleAmount -
+          (item.count * item.saleAmount * item?.discount) / 100) -
+        item?.aveUnitAmount * item?.count,
+      0
+    );
 
-  const totalProfit = useMemo(
-    () =>
-      saleList.reduce(
-        (acc, item) =>
-          acc +
-          (item.count * item.saleAmount -
-            (item.count * item.saleAmount * item?.discount) / 100) -
-          item?.aveUnitAmount * item?.count,
-        0
-      ),
-
-    [saleList]
-  );
+    return { total, totalBeforDiscount, totalProfit };
+  }, [saleList]);
   useEffect(() => {
+    formA.setValue("totalAmountBeforDiscount", totalBeforDiscount, {
+      shouldValidate: true,
+    });
     formA.setValue("totalAmount", total, {
       shouldValidate: true,
     });
@@ -244,10 +247,8 @@ export function SaleModal({
       formB.setValue("profit", myProfit, { shouldValidate: true });
     }
 
-    if (cashAmount) {
-      const lend = total - cashAmount;
-      formA.setValue("lendAmount", lend, { shouldValidate: true });
-    }
+    const lend = total - cashAmount;
+    formA.setValue("lendAmount", lend, { shouldValidate: true });
   }, [
     total,
     cashAmount,
@@ -286,7 +287,8 @@ export function SaleModal({
             name: item.depot?.name,
             _id: item.depot?._id,
           },
-          id: item.id,
+          id: item._id,
+          uId: item.id + Math.random().toString(),
         };
       });
 
@@ -324,6 +326,9 @@ export function SaleModal({
     const pro = data.product.split("_")[1].split("-");
     const myData = {
       ...data,
+      amountBeforDiscount:
+        data.saleAmount * data.count -
+        (data.saleAmount * data.count * data?.discount) / 100,
       product: {
         name,
         brand,
@@ -332,7 +337,8 @@ export function SaleModal({
       },
       depot: { name: pro[2].split(",")[1], _id: pro[2].split(",")[0] },
       unit: { name: pro[3].split(",")[1], _id: pro[3].split(",")[0] },
-      id: product.split("_")[1].split("-")[0],
+      id: product.split("#")[1],
+      uId: product.split("#")[1] + Math.random().toString(),
     };
     setSaleList((prev) => [myData, ...prev]);
     formB.reset();
@@ -342,7 +348,7 @@ export function SaleModal({
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
       <DialogContent
-        className={"overflow-auto max-h-[calc(100vh-80px)] md:max-w-5xl"}
+        className={"overflow-auto max-h-[calc(100vh-70px)] md:max-w-6xl"}
       >
         {/* <ChoseItemsTable handleAddToList={handleAddToList} />; */}
         <DialogHeader>
@@ -517,6 +523,25 @@ export function SaleModal({
               <div className="flex flex-row gap-4">
                 <FormField
                   control={formA.control}
+                  name="totalAmountBeforDiscount"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>مجموع </FormLabel>
+                      <Input
+                        type={"number"}
+                        disabled
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={formA.control}
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
@@ -553,6 +578,8 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="cashAmount"
@@ -591,8 +618,7 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="flex flex-row gap-4">
+
                 <FormField
                   control={formA.control}
                   name="date"
@@ -610,7 +636,8 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-
+              </div>
+              <div className=" flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="buyer"
