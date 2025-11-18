@@ -13,8 +13,6 @@ import { Trash } from "lucide-react";
 import monent from "moment-jalaali";
 
 export function ModalTable({ data, onDelete, Delete = true }) {
-  const x = "";
-  x.length;
   return (
     <div className={"max-h-[170px] w-full overflow-y-auto"}>
       <Table>

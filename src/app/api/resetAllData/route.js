@@ -34,6 +34,11 @@ export async function GET(req, { params }) {
       accountType: "company",
       name: "خزانه شرکت",
     });
+    await Account.create({
+      _id: "691c06c3580b7f2182cc4e66",
+      accountType: "buyer",
+      name: "pos",
+    });
 
     await createUser({
       username: "admin",

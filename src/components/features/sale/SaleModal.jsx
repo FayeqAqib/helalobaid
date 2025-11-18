@@ -110,7 +110,7 @@ export function SaleModal({
         ? {
             ...data,
             date: new Date(data.date),
-            buyer: data.buyer.name + "_" + data.buyer._id,
+            buyer: data.buyer?.name + "_" + data.buyer?._id,
             income: data.income.name + "_" + data.income._id,
           }
         : {},

@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+import "@/models/unit";
+import "@/models/product";
+import "@/models/depot";
+import "@/models/items";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

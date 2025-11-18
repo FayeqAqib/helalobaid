@@ -119,14 +119,14 @@ page:A4
 <body>
   <header>
    <img src="${
-     headerAndFooter.header
+     headerAndFooter?.header
    }" alt="هدر شرکت" style="width:100%; max-height:100px; object-fit:contain;" />
   </header>
 
   <div class="info">
     <div>تاریخ: ${format(sale.date, "PPPP")}</div>
     <div>شماره بل: ${sale.billNumber}</div>
-    
+
     </div>
     <div class="customer" >نام مشتری: ${sale.buyer?.name} </div>
 
@@ -175,12 +175,12 @@ page:A4
     } افغانی</p>
     <p><strong>مبلغ قابل پرداخت:</strong> ${sale.totalAmount} افغانی</p>
     <p><strong>پرداخت نقدی:</strong> ${sale.cashAmount} افغانی</p>
-    <p><strong>باقی مانده:</strong> ${sale.lendAmount} افغانی</p>
+    <p><strong>باقی مانده:</strong> ${sale?.lendAmount || 0} افغانی</p>
   </div>
 
   <div class="footer">
      <img src="${
-       headerAndFooter.footer
+       headerAndFooter?.footer
      }" alt="هدر شرکت" style="width:100%; max-height:100px; object-fit:contain;" />
   </div>
 

@@ -20,6 +20,7 @@ import {
   Settings,
   ShoppingBag,
   ShoppingBasket,
+  ShoppingCart,
 } from "lucide-react";
 
 const list = [
@@ -53,6 +54,11 @@ const list = [
     title: "فروش",
     url: "/customer/sale",
     icon: <ShoppingBag />,
+  },
+  {
+    title: "  فروش pos",
+    url: "/customer/pos",
+    icon: <ShoppingCart />,
   },
   {
     title: "مصارف",

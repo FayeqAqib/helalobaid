@@ -242,8 +242,8 @@ export const columns = [
             <DetailsModal
               data={{
                 ...payment,
-                name: payment.buyer.name,
-                income: payment?.income.name,
+                name: payment.buyer?.name,
+                income: payment?.income?.name,
               }}
               open={openDetails}
               onChange={setOpenDetails}

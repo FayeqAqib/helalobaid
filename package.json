@@ -33,6 +33,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "exceljs": "^4.4.0",
+    "fuse.js": "^7.1.0",
     "lucide-react": "^0.511.0",
     "moment-jalaali": "^0.10.4",
     "mongoose": "^8.15.1",

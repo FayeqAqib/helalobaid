@@ -24,7 +24,6 @@ const saleSchema = new mongoose.Schema({
   buyer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
-    required: true,
   },
   items: [
     {
@@ -74,7 +73,6 @@ const saleSchema = new mongoose.Schema({
       profit: {
         type: Number,
         min: [0, "تعداد باید بزرگتر از 0 باشد"],
-        required: true,
       },
     },
   ],

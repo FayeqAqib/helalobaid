@@ -39,7 +39,7 @@ export default function ConfirmDelete({ children, data, open, onOpen }) {
         <DialogHeader className=" flex flex-col t items-start">
           <DialogTitle>حذف فروش</DialogTitle>
           <DialogDescription className={"text-right"}>
-            آیا مطمئن هستید اطلاعات معامله با {data.buyer.name} را حذف کنید؟.
+            آیا مطمئن هستید اطلاعات معامله با {data.buyer?.name} را حذف کنید؟.
           </DialogDescription>
         </DialogHeader>
 

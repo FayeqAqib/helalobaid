@@ -204,6 +204,7 @@ export const columns = [
       const [openDelete, setOpenDelete] = useState(false);
       const [openSaller, setOpenSaller] = useState(false);
       const [openDetails, setOpenDetails] = useState(false);
+      if (payment?.name === "pos") return;
       return (
         <RegisterModal
           key={openSaller}

@@ -53,7 +53,7 @@ export const getAllItemsForTable = catchAsync(async (filter) => {
 export const getExpiration = catchAsync(async (filter) => {
   const expir = await Expiration.findOne();
   const today = new Date();
-  console.log(filter);
+
   let fifteenDaysLater = new Date();
   fifteenDaysLater.setDate(fifteenDaysLater.getDate() + expir.expiring);
   const Expiring = await Items.countDocuments({

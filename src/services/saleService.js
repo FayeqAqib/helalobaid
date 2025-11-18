@@ -27,12 +27,12 @@ export const createSale = catchAsync(async (data) => {
   });
 
   newData.items.forEach(async (item) => {
-    const itemData = await Items.findById(item.id);
-    if (itemData.count > item.count) {
-      await Items.findByIdAndUpdate(item.id, { $inc: { count: -item.count } });
-    } else {
-      await Items.findByIdAndUpdate(item.id, { count: 0 });
-    }
+    // const itemData = await Items.findById(item.id);
+    // if (itemData.count > item.count) {
+    await Items.findByIdAndUpdate(item.id, { $inc: { count: -item.count } });
+    // } else {
+    //   await Items.findByIdAndUpdate(item.id, { count: 0 });
+    // }
   });
 
   const { path, err } = await uploadImage(data.image);
@@ -117,6 +117,7 @@ export const deleteSale = catchAsync(async (data) => {
   const company_id = await Account.findById(process.env.COMPANY_ID, {
     borrow: 1,
   });
+
   const buyer = await Account.findById(data.buyer._id, {
     lend: 1,
   });
@@ -138,14 +139,14 @@ export const deleteSale = catchAsync(async (data) => {
       balance: Number(company.balance) - Number(data.cashAmount),
     };
     const newCompany_idData = {
-      borrow: Number(company_id.borrow) - Number(data.lendAmount),
+      borrow: Number(company_id.borrow) - Number(data.lendAmount || 0),
     };
 
     await Account.findByIdAndUpdate(data.income, newCompanyData);
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
     if (data.lendAmount >= 1) {
       const newBuyerData = {
-        lend: Number(buyer.lend) - Number(data.lendAmount),
+        lend: Number(buyer.lend) - Number(data.lendAmount || 0),
       };
       await Account.findByIdAndUpdate(data.buyer, newBuyerData);
     }
@@ -192,11 +193,12 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
     });
 
     const newBuyerData = {
-      lend: Number(newBuyer.lend) + Number(myNewData.lendAmount),
+      lend: Number(newBuyer.lend || 0) + Number(myNewData.lendAmount || 0),
     };
 
     const currentBuyerData = {
-      lend: Number(currentBuyer.lend) - Number(currentData.lendAmount),
+      lend:
+        Number(currentBuyer.lend || 0) - Number(currentData.lendAmount || 0),
     };
 
     await Account.findByIdAndUpdate(myNewData.buyer, newBuyerData);
@@ -211,7 +213,8 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
     const buyerData = {
       lend:
         Number(buyer.lend) -
-        (Number(currentData.lendAmount) - Number(myNewData.lendAmount)),
+        (Number(currentData.lendAmount || 0) -
+          Number(myNewData.lendAmount || 0)),
     };
 
     await Account.findByIdAndUpdate(myNewData.buyer, buyerData);
@@ -246,7 +249,8 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
     const newCompany_idData = {
       borrow:
         Number(company_id.lend) -
-        (Number(currentData.lendAmount) - Number(myNewData.lendAmount)),
+        (Number(currentData.lendAmount || 0) -
+          Number(myNewData.lendAmount || 0)),
     };
 
     await Account.findByIdAndUpdate(currentData.income, newCompanyData);
