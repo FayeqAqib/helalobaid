@@ -8,6 +8,8 @@ import { auth } from "@/lib/auth";
 
 const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL;
 const backUp = process.env.MONGODBBACKUP_URI;
+const DB_NAME = process.env.DB_NAME;
+const DB_BACKUP_NAME = process.env.DB_BACKUP_NAME;
 export async function GET() {
   try {
     const session = await auth();
@@ -34,7 +36,7 @@ export async function GET() {
     // 1. گرفتن بکاپ
     await new Promise((resolve, reject) => {
       exec(
-        `mongodump --uri="${backUp}POS-edrees?authSource=admin" --archive="mongodump-test-db"`,
+        `mongodump --uri="${backUp}${DB_NAME}?authSource=admin" --archive="mongodump-test-db"`,
         (err) => {
           if (err) return reject(err);
           resolve();
@@ -50,13 +52,15 @@ export async function GET() {
     // 2. بازگردانی دیتابیس به نام backup
     await new Promise((resolve, reject) => {
       exec(
-        ` mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom="POS-edrees.*" --nsTo="POS-edreesBackUp.*"`,
+        ` mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom=${DB_NAME} --nsTo=${DB_BACKUP_NAME}`,
         (err) => {
           if (err) return reject(err);
           resolve();
         }
       );
     });
+
+    // POS-edrees.*
 
     fs.rmSync(`${__dirname}/mongodump-test-db`, {
       recursive: true,

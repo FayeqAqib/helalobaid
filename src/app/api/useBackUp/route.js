@@ -3,7 +3,8 @@ import { exec } from "child_process";
 
 const baseUrl = process.env.NEXT_PUBLIC_NEXTAUTH_URL;
 const backUp = process.env.MONGODBBACKUP_URI;
-
+const DB_NAME = process.env.DB_NAME;
+const DB_BACKUP_NAME = process.env.DB_BACKUP_NAME;
 export async function GET() {
   try {
     const session = await auth();
@@ -22,7 +23,7 @@ export async function GET() {
 
     await new Promise((resolve, reject) => {
       exec(
-        `mongodump --uri="${backUp}POS-edreesBackUp?authSource=admin" --archive="mongodump-test-db" `,
+        `mongodump --uri="${backUp}${DB_BACKUP_NAME}?authSource=admin" --archive="mongodump-test-db" `,
         (err) => {
           if (err) return reject(err);
           resolve();
@@ -32,7 +33,7 @@ export async function GET() {
 
     await new Promise((resolve, reject) => {
       exec(
-        `mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom="POS-edreesBackUp.*" --nsTo="POS-edrees.*"`,
+        `mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom=${DB_BACKUP_NAME} --nsTo=${DB_NAME}`,
         (err) => {
           if (err) return reject(err);
           resolve();
