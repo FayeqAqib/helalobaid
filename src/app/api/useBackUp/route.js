@@ -14,7 +14,7 @@ export async function GET() {
         {
           status: 401,
           headers: {
-            "Access-Control-Allow-Origin": `${baseUrl}`,
+            "Access-Control-Allow-Origin": `${baseUrl}${DB_BACKUP_NAME}`,
             "Content-Type": "application/json",
           },
         }
@@ -23,7 +23,7 @@ export async function GET() {
 
     await new Promise((resolve, reject) => {
       exec(
-        `mongodump --uri="${backUp}${DB_BACKUP_NAME}?authSource=admin" --archive="mongodump-test-db" `,
+        `mongodump --uri="${backUp}${DB_BACKUP_NAME}?directConnection=true&authSource=admin" --archive="mongodump-test-db" `,
         (err) => {
           if (err) return reject(err);
           resolve();
