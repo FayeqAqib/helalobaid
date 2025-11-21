@@ -52,7 +52,7 @@ export async function GET() {
     // 2. بازگردانی دیتابیس به نام backup
     await new Promise((resolve, reject) => {
       exec(
-        ` mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom=${DB_NAME} --nsTo=${DB_BACKUP_NAME}`,
+        ` mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom="${DB_NAME}.*" --nsTo="${DB_BACKUP_NAME}.*"`,
         (err) => {
           if (err) return reject(err);
           resolve();

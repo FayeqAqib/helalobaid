@@ -8,7 +8,6 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = process.env.DB_NAME;
 
 let cached = global.mongoose;
-
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
@@ -18,7 +17,7 @@ export async function connectDB() {
 
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(`${MONGODB_URI}${DB_NAME}`)
+      .connect(`${MONGODB_URI}${DB_NAME}?authSource=admin`)
       .then((mongoose) => mongoose);
   }
 

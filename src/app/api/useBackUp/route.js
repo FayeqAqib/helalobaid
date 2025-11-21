@@ -33,7 +33,7 @@ export async function GET() {
 
     await new Promise((resolve, reject) => {
       exec(
-        `mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom=${DB_BACKUP_NAME} --nsTo=${DB_NAME}`,
+        `mongorestore --uri="${backUp}?authSource=admin" --archive="mongodump-test-db" --drop --nsFrom="${DB_BACKUP_NAME}.*" --nsTo="${DB_NAME}.*"`,
         (err) => {
           if (err) return reject(err);
           resolve();
