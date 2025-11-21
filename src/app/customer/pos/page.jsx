@@ -413,10 +413,13 @@ const Page = () => {
         lendAmount: totalAmount - discount - cashAmount || 0,
         buyer: buyer.split("_")[1] || "691c06c3580b7f2182cc4e66",
       });
+
       if (!result.err) {
         toast.success(" فروش شما با موفقیت ثبت شد.");
         if (bill) handlePrintPOS(result?.result?._id);
         setCart([]);
+        setBuyer("");
+        setCashAmount("");
         setRevaleDate((re) => !re);
       } else {
         toast.error(
