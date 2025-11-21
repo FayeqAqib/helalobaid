@@ -5,6 +5,7 @@ import "@/models/depot";
 import "@/models/items";
 
 const MONGODB_URI = process.env.MONGODB_URI;
+const DB_NAME = process.env.DB_NAME;
 
 let cached = global.mongoose;
 
@@ -17,7 +18,7 @@ export async function connectDB() {
 
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(`${MONGODB_URI}`)
+      .connect(`${MONGODB_URI}${DB_NAME}`)
       .then((mongoose) => mongoose);
   }
 
