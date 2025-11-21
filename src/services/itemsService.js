@@ -37,12 +37,13 @@ export const getAllItemsForTable = catchAsync(async (filter) => {
   const limit = Number(filter.limit) || 10;
   const skip = page * limit;
 
-  const expir = await Expiration.findOne();
-  const table = await Items.find({ depot: filter.depot })
-    .limit(limit)
-    .skip(skip)
-    .populate(["unit"], "name")
-    .populate("product", ["name", "brand", "companyName"]);
+  const expir = (await Expiration.findOne({})) || { expiring: 15, count: 15 };
+  const table =
+    (await Items.find({ depot: filter.depot || "56hjjhgf777663d6kd93h56k" })
+      .limit(limit)
+      .skip(skip)
+      .populate(["unit"], "name")
+      .populate("product", ["name", "brand", "companyName"])) || "";
   const count = await Items.countDocuments(filter);
 
   return { table, count, expir };
@@ -51,7 +52,7 @@ export const getAllItemsForTable = catchAsync(async (filter) => {
 //////////////////////////////////////////////////////////// COUNT BY Expiration ///////////////////////////////
 
 export const getExpiration = catchAsync(async (filter) => {
-  const expir = await Expiration.findOne();
+  const expir = (await Expiration.findOne()) || { expiring: 15 };
   const today = new Date();
 
   let fifteenDaysLater = new Date();
@@ -71,7 +72,7 @@ export const getExpiration = catchAsync(async (filter) => {
     expirationDate: { $exists: true, $ne: null, $lte: today },
     depot: filter?.depot,
   });
-
+  console.log(Expired, Expiring, "fayeq");
   return { Expired, Expiring };
 });
 

@@ -9,7 +9,6 @@ import { Receive } from "@/models/receive";
 import { uploadImage } from "@/lib/uploadImage";
 
 export const createAccount = catchAsync(async (data) => {
-  let company;
   if (data.borrow >= 1 || data.lend >= 1) {
     company = await Account.findById(process.env.COMPANY_ID, {
       borrow: 1,
@@ -29,13 +28,10 @@ export const createAccount = catchAsync(async (data) => {
 
   const result = await Account.create(data);
 
-  if (data.borrow >= 1 || data.lend >= 1) {
-    const newData = {
-      lend: Number(company.lend) + Number(data.borrow),
-      borrow: Number(company.borrow) + Number(data.lend),
-    };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newData);
-  }
+  await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
+    $inc: { lend: Number(data.borrow), borrow: Number(data.lend) },
+  });
+
   return result;
 });
 //
@@ -80,10 +76,10 @@ export const getAllAccount = catchAsync(async (filter) => {
 export const deleteAccount = catchAsync(async (data) => {
   let company;
 
-  const sale = await Sale.findById(data._id, { _id: 1 });
-  const buy = await Buy.findById(data._id, { _id: 1 });
-  const pay = await Pay.findById(data._id, { _id: 1 });
-  const receive = await Receive.findById(data._id, { _id: 1 });
+  const sale = await Sale.findOne({ buyer: data._id }, { _id: 1 });
+  const buy = await Buy.findOne({ saller: data._id }, { _id: 1 });
+  const pay = await Pay.findOne({ type: data._id }, { _id: 1 });
+  const receive = await Receive.findOne({ type: data._id }, { _id: 1 });
 
   if (sale || buy || pay || receive) {
     return {
@@ -91,26 +87,21 @@ export const deleteAccount = catchAsync(async (data) => {
         "حساب ذیل با شرکت معاملاتی انجام داده لذا حذف این حساب ممکن نیست",
     };
   }
-  if (data.borrow >= 1 || data.lend >= 1) {
-    company = await Account.findById(process.env.COMPANY_ID, {
-      borrow: 1,
-      lend: 1,
-      balance: 1,
-    });
-    if (data.borrow > company.balance) {
-      return {
-        message: "برای پرداخت قرض این کاربر پول کافی ندارین",
-      };
-    }
+
+  company = await Account.findById(process.env.COMPANY_ID, {
+    borrow: 1,
+    lend: 1,
+    balance: 1,
+  });
+  if (data.borrow > company.balance) {
+    return {
+      message: "برای پرداخت قرض این کاربر پول کافی ندارین",
+    };
   }
 
-  if (data.borrow >= 1 || data.lend >= 1) {
-    const newData = {
-      lend: Number(company.lend) - Number(data.borrow),
-      borrow: Number(company.borrow) - Number(data.lend),
-    };
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newData);
-  }
+  await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
+    $inc: { lend: -Number(data.borrow), borrow: -Number(data.lend) },
+  });
 
   const result = await Account.findByIdAndDelete(data._id);
 

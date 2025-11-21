@@ -11,6 +11,7 @@ export const createProductTransfer = catchAsync(async (data) => {
     depot: data.from,
     count: { $gt: 0 },
   }).lean();
+
   const to = await Items.findOne({
     product: data.product,
     unit: data.unit,
@@ -32,6 +33,7 @@ export const createProductTransfer = catchAsync(async (data) => {
   }
 
   const result = await ProductTransfer.create({ ...data, unit: data.unit });
+
   return result;
 });
 

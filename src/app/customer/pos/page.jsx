@@ -1,5 +1,6 @@
 "use client";
 import createSaleAction, { getAllPOSItemsAction } from "@/actions/saleAction";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -265,6 +266,8 @@ const Page = () => {
   const [data, setData] = useState([]);
   const [cart, setCart] = useState([]);
   const [cent, setCent] = useState(0);
+  const [cashAmount, setCashAmount] = useState("");
+  const [buyer, setBuyer] = useState("");
   const [revaleDate, setRevaleDate] = useState(false);
   const [search, setSearch] = useState("");
   const [barCode, setBarCode] = useState("");
@@ -404,11 +407,11 @@ const Page = () => {
         totalAmount: totalAmount - discount,
         totalAmountBeforDiscount: totalAmount,
         totalCount,
-        cashAmount: totalAmount - discount,
+        cashAmount: cashAmount || 0,
         totalProfit: totalAmount - discount - totalAveAmount,
-        buyer: "691c06c3580b7f2182cc4e66",
         income: "68426436f40989bb6a60bf55",
-        lendAmount: 0,
+        lendAmount: totalAmount - discount - cashAmount || 0,
+        buyer: buyer.split("_")[1] || "691c06c3580b7f2182cc4e66",
       });
       if (!result.err) {
         toast.success(" فروش شما با موفقیت ثبت شد.");
@@ -478,9 +481,10 @@ const Page = () => {
           </TableBody>
         </Table>
         <div className="space-y-2">
-          <div className="flex gap-2">
+          <div className="flex gap-2 text-sm">
             <Label className={"w-1/3 font-extrabold"}> فیصدی تخفیف : </Label>
             <Input
+              className={"h-8"}
               placeholder="فیصدی تخفیف"
               type={"number"}
               value={cent}
@@ -490,7 +494,7 @@ const Page = () => {
             />
           </div>
           <Card>
-            <CardContent className={"space-y-2"}>
+            <CardContent className={"space-y-2 text-sm"}>
               <CardTitle className={"flex justify-between"}>
                 <span>تعداد :</span> <span>{formatNumber(totalCount)}</span>
               </CardTitle>
@@ -504,6 +508,30 @@ const Page = () => {
                 <span>قابل پرداخت :</span>{" "}
                 <span>{formatCurrency(totalAmount - discount)}</span>
               </CardTitle>
+              <div className="flex gap-2 items-center justify-between">
+                <AutoCompleteV2
+                  className={"w-27 h-8"}
+                  label="خریدار"
+                  value={buyer}
+                  onChange={setBuyer}
+                  type={"buyer"}
+                />
+                <Input
+                  className={"w-27 h-8"}
+                  placeholder=" نقد"
+                  type={"number"}
+                  value={cashAmount}
+                  onChange={(e) =>
+                    setCashAmount(Math.max(Number(e.target.value), 0))
+                  }
+                />
+                <CardTitle className={""}>
+                  <span>باقی :</span>{" "}
+                  <span>
+                    {formatCurrency(totalAmount - discount - cashAmount || 0)}
+                  </span>
+                </CardTitle>
+              </div>
               <div className="flex gap-2">
                 <Button
                   className={"flex-1"}
@@ -566,7 +594,7 @@ const Page = () => {
 
               return (
                 <Card
-                  // key={i}
+                  key={i}
                   className={
                     "p-2   shadow-xl border-[1px] border-chart-1 border-dashed  hover:shadow-2xl hover:bg-sidebar-border transition-all duration-300 h-min"
                   }

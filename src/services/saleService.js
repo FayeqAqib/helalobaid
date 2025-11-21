@@ -18,6 +18,7 @@ export const createSale = catchAsync(async (data) => {
   const company = await Account.findById(newData.income, {
     balance: 1,
   });
+
   const company_id = await Account.findById(process.env.COMPANY_ID, {
     borrow: 1,
   });

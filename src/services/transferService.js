@@ -16,9 +16,6 @@ export const createTransfer = catchAsync(async (data) => {
     balance: 1,
     name: 1,
   });
-  const to = await Account.findById(newData.to, {
-    balance: 1,
-  });
 
   if (from.balance < newData.amount)
     return {
@@ -38,16 +35,12 @@ export const createTransfer = catchAsync(async (data) => {
   const result = await Transfer.create(newData);
 
   if (result?._id) {
-    const newFromData = {
-      balance: Number(from.balance) - Number(newData.amount),
-    };
-    await Account.findByIdAndUpdate(newData.from, newFromData);
-    if (newData.amount >= 1) {
-      const newToData = {
-        balance: Number(to.balance) + Number(newData.amount),
-      };
-      await Account.findByIdAndUpdate(newData.to, newToData);
-    }
+    await Account.findByIdAndUpdate(newData.from, {
+      $inc: { balance: -Number(newData.amount) },
+    });
+    await Account.findByIdAndUpdate(newData.to, {
+      $inc: { balance: +Number(newData.amount) },
+    });
   }
   return result;
 });
@@ -75,9 +68,6 @@ export const getAllTransfer = catchAsync(async (filter) => {
 
 export const deleteTransfer = catchAsync(async (data) => {
   const newData = { ...data };
-  const from = await Account.findById(newData.from, {
-    balance: 1,
-  });
   const to = await Account.findById(newData.to, {
     balance: 1,
     name: 1,
@@ -92,16 +82,13 @@ export const deleteTransfer = catchAsync(async (data) => {
   await deleteFile(newData.image);
 
   if (result?._id) {
-    const newFromData = {
-      balance: Number(from.balance) + Number(newData.amount),
-    };
-    await Account.findByIdAndUpdate(newData.from, newFromData);
-    if (newData.amount >= 1) {
-      const newToData = {
-        balance: Number(to.balance) - Number(newData.amount),
-      };
-      await Account.findByIdAndUpdate(newData.to, newToData);
-    }
+    await Account.findByIdAndUpdate(newData.from, {
+      $inc: { balance: +Number(newData.amount) },
+    });
+
+    await Account.findByIdAndUpdate(newData.to, {
+      $inc: { balance: -Number(newData.amount) },
+    });
   }
 
   return result;

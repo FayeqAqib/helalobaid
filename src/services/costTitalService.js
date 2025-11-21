@@ -4,12 +4,13 @@ import { CostTital } from "@/models/constTital";
 import { Cost } from "@/models/cost";
 
 //////////////////////////// CREATE ///////////////////////////////////////
+
 export const createCostTital = catchAsync(async (data) => {
   const result = await CostTital.create(data);
   return result;
 });
 
-////////////////////////////////////////////////// find ////////////////////////////////////////////////
+////////////////////////////////////////////////// FIND  ////////////////////////////////////////////////
 
 export const getAllCostTital = catchAsync(async (filter) => {
   const count = await CostTital.countDocuments();
@@ -22,6 +23,7 @@ export const getAllCostTital = catchAsync(async (filter) => {
 });
 
 //////////////////////////// UPDATE ///////////////////////////////
+
 export const updateCostTital = catchAsync(async (data) => {
   const result = await CostTital.findByIdAndUpdate(data._id, data);
 
@@ -29,6 +31,7 @@ export const updateCostTital = catchAsync(async (data) => {
 });
 
 ////////////////////////////DELETE ////////////////////////////
+
 export const deleteCostTital = catchAsync(async (_id) => {
   const exiset = await Cost.findOne({
     costTital: _id,

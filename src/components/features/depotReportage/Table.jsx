@@ -222,10 +222,11 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
       },
       cell: ({ row }) => {
         const original = row.original;
-
         const today = new Date();
         const fifteenDaysLater = new Date();
-        fifteenDaysLater.setDate(today.getDate() + expir.expiring);
+        const meData = fifteenDaysLater.setDate(
+          today.getDate() + expir.expiring
+        );
 
         if (original.count <= 0) {
           return (
@@ -236,7 +237,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
         }
         if (
           original.expirationDate !== null &&
-          new Date(original.expirationDate) <= today
+          new Date(original.expirationDate) <= meData
         ) {
           return (
             <div className="text-right font-medium">

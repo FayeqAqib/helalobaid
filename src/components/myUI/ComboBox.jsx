@@ -43,6 +43,7 @@ export function AutoCompleteV2({
   lend = false,
   borrow = false,
   filter = "",
+  className,
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState([]);
@@ -121,9 +122,10 @@ export function AutoCompleteV2({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={
-            " text-right overflow-hidden bg-primary/20 backdrop-blur-md"
-          }
+          className={cn(
+            " text-right overflow-hidden bg-primary/20 backdrop-blur-md ",
+            className
+          )}
         >
           {value ? value?.split("_")[0] : label}
           <ChevronsUpDown className="opacity-50" />
@@ -147,9 +149,7 @@ export function AutoCompleteV2({
                       key={option.value}
                       value={`${option.label}_${option.value}`}
                       onSelect={(currentValue) => {
-                        onChange(
-                          currentValue === value ? undefined : currentValue
-                        );
+                        onChange(currentValue === value ? "" : currentValue);
                         setOpen(false);
                       }}
                     >
