@@ -17,7 +17,9 @@ export async function connectDB() {
 
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(`${MONGODB_URI}${DB_NAME}?authSource=admin`)
+      .connect(
+        `${MONGODB_URI}${DB_NAME}?authSource=admin&replicaSet=rs0&directConnection=true`
+      )
       .then((mongoose) => mongoose);
   }
 
