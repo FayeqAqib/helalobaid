@@ -37,7 +37,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";
@@ -49,6 +49,7 @@ import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
 import { SelectInput } from "@/components/myUI/select";
 import { DetailsModal } from "@/components/myUI/DetailsModal";
 import { DepotInventoryModal } from "./DepotInventoryModal";
+import { useReactToPrint } from "react-to-print";
 
 export const columns = [
   {
@@ -280,6 +281,9 @@ export function DataTableDepotInventory({ data, count }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const prientRef = useRef();
+  const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
+
   function setFilter() {
     router.push(
       `${pathname}?${
@@ -329,7 +333,7 @@ export function DataTableDepotInventory({ data, count }) {
   ]);
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={prientRef}>
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-4">
           <Input
@@ -348,6 +352,8 @@ export function DataTableDepotInventory({ data, count }) {
           <Button onClick={() => setFilter()}>جستجو</Button>
         </div>
         <div className="flex gap-4">
+          {" "}
+          <Button onClick={reactToPrintFn}> چاپ </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto flex-1">
@@ -374,7 +380,6 @@ export function DataTableDepotInventory({ data, count }) {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-
           <DepotInventoryModal open={open} onOpen={setOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -476,7 +481,8 @@ export function DataTableDepotInventory({ data, count }) {
             options={[
               { value: 10, label: "10" },
               { value: 20, label: "20" },
-              { value: 30, label: "30" },
+              { value: 500, label: "500" },
+              { value: 1000, label: "1000" },
             ]}
           />
         </div>

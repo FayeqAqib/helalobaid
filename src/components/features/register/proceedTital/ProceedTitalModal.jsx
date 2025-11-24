@@ -34,6 +34,7 @@ import createProductAction, {
 import createProceedTitalAction, {
   updateProceedTitalAction,
 } from "@/actions/proceedTitalAction";
+import { cleanSymbols } from "@/lib/utils";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -63,7 +64,7 @@ export function ProceedTitalModal({
   async function submiteForm(formData) {
     const newFormData = {
       ...formData,
-      image: formData.image?.[0],
+      name: cleanSymbols(formData.name),
     };
     startTransition(async () => {
       if (type === "create") {

@@ -31,6 +31,7 @@ import { CardTitle } from "@/components/ui/card";
 import { useState, useTransition } from "react";
 import { SwitchDemo } from "@/components/myUI/Switch";
 import { Loader2Icon } from "lucide-react";
+import { cleanSymbols } from "@/lib/utils";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -95,9 +96,11 @@ export function RegisterModal({
             amountType: "lend",
           },
   });
+
   async function submiteForm(formData) {
     const newFormData = {
       ...formData,
+      name: cleanSymbols(formData.name),
       lend: formData.amountType === "lend" ? formData.amount : 0,
       borrow: formData.amountType === "borrow" ? formData.amount : 0,
       _id: data._id,

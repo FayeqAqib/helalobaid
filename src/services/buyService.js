@@ -14,7 +14,7 @@ import { Items } from "@/models/items";
 ////////////////////////////////////////////////// create ////////////////////////////////////////////////
 
 export const createBuy = catchAsync(async (data) => {
-  const newData = { ...data, items: data.buyLists };
+  const newData = { ...data };
 
   //////////////////////////////// GENERATE BILL //////////////////////////////////
 
@@ -22,14 +22,6 @@ export const createBuy = catchAsync(async (data) => {
 
   const company = await Account.findById(newData.income, {
     balance: 1,
-  });
-  const company_id = await Account.findById(process.env.COMPANY_ID, {
-    lend: 1,
-    METUbalance: 1,
-  });
-  const saller = await Account.findById(newData.saller, {
-    borrow: 1,
-    METUbalance: 1,
   });
 
   if (company.balance < newData.cashAmount)
@@ -54,7 +46,34 @@ export const createBuy = catchAsync(async (data) => {
     };
   }
 
-  await Items.insertMany(newData.items);
+  for (const item of newData.items) {
+    const up = await Items.findOne({
+      depot: item.depot,
+      product: item.product,
+      unit: item.unit,
+      badgeNumber: item.badgeNumber,
+    });
+    if (up) {
+      const totalCount =
+        up.count + item.count === 0 ? 1 : up.count + item.count;
+      await Items.findByIdAndUpdate(up._id, {
+        $inc: { count: item.count },
+        $set: {
+          aveUnitAmount: Math.round(
+            (up.aveUnitAmount * up.count + item.aveUnitAmount * item.count) /
+              totalCount
+          ),
+          saleAmount: Math.round(
+            (up.saleAmount * up.count + item.saleAmount * item.count) /
+              totalCount
+          ),
+        },
+      });
+    } else {
+      await Items.create(item);
+    }
+  }
+  // await Items.insertMany([...newData.items]);
 
   ////////////////////////////////////////// CREATE TRANSPORT COST//////////////////////////////////////////////
   const costTital = await CostTital.findOneAndUpdate(
@@ -89,23 +108,16 @@ export const createBuy = catchAsync(async (data) => {
   const result = await Buy.create(newData);
   /////////////////////////////////////////////////// UPDATE ACCOUNT DATA /////////////////////////////////////////////////
   if (result?._id) {
-    const newCompanyData = {
-      balance:
-        Number(company.balance) -
-        Number(newData.cashAmount) -
-        Number(newData.transportCost),
-    };
-    const newCompany_idData = {
-      lend: Number(company_id.lend) + Number(newData.borrowAmount),
-    };
-    await Account.findByIdAndUpdate(newData.income, newCompanyData);
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
-    if (newData.borrowAmount >= 1) {
-      const newSallerData = {
-        borrow: Number(saller.borrow) + Number(newData.borrowAmount),
-      };
-      await Account.findByIdAndUpdate(newData.saller, newSallerData);
-    }
+    await Account.findByIdAndUpdate(newData.income, {
+      $inc: { balance: -newData.cashAmount - newData.transportCost },
+    });
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
+      $inc: { lend: newData.borrowAmount },
+    });
+
+    await Account.findByIdAndUpdate(newData.saller, {
+      $inc: { borrow: newData.borrowAmount },
+    });
   }
   return result;
 });
@@ -144,12 +156,36 @@ export const deleteBuy = catchAsync(async (data) => {
   const saller = await Account.findById(data.saller._id, {
     borrow: 1,
   });
+
+  ////////////////////////////////////////////// DELETE ITEMS ////////////////////////////////////////////////////
+  for (const item of data.items) {
+    const up = await Items.findOne({
+      depot: item.depot._id,
+      product: item.product._id,
+      unit: item.unit._id,
+      badgeNumber: item.badgeNumber,
+    });
+    if (up) {
+      const totalCount =
+        up.count - item.count === 0 ? 1 : up.count - item.count;
+
+      await Items.findByIdAndUpdate(up._id, {
+        $inc: { count: -item.count },
+        $set: {
+          aveUnitAmount: Math.round(
+            (up.aveUnitAmount * up.count - item.aveUnitAmount * item.count) /
+              totalCount
+          ),
+          saleAmount: Math.round(
+            (up.saleAmount * up.count - item.saleAmount * item.count) /
+              totalCount
+          ),
+        },
+      });
+    }
+  }
+
   ////////////////////////////////////////////////// DELETE BUY /////////////////////////////////
-
-  const ids = newData.items.map((item) => item._id);
-
-  await Items.deleteMany(ids);
-
   const result = await Buy.findByIdAndDelete(data._id);
   await deleteFile(data.image);
 
@@ -186,7 +222,6 @@ export const deleteBuy = catchAsync(async (data) => {
 export const updateBuy = catchAsync(async ({ currentData, newData }) => {
   const myNewData = {
     ...newData,
-    items: newData.buyLists,
     image: currentData.image,
   };
 
@@ -229,16 +264,73 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
     await Account.findByIdAndUpdate(myNewData.saller, saller);
   }
 
+  ////////////////////////////////////////////////////   REMOVE OLD iTEMS /////////////////////////////////////////////
 
+  for (const item of currentData.items) {
+    const up = await Items.findOne({
+      depot: item.depot,
+      product: item.product,
+      unit: item.unit,
+      badgeNumber: item.badgeNumber,
+    });
+    if (up) {
+      const totalCount =
+        up.count - item.count === 0 ? 1 : up.count - item.count;
+      await Items.findByIdAndUpdate(up._id, {
+        $inc: { count: -item.count },
+        $set: {
+          aveUnitAmount: Math.round(
+            (up.aveUnitAmount * up.count - item.aveUnitAmount * item.count) /
+              totalCount
+          ),
+          saleAmount: Math.round(
+            (up.saleAmount * up.count - item.saleAmount * item.count) /
+              totalCount
+          ),
+        },
+      });
+    }
+  }
 
-  const oldIds = currentData.items.map(item=>item._id)
-  await Items.deleteMany(oldIds);
-  await Items.insertMany(myNewData.items)
+  ////////////////////////////////////////////////////    ADD NEW iTEMS /////////////////////////////////////////////
 
+  for (const item of newData.items) {
+    const up = await Items.findOne({
+      depot: item.depot,
+      product: item.product,
+      unit: item.unit,
+      badgeNumber: item.badgeNumber,
+    });
+    if (up) {
+      const totalCount =
+        up.count + item.count === 0 ? 1 : up.count + item.count;
+      await Items.findByIdAndUpdate(up._id, {
+        $inc: { count: item.count },
+        $set: {
+          aveUnitAmount: Math.round(
+            (up.aveUnitAmount * up.count + item.aveUnitAmount * item.count) /
+              totalCount
+          ),
+          saleAmount: Math.round(
+            (up.saleAmount * up.count + item.saleAmount * item.count) /
+              totalCount
+          ),
+        },
+      });
+    } else {
+      await Items.create(item);
+    }
+  }
 
+  ////////////////////////////////////////////// CREATE  BUY /////////////////////////////////////////
   const result = await Buy.findByIdAndUpdate(currentData._id, myNewData);
-  Cost.findByIdAndUpdate(currentData.cost, { amount: newData.transportCost });
 
+  ////////////////////////////////////////////// CREATE COST ////////////////////////////////////////////
+  await Cost.findByIdAndUpdate(currentData.cost, {
+    amount: newData.transportCost,
+  });
+
+  ////////////////////////////////////////////////// CALCULATE ACOUNTS ////////////////////////////////
   if (result?._id) {
     const newCompanyData = {
       balance:

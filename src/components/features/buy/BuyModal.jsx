@@ -22,13 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-} from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import CreateBuyAction, { updateBuyAction } from "@/actions/buyAction";
 import { toast } from "sonner";
 import { Loader2Icon } from "lucide-react";
@@ -36,7 +30,6 @@ import { SwitchDemo } from "@/components/myUI/Switch";
 
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 import { ModalTable } from "./ModalTable";
-import { set } from "mongoose";
 
 const schemaA = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -147,7 +140,7 @@ export function BuyModal({
       saller: newData.saller.split("_")[1],
       income: newData.income.split("_")[1],
       image: newData.image?.[0] || "",
-      buyLists,
+      items: buyLists,
     };
 
     startTransition(async () => {
@@ -173,6 +166,12 @@ export function BuyModal({
           ...data,
           saller: data.saller._id,
           income: data.income._id,
+          items: data.items.map((item) => ({
+            ...item,
+            product: item.product._id,
+            unit: item.unit._id,
+            depot: item.depot._id,
+          })),
         };
 
         const result = await updateBuyAction(currentData, myNewData);

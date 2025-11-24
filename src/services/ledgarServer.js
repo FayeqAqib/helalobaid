@@ -7,7 +7,9 @@ import { ExternalProceed } from "@/models/externalProceed";
 import { Pay } from "@/models/pay";
 import { Receive } from "@/models/receive";
 import { Sale } from "@/models/Sale";
+import { Transfer } from "@/models/transfer";
 import moment from "moment-jalaali";
+import momentT from "moment-timezone";
 
 async function getAPIFeatures(query, queryString) {
   const count = await query.countDocuments();
@@ -316,12 +318,24 @@ export const getLedgar = catchAsync(async ({ date }) => {
     allTransactionsArray,
   };
 });
-export async function getAllTransferMoneySeller() {
-  const month = moment(new Date()).format("jYYYY/jM");
+export async function getAllTransferMoneySeller(date = "") {
+  const [startD, endD] = date?.split(",");
+  const start = momentT(startD || new Date()).format("jYYYY/jMM/jDD");
+  const end = momentT(endD || new Date()).format("jYYYY/jMM/jDD");
+
+  const startDate = momentT
+    .tz(start, "jYYYY/jMM/jDD", "Asia/Kabul")
+    .startOf("day")
+    .toDate();
+
+  const endDate = momentT
+    .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
+    .endOf("day")
+    .toDate();
 
   const aggregateData = async (model, sumField, group) => {
     return model.aggregate([
-      { $match: { afgDate: month } },
+      { $match: { date: { $gte: startDate, $lte: endDate } } },
       {
         $group: {
           _id: `$${group}`,
@@ -389,87 +403,141 @@ export async function getAllTransferMoneySeller() {
   return resultArray;
 }
 
-export async function getAllTransferBank() {
-  const month = moment(new Date()).format("jYYYY/jM");
+export async function getAllTransferBank(date = "") {
+  const [startD, endD] = date?.split(",");
+  const start = momentT(startD || new Date()).format("jYYYY/jMM/jDD");
+  const end = momentT(endD || new Date()).format("jYYYY/jMM/jDD");
 
-  // تابع کمکی برای اجرای aggregate
-  const aggregateData = async (model, sumField, type) => {
-    return model.aggregate([
-      { $match: { afgDate: month } },
-      {
-        $group: {
-          _id: "$income",
-          [type]: { $sum: `$${sumField}` },
+  const startDate = momentT
+    .tz(start, "jYYYY/jMM/jDD", "Asia/Kabul")
+    .startOf("day")
+    .toDate();
+
+  const endDate = momentT
+    .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
+    .endOf("day")
+    .toDate();
+
+  try {
+    // تابع کمکی برای اجرای aggregate
+    const aggregateData = async (model, sumField, type) => {
+      return model.aggregate([
+        { $match: { date: { $gte: startDate, $lte: endDate } } },
+        {
+          $group: {
+            _id: "$income",
+            [type]: { $sum: `$${sumField}` },
+          },
         },
-      },
+      ]);
+    };
+
+    const aggregateData2 = async (model, sumField, type) => {
+      return model.aggregate([
+        { $match: { date: { $gte: startDate, $lte: endDate } } },
+        {
+          $group: {
+            _id: "$from",
+            [type]: { $sum: `$${sumField}` },
+          },
+        },
+      ]);
+    };
+
+    const aggregateData3 = async (model, sumField, type) => {
+      return model.aggregate([
+        { $match: { date: { $gte: startDate, $lte: endDate } } },
+        {
+          $group: {
+            _id: "$to",
+            [type]: { $sum: `$${sumField}` },
+          },
+        },
+      ]);
+    };
+
+    // اجرای کوئری‌ها به صورت موازی
+    const [
+      buy,
+      sale,
+      receive,
+      pay,
+      cost,
+      externalProceed,
+      Transfer1,
+      Transfer2,
+    ] = await Promise.all([
+      aggregateData(Buy, "cashAmount", "pay"), // خرید = پرداخت
+      aggregateData(Sale, "cashAmount", "receive"), // فروش = دریافت
+      aggregateData(Receive, "amount", "receive"), // دریافت وجه
+      aggregateData(Pay, "amount", "pay"), // پرداخت وجه
+      aggregateData(Cost, "amount", "pay"), // هزینه = پرداخت
+      aggregateData(ExternalProceed, "amount", "receive"), // درآمد خارجی = دریافت
+      aggregateData2(Transfer, "amount", "receive"), // درآمد خارجی = دریافت
+      aggregateData3(Transfer, "amount", "pey"), // درآمد خارجی = دریافت
     ]);
-  };
 
-  // اجرای کوئری‌ها به صورت موازی
-  const [buy, sale, receive, pay, cost, externalProceed] = await Promise.all([
-    aggregateData(Buy, "cashAmount", "pay"), // خرید = پرداخت
-    aggregateData(Sale, "cashAmount", "receive"), // فروش = دریافت
-    aggregateData(Receive, "amount", "receive"), // دریافت وجه
-    aggregateData(Pay, "amount", "pay"), // پرداخت وجه
-    aggregateData(Cost, "amount", "pay"), // هزینه = پرداخت
-    aggregateData(ExternalProceed, "amount", "receive"), // درآمد خارجی = دریافت
-  ]);
+    // ادغام تمام نتایج در یک آرایه
+    const allData = [
+      ...buy,
+      ...sale,
+      ...receive,
+      ...pay,
+      ...cost,
+      ...externalProceed,
+      ...Transfer1,
+      ...Transfer2,
+    ];
 
-  // ادغام تمام نتایج در یک آرایه
-  const allData = [
-    ...buy,
-    ...sale,
-    ...receive,
-    ...pay,
-    ...cost,
-    ...externalProceed,
-  ];
+    // ترکیب نتایج برای هر فروشنده
+    const combinedResults = allData.reduce((acc, curr) => {
+      const saller = curr._id;
 
-  // ترکیب نتایج برای هر فروشنده
-  const combinedResults = allData.reduce((acc, curr) => {
-    const saller = curr._id;
+      if (!acc[saller]) {
+        acc[saller] = { _id: saller, pay: 0, receive: 0 };
+      }
 
-    if (!acc[saller]) {
-      acc[saller] = { _id: saller, pay: 0, receive: 0 };
-    }
+      if (curr.pay) {
+        acc[saller].pay += curr.pay;
+      }
 
-    if (curr.pay) {
-      acc[saller].pay += curr.pay;
-    }
+      if (curr.receive) {
+        acc[saller].receive += curr.receive;
+      }
 
-    if (curr.receive) {
-      acc[saller].receive += curr.receive;
-    }
+      return acc;
+    }, {});
+    let resultArray = Object.values(combinedResults);
 
-    return acc;
-  }, {});
-  let resultArray = Object.values(combinedResults);
+    // استخراج تمام شناسه‌های منحصر به فرد
+    const sallerIds = resultArray.map((item) => item._id);
 
-  // استخراج تمام شناسه‌های منحصر به فرد
-  const sallerIds = resultArray.map((item) => item._id);
+    // دریافت اطلاعات حساب‌ها از کولکشن Account
+    const accounts = await Account.find(
+      { _id: { $in: sallerIds } },
+      { name: 1, balance: 1 } // فقط فیلد name را دریافت می‌کنیم
+    );
 
-  // دریافت اطلاعات حساب‌ها از کولکشن Account
-  const accounts = await Account.find(
-    { _id: { $in: sallerIds } },
-    { name: 1, balance: 1 } // فقط فیلد name را دریافت می‌کنیم
-  );
-
-  // ایجاد مپ برای دسترسی سریع به نام‌ها
-  const accountMap = new Map();
-  accounts.forEach((account) => {
-    accountMap.set(account._id.toString(), {
-      name: account.name,
-      balance: account.balance,
+    // ایجاد مپ برای دسترسی سریع به نام‌ها
+    const accountMap = new Map();
+    accounts.forEach((account) => {
+      accountMap.set(account._id.toString(), {
+        name: account.name,
+        balance: account.balance,
+      });
     });
-  });
 
-  // اضافه کردن نام به هر آیتم
-  resultArray = resultArray.map((item) => ({
-    ...item,
-    _id: item._id.toString(),
-    name: accountMap.get(item._id.toString()).name || "نامشخص",
-    balance: accountMap.get(item._id.toString()).balance || "نامشخص",
-  }));
-  // تبدیل به آرایه نهایی
-  return resultArray;
+    // اضافه کردن نام به هر آیتم
+    resultArray = resultArray.map((item) => ({
+      ...item,
+      _id: item._id.toString(),
+      name: accountMap.get(item._id.toString()).name || "نامشخص",
+      balance: accountMap.get(item._id.toString()).balance || "نامشخص",
+    }));
+    // تبدیل به آرایه نهایی
+    return resultArray;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
 }

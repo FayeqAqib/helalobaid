@@ -120,8 +120,8 @@ export function SaleModal({
   });
 
   ///////////////////////////////// DELETE ITEM FROM LIST ///////////////////////////////////
-  function handleDeleteItem(id) {
-    setSaleList((prev) => prev.filter((item) => item.uId !== id));
+  function handleDeleteItem(uId) {
+    setSaleList((prev) => prev.filter((item) => item.uId !== uId));
   }
 
   async function submiteForm(newData) {
@@ -164,6 +164,12 @@ export function SaleModal({
           ...data,
           buyer: data.buyer._id,
           income: data.income._id,
+          items: data.items.map((item) => ({
+            ...item,
+            product: item.product._id,
+            unit: item.unit._id,
+            depot: item.depot._id,
+          })),
         };
         const result = await updateSaleAction(currentData, myNewData);
         if (result.result?.message)
@@ -211,10 +217,12 @@ export function SaleModal({
           (item.count * item.saleAmount * item?.discount) / 100),
       0
     );
+
     const totalBeforDiscount = saleList.reduce(
       (acc, item) => acc + item.count * item.saleAmount,
       0
     );
+
     const totalProfit = saleList.reduce(
       (acc, item) =>
         acc +
@@ -226,6 +234,7 @@ export function SaleModal({
 
     return { total, totalBeforDiscount, totalProfit };
   }, [saleList]);
+
   useEffect(() => {
     formA.setValue("totalAmountBeforDiscount", totalBeforDiscount, {
       shouldValidate: true,
@@ -305,23 +314,6 @@ export function SaleModal({
       ?.split("_")[0]
       ?.split("-")[2]
       ?.split("(")[0];
-    const exiset = saleList.filter(
-      (item) =>
-        item.name !== name &&
-        item.brand !== brand &&
-        item.companyName !== companyName
-    );
-
-    const totalcount = exiset?.reduce((acc, item) => acc + item.count, 0);
-    const count = Number(product.split("_")[0].split(")")[1]);
-    if (totalcount + data.count > count) {
-      formB.setError("count", {
-        message: "تعداد فروش از تعداد موجود بیشتر بوده نمی تواند",
-      });
-      return;
-    } else {
-      formB.clearErrors("count");
-    }
 
     const pro = data.product.split("_")[1].split("-");
     const myData = {
@@ -338,6 +330,7 @@ export function SaleModal({
       depot: { name: pro[2].split(",")[1], _id: pro[2].split(",")[0] },
       unit: { name: pro[3].split(",")[1], _id: pro[3].split(",")[0] },
       id: product.split("#")[1],
+      _id: product.split("#")[1],
       uId: product.split("#")[1] + Math.random().toString(),
     };
     setSaleList((prev) => [myData, ...prev]);

@@ -17,7 +17,6 @@ export async function POST(req) {
   }
   const isValid = bcrypt.compareSync(credentials.password, user.password);
 
-  console.log(isValid);
   if (!isValid) {
     return new Response(JSON.stringify({ error: "رمز عبور معتبر نیست" }), {
       status: 404,

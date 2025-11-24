@@ -52,3 +52,7 @@ export const handlePrintPOS = async (id) => {
   printWindow.document.write(html);
   printWindow.document.close();
 };
+
+export function cleanSymbols(str) {
+  return str.replace(/[,_\-\(\)]/g, "");
+}

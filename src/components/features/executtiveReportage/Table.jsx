@@ -28,13 +28,15 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import moment from "moment-jalaali";
 import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
+import { useReactToPrint } from "react-to-print";
+import { SelectInput } from "@/components/myUI/select";
 
 export const columns = [
   {
@@ -213,13 +215,15 @@ export const columns = [
 ];
 
 export function DataTableExecuttiveReportage({ data, count, account = {} }) {
-
   const [name, setName] = useState("");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const router = useRouter();
   const pathname = usePathname();
+
+  const prientRef = useRef();
+  const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
 
   function setFilter() {
     router.push(
@@ -229,12 +233,11 @@ export function DataTableExecuttiveReportage({ data, count, account = {} }) {
               .map((items) => `${items.id + "=" + items.value}`)
               .join("&") + "&"
           : ""
-      }${
+      }&${
         "page=" +
         table.getState().pagination.pageIndex +
-        "&limit=10" +
-        "&name=" +
-        name
+        "&limit=" +
+        table.getState().pagination.pageSize
       }`
     );
   }
@@ -262,9 +265,13 @@ export function DataTableExecuttiveReportage({ data, count, account = {} }) {
 
   useEffect(() => {
     setFilter();
-  }, [sorting, table.getState().pagination.pageIndex]);
+  }, [
+    sorting,
+    table.getState().pagination.pageIndex,
+    table.getState().pagination.pageSize,
+  ]);
   return (
-    <div className="w-full">
+    <div className="w-full" ref={prientRef}>
       <div className="flex flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-4">
           <AutoCompleteV2 value={name} onChange={setName} />
@@ -278,6 +285,7 @@ export function DataTableExecuttiveReportage({ data, count, account = {} }) {
           </Button>
         </div>
         <div className="flex gap-4">
+          <Button onClick={reactToPrintFn}> چاپ </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -403,9 +411,25 @@ export function DataTableExecuttiveReportage({ data, count, account = {} }) {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getState().pagination.pageIndex + 1} از {table.getPageCount()}{" "}
-          صفحه
+        <div className="flex-1 flex text-sm text-muted-foreground gap-4 items-center">
+          <h3>
+            {table.getState().pagination.pageIndex + 1} از{" "}
+            {table.getPageCount()} صفحه
+          </h3>
+
+          <SelectInput
+            field={{
+              value: table.getState().pagination.pageSize,
+              onChange: table.setPageSize,
+            }}
+            lable={"تعداد آیتم در هر صفحه"}
+            options={[
+              { value: 10, label: "10" },
+              { value: 20, label: "20" },
+              { value: 500, label: "500" },
+              { value: 1000, label: "1000" },
+            ]}
+          />
         </div>
         <div className="space-x-2">
           <Button

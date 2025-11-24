@@ -29,6 +29,7 @@ import { useState, useTransition } from "react";
 import { SwitchDemo } from "@/components/myUI/Switch";
 import { Loader2Icon } from "lucide-react";
 import createUnitAction, { updateUnitAction } from "@/actions/unitAction";
+import { cleanSymbols } from "@/lib/utils";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -58,6 +59,7 @@ export function UnitModal({
   async function submiteForm(formData) {
     const newFormData = {
       ...formData,
+      name: cleanSymbols(formData.name),
     };
     startTransition(async () => {
       if (type === "create") {

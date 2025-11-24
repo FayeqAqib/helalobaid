@@ -43,33 +43,35 @@ const chartConfig = {
 };
 
 export function ChartAreaGradient({ data = [] }) {
-  const [timeRange, setTimeRange] = useState("120d");
+  // const [timeRange, setTimeRange] = useState("120d");
   const chartData =
     data?.map((item) => {
       return { date: item.date, sale: item.totalSale, buy: item.totalBuy };
     }) || [];
-  const filteredData = chartData?.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date("2024-06-30");
-    let daysToSubtract = 120;
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
-    }
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
+  // const filteredData = chartData?.filter((item) => {
+  //   const date = new Date(item.date);
+  //   const referenceDate = new Date("2024-06-30");
+  //   let daysToSubtract = 120;
+  //   if (timeRange === "30d") {
+  //     daysToSubtract = 30;
+  //   } else if (timeRange === "7d") {
+  //     daysToSubtract = 7;
+  //   }
+  //   const startDate = new Date(referenceDate);
+  //   startDate.setDate(startDate.getDate() - daysToSubtract);
+  //   return date >= startDate;
+  // });
 
   return (
     <Card className="w-full shadow-xl shadow-black/30 p-0 rounded-sm overflow-hidden">
       <div className="flex flex-row w-full justify-between h-8">
         <CardHeader className={"p-5 w-1/2"}>
           <CardTitle>تراکنش ها</CardTitle>
-          <CardDescription>میزان خرید وقروش در 6 ماه گذشته</CardDescription>
+          <CardDescription>
+            میزان خرید و فروش در بازه زمانی انتخاب شده{" "}
+          </CardDescription>
         </CardHeader>
-        <CardHeader className={"p-5 w-1/2"}>
+        {/* <CardHeader className={"p-5 w-1/2"}>
           <Select value={timeRange} onValueChange={setTimeRange} dir="rtl">
             <SelectTrigger
               className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
@@ -91,12 +93,13 @@ export function ChartAreaGradient({ data = [] }) {
             </SelectContent>
           </Select>
         </CardHeader>
+        */}
       </div>
       <CardContent className={"p-0 m-0 max-h-[500px]"}>
         <ChartContainer config={chartConfig}>
           <AreaChart
             accessibilityLayer
-            data={filteredData}
+            data={chartData}
             margin={
               {
                 // left: 20,

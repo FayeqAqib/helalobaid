@@ -28,11 +28,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { DatePickerWithPresets } from "@/components/myUI/datePacker";
 import { usePathname, useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { useReactToPrint } from "react-to-print";
 
 export const columns = [
   {
@@ -224,6 +225,9 @@ export function DataTableLedger({ data, metuBalance }) {
     );
   }
 
+  const prientRef = useRef();
+  const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
+
   //  useEffect(() => {
   //     setFilter();
   //   }, [sorting ,getPaginationRowModel().pagination.pageIndex]);
@@ -253,7 +257,7 @@ export function DataTableLedger({ data, metuBalance }) {
   }, [sorting, table.getState().pagination.pageIndex]);
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={prientRef}>
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-4">
           <DatePickerWithPresets
@@ -264,6 +268,7 @@ export function DataTableLedger({ data, metuBalance }) {
           <Button onClick={() => setFilter()}>جستجو</Button>
         </div>
         <div className="flex gap-4">
+          <Button onClick={reactToPrintFn}> چاپ </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">

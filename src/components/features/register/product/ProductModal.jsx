@@ -31,6 +31,7 @@ import { Loader2Icon } from "lucide-react";
 import createProductAction, {
   updateProductAction,
 } from "@/actions/productAction";
+import { cleanSymbols } from "@/lib/utils";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -73,6 +74,9 @@ export function ProductModal({
   async function submiteForm(formData) {
     const newFormData = {
       ...formData,
+      name: cleanSymbols(formData.name),
+      brand: cleanSymbols(formData.brand),
+      companyName: cleanSymbols(formData.companyName),
       image: formData.image?.[0],
     };
     startTransition(async () => {

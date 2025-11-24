@@ -38,7 +38,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";
@@ -53,6 +53,7 @@ import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 import { DetailsModal } from "@/components/myUI/DetailsModal";
 import { HiEye } from "react-icons/hi2";
 import { TransferModal } from "./TransferModal";
+import { useReactToPrint } from "react-to-print";
 
 export const columns = [
   {
@@ -208,6 +209,9 @@ export function DataTableTransfer({ data, count }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const prientRef = useRef();
+  const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
+
   function setFilter() {
     const url = `${pathname}?${
       sorting.length ? "sort=" + sorting[0].id + "," + sorting[0].desc : ""
@@ -257,7 +261,7 @@ export function DataTableTransfer({ data, count }) {
   ]);
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={prientRef}>
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-2 gap-y-4 flex-wrap">
           <AutoCompleteV2
@@ -281,6 +285,7 @@ export function DataTableTransfer({ data, count }) {
           </Button>
         </div>
         <div className="flex gap-4">
+          <Button onClick={reactToPrintFn}> چاپ </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto flex-1">
@@ -409,7 +414,8 @@ export function DataTableTransfer({ data, count }) {
             options={[
               { value: 10, label: "10" },
               { value: 20, label: "20" },
-              { value: 30, label: "30" },
+              { value: 500, label: "500" },
+              { value: 1000, label: "1000" },
             ]}
           />
         </div>

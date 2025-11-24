@@ -12,11 +12,11 @@ import {
 } from "@/services/ledgarServer";
 import jalaliMoment from "moment-jalaali";
 
-function ChartContiner({ data = [], totalProfit }) {
-  const banks = use(getAllTransferBank());
+function ChartContiner({ data = [], totalProfit, date }) {
+  const banks = use(getAllTransferBank(date));
 
-  const buy = use(getAllTransferMoneySeller());
-  const allCost = use(getCostInThisMonth());
+  const buy = use(getAllTransferMoneySeller(date));
+  const allCost = use(getCostInThisMonth(date));
 
   const totalCost = allCost.result?.reduce(
     (acc, cur) => acc + cur.totalAmount,

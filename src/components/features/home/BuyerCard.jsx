@@ -9,8 +9,8 @@ import { formatCurrency } from "@/lib/utils";
 import { getBiggestSeller } from "@/services/saleService";
 import React, { use } from "react";
 
-export const BuyerCard = () => {
-  const result = use(getBiggestSeller());
+export const BuyerCard = ({ date }) => {
+  const result = use(getBiggestSeller(date));
 
   return (
     <Card

@@ -9,13 +9,6 @@ import { Receive } from "@/models/receive";
 import { uploadImage } from "@/lib/uploadImage";
 
 export const createAccount = catchAsync(async (data) => {
-  if (data.borrow >= 1 || data.lend >= 1) {
-    company = await Account.findById(process.env.COMPANY_ID, {
-      borrow: 1,
-      lend: 1,
-    });
-  }
-
   const { path, err } = await uploadImage(data.image);
   data.image = path;
 
@@ -28,9 +21,11 @@ export const createAccount = catchAsync(async (data) => {
 
   const result = await Account.create(data);
 
-  await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
-    $inc: { lend: Number(data.borrow), borrow: Number(data.lend) },
-  });
+  if (data.borrow >= 1 || data.lend >= 1) {
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
+      $inc: { lend: Number(data.borrow), borrow: Number(data.lend) },
+    });
+  }
 
   return result;
 });
@@ -51,7 +46,7 @@ export const getAllAccount = catchAsync(async (filter) => {
     filter.name = filter?.name?.length > 0 ? filter?.name?.split("_")?.[0] : "";
   }
 
-  const count = await Account.countDocuments(filter);
+  const count = await Account.countDocuments();
   const features = new APIFeatures(Account.find(), filter)
     .filter()
     .sort()

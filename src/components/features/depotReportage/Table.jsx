@@ -28,7 +28,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -38,6 +38,7 @@ import { SelectInput } from "@/components/myUI/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import jalaali from "moment-jalaali";
+import { useReactToPrint } from "react-to-print";
 
 export function DataTableDepotReportage({ data, count, expir, params }) {
   const [sorting, setSorting] = useState([]);
@@ -279,6 +280,9 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
     },
   ];
 
+  const prientRef = useRef();
+  const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
+
   const table = useReactTable({
     data,
     columns,
@@ -309,7 +313,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
   ]);
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={prientRef}>
       <div className="">
         <Table>
           <TableHeader>
@@ -376,10 +380,11 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
             options={[
               { value: 10, label: "10" },
               { value: 20, label: "20" },
-              { value: 30, label: "30" },
+              { value: 500, label: "500" },
             ]}
           />
         </div>
+        <Button onClick={reactToPrintFn}> چاپ </Button>
         <div className="space-x-2">
           <Button
             variant="outline"

@@ -9,9 +9,10 @@ import { getAllItems, getSalesPurchaseSummary } from "@/services/itemsService";
 
 import React, { use } from "react";
 
-export default function Page() {
+export default function Page({ searchParams }) {
+  const params = use(searchParams);
   const { result } = use(getCompanyAccount());
-  const fourMonthData = use(getSalesPurchaseSummary());
+  const fourMonthData = use(getSalesPurchaseSummary(params?.date));
   const allItems = use(getAllItems());
 
   const totalAvalible = React.useMemo(
@@ -20,38 +21,13 @@ export default function Page() {
     [allItems]
   );
 
-  // اول ماه شمسی جاری
-  const firstDayOfMonth = jalaliMoment().startOf("jMonth").toDate();
-
-  // آخر ماه شمسی جاری
-  const lastDayOfMonth = jalaliMoment().endOf("jMonth").toDate();
-
-  const firstDayOfLastMonth = jalaliMoment()
-    .subtract(1, "jMonth") // یک ماه کم می‌کنیم
-    .startOf("jMonth") // به اول ماه می‌رویم
-    .toDate(); // به تاریخ تبدیل می‌کنیم
-
-  // آخر ماه شمسی قبل
-  const lastDayOfLastMonth = jalaliMoment()
-    .subtract(1, "jMonth") // یک ماه کم می‌کنیم
-    .endOf("jMonth") // به آخر ماه می‌رویم
-    .toDate();
-
   const total = React.useMemo(() => {
     const buy = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfMonth &&
-        new Date(curr.date) <= lastDayOfMonth
-          ? acc + curr.buyCount
-          : acc,
+      (acc, curr) => acc + curr.buyCount,
       0
     );
     const sale = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfMonth &&
-        new Date(curr.date) <= lastDayOfMonth
-          ? acc + curr.saleCount
-          : acc,
+      (acc, curr) => acc + curr.saleCount,
       0
     );
     return { buy, sale };
@@ -59,65 +35,34 @@ export default function Page() {
 
   const totalProfit = React.useMemo(
     () =>
-      fourMonthData.result?.reduce(
-        (acc, curr) =>
-          new Date(curr.date) >= firstDayOfMonth &&
-          new Date(curr.date) <= lastDayOfMonth
-            ? acc + curr.totalProfit
-            : acc,
-        0
-      ),
+      fourMonthData.result?.reduce((acc, curr) => acc + curr.totalProfit, 0),
 
     [fourMonthData.result]
   );
 
   const buyAndSale = React.useMemo(() => {
     const currrentSale = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfMonth &&
-        new Date(curr.date) <= lastDayOfMonth
-          ? acc + curr.totalSale
-          : acc,
+      (acc, curr) => acc + curr.totalSale,
       0
     );
     const pastSale = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfLastMonth &&
-        new Date(curr.date) <= lastDayOfLastMonth
-          ? acc + curr.totalSale
-          : acc,
+      (acc, curr) => acc + curr.totalSale,
       0
     );
     const currrentBuy = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfMonth &&
-        new Date(curr.date) <= lastDayOfMonth
-          ? acc + curr.totalBuy
-          : acc,
+      (acc, curr) => acc + curr.totalBuy,
       0
     );
     const pastBuy = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfLastMonth &&
-        new Date(curr.date) <= lastDayOfLastMonth
-          ? acc + curr.totalBuy
-          : acc,
+      (acc, curr) => acc + curr.totalBuy,
       0
     );
     const saleCount = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfMonth &&
-        new Date(curr.date) <= lastDayOfMonth
-          ? acc + curr.transactionSale
-          : acc,
+      (acc, curr) => acc + curr.transactionSale,
       0
     );
     const buyCount = fourMonthData.result?.reduce(
-      (acc, curr) =>
-        new Date(curr.date) >= firstDayOfMonth &&
-        new Date(curr.date) <= lastDayOfMonth
-          ? acc + curr.transactionBuy
-          : acc,
+      (acc, curr) => acc + curr.transactionBuy,
       0
     );
 
@@ -145,7 +90,7 @@ export default function Page() {
         }
       >
         <LoanAccount company={result?.[0]} />
-        <BuyerCard />
+        <BuyerCard date={params?.date} />
       </div>
 
       <div className="flex w-full flex-col items-center justify-center gap-4 p-1">
@@ -176,7 +121,11 @@ export default function Page() {
             chart="../bar-chart (2).png"
           />
         </div>
-        <ChartContiner data={fourMonthData.result} totalProfit={totalProfit} />
+        <ChartContiner
+          data={fourMonthData.result}
+          totalProfit={totalProfit}
+          date={params?.date}
+        />
       </div>
     </div>
   );

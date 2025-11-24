@@ -5,7 +5,7 @@ import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
 import { CostTital } from "@/models/constTital";
 import { Cost } from "@/models/cost";
-import moment from "moment-jalaali";
+import momentT from "moment-timezone";
 
 export const createCost = catchAsync(async (data) => {
   const newData = { ...data };
@@ -126,15 +126,23 @@ export const updateCost = catchAsync(async ({ currentData, newData }) => {
 
 ////////////////////////////////////////////////// getCostInThisMonth ////////////////////////////////////////////////
 
-export const getCostInThisMonth = catchAsync(async () => {
-  const thisMonth = moment().format("jYYYY/jM"); // مثلاً "1403/3"
+export const getCostInThisMonth = catchAsync(async (date = "") => {
+  const [startD, endD] = date?.split(",");
+  const start = momentT(startD || new Date()).format("jYYYY/jMM/jDD");
+  const end = momentT(endD || new Date()).format("jYYYY/jMM/jDD");
+
+  const startDate = momentT
+    .tz(start, "jYYYY/jMM/jDD", "Asia/Kabul")
+    .startOf("day")
+    .toDate();
+
+  const endDate = momentT
+    .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
+    .endOf("day")
+    .toDate();
 
   const result = await Cost.aggregate([
-    {
-      $match: {
-        afgDate: `${thisMonth}`,
-      },
-    },
+    { $match: { date: { $gte: startDate, $lte: endDate } } },
     {
       $lookup: {
         from: "costtitals", // توجه: نام collection باید با حالت جمع mongoose مطابقت داشته باشد

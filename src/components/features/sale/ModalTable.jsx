@@ -61,7 +61,7 @@ export function ModalTable({ data, onDelete }) {
               </TableCell>
               <TableCell>{formatCurrency(item.amountBeforDiscount)}</TableCell>
               <TableCell>
-                <Button onClick={() => onDelete(item.id)} variant="ghost">
+                <Button onClick={() => onDelete(item.uId)} variant="ghost">
                   <Trash className="text-red-400" />
                 </Button>
               </TableCell>

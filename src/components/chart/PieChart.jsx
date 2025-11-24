@@ -33,7 +33,7 @@ export function ChartPieDonutActive({ costs }) {
     <Card className="flex flex-col w-full max-w-lg h-[375px] shadow-lg">
       <CardHeader className="items-center pb-0">
         <CardTitle>مصارف</CardTitle>
-        <CardDescription>مجموعه مصارف ماه جاری</CardDescription>
+        <CardDescription>مجموعه مصارف </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
