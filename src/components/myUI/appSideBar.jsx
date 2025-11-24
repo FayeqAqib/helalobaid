@@ -55,11 +55,11 @@ const list = [
     url: "/customer/sale",
     icon: <ShoppingBag />,
   },
-  // {
-  //   title: "  فروش pos",
-  //   url: "/customer/pos",
-  //   icon: <ShoppingCart />,
-  // },
+  {
+    title: "  فروش pos",
+    url: "/customer/pos",
+    icon: <ShoppingCart />,
+  },
   {
     title: "مصارف",
     url: "/customer/cost",
