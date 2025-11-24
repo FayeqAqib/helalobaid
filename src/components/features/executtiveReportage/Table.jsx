@@ -58,6 +58,24 @@ export const columns = [
     ),
   },
   {
+    accessorKey: "name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          اسم
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="text-right font-medium">{row.getValue("name")}</div>
+      );
+    },
+  },
+  {
     accessorKey: "buyCashAmount",
     header: ({ column }) => {
       return (
@@ -233,7 +251,7 @@ export function DataTableExecuttiveReportage({ data, count, account = {} }) {
               .map((items) => `${items.id + "=" + items.value}`)
               .join("&") + "&"
           : ""
-      }&${
+      }&${name ? "name=" + name + "&" : ""}${
         "page=" +
         table.getState().pagination.pageIndex +
         "&limit=" +

@@ -11,13 +11,14 @@ import { Transfer } from "@/models/transfer";
 import moment from "moment-jalaali";
 import momentT from "moment-timezone";
 
-async function getAPIFeatures(query, queryString) {
+async function getAPIFeatures(query, queryString, pupulateField) {
   const count = await query.countDocuments();
   const features = new APIFeatures(query.find(), queryString)
     .filter()
     .sort()
+    .limitFields()
     .paginate();
-  const result = await features.query;
+  const result = await features.query.populate(pupulateField, "name");
 
   return [result, count];
 }
@@ -29,20 +30,27 @@ export const getaccountAlltransactions = catchAsync(async (filter) => {
     date: filter?.date || undefined,
   };
 
-  const account = await Account.findById(filter?.name?.split("_")?.[1] || "");
+  const name = filter?.name?.split("_")?.[1] || null;
 
-  if (account.accountType === "buyer") {
+  let account;
+  if (name) {
+    account = await Account.findById(filter?.name?.split("_")?.[1] || "");
+  } else {
+    account = null;
+  }
+
+  if (account?.accountType === "buyer") {
     myFilter.buyer = filter?.name?.split("_")?.[1] || "";
   }
 
-  if (account.accountType === "saller") {
+  if (account?.accountType === "saller") {
     myFilter.saller = filter?.name?.split("_")?.[1] || "";
   }
   const { buyer, saller, ...newFilter } = myFilter;
-  if (account.accountType === "saller" || account.accountType === "buyr") {
+  if (account?.accountType === "saller" || account?.accountType === "buyr") {
     newFilter.type = filter?.name?.split("_")?.[1];
   }
-  if (account.accountType === "bank" || account.accountType === "company") {
+  if (account?.accountType === "bank" || account?.accountType === "company") {
     newFilter.income = filter?.name?.split("_")?.[1];
     myFilter.income = filter?.name?.split("_")?.[1] || "";
   }
@@ -62,19 +70,29 @@ export const getaccountAlltransactions = catchAsync(async (filter) => {
         return {
           ...transaction.toObject(),
           saleCashAmount: transaction.cashAmount,
+          name: transaction.buyer.name,
         };
       }
       if (transaction.constructor.modelName === "Buy") {
         return {
           ...transaction.toObject(),
           buyCashAmount: transaction.cashAmount,
+          name: transaction.saller.name,
         };
       }
       if (transaction.constructor.modelName === "Receive") {
-        return { ...transaction.toObject(), receiveAmount: transaction.amount };
+        return {
+          ...transaction.toObject(),
+          receiveAmount: transaction.amount,
+          name: transaction.type.name,
+        };
       }
       if (transaction.constructor.modelName === "Pay") {
-        return { ...transaction.toObject(), payAmount: transaction.amount };
+        return {
+          ...transaction.toObject(),
+          payAmount: transaction.amount,
+          name: transaction.type.name,
+        };
       }
       return transaction;
     })
