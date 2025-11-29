@@ -198,7 +198,7 @@ const Page = () => {
 
   return (
     <div className="flex gap-3 h-[88vh] ">
-      <Card className="w-[120mm] rounded-2xl h-full  hidden p-3  lg:flex lg:flex-col lg:justify-between ">
+      {/* <Card className="w-[120mm] rounded-2xl h-full  hidden p-3  lg:flex lg:flex-col lg:justify-between ">
         <Table className={" text-xs"}>
           {cart.length === 0 && (
             <TableCaption className="w-full text-center p-2">
@@ -427,7 +427,7 @@ const Page = () => {
             })}
           </Card>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };
