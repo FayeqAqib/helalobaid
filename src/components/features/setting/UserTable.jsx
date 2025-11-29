@@ -232,6 +232,7 @@ export function DataTableUser({ data, count }) {
             onChange={(value) =>
               table.getColumn("owner")?.setFilterValue(value)
             }
+            label="جستجو بر اساس  مالک"
             type={"buyer-emplye"}
           />
           <Button onClick={() => setFilter()}>جستجو</Button>

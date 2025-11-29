@@ -1,5 +1,7 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import moment from "moment-timezone";
+import jalaliMoment from "moment-jalaali";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -54,5 +56,12 @@ export const handlePrintPOS = async (id) => {
 };
 
 export function cleanSymbols(str) {
-  return str.replace(/[,_\-\(\)]/g, "");
+  if (str) return str.replace(/[,_\-\(\)]/g, "");
+  return "";
+}
+
+export function fromatDate(date) {
+  return jalaliMoment(
+    moment(date).tz("Asia/Kabul").format("YYYY-MM-DD HH:mm")
+  ).format("jYYYY/jMM/jDD HH:mm");
 }

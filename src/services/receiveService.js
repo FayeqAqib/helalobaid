@@ -48,6 +48,9 @@ export const getAllReceive = catchAsync(async (filter) => {
   if (filter.type) {
     filter.type = filter.type.split("_")[1];
   }
+  if (filter.income) {
+    filter.income = filter.income.split("_")[1];
+  }
   const count = await Receive.countDocuments();
   const features = new APIFeatures(Receive.find(), filter)
     .filter()

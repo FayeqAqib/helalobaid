@@ -83,7 +83,7 @@ export const columns = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          پرداخت گننده
+          پرداخت کننده
           <ArrowUpDown />
         </Button>
       );
@@ -100,7 +100,7 @@ export const columns = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          دریافت گننده
+          دریافت کننده
           <ArrowUpDown />
         </Button>
       );
@@ -294,7 +294,16 @@ export function DataTableReceive({ data, count }) {
           <AutoCompleteV2
             value={table.getColumn("type")?.getFilterValue() ?? ""}
             onChange={(value) => table.getColumn("type")?.setFilterValue(value)}
+            label="جستجو بر اساس پرداخت کننده"
             type={"buyer-saller"}
+          />
+          <AutoCompleteV2
+            value={table.getColumn("income")?.getFilterValue() ?? ""}
+            onChange={(value) =>
+              table.getColumn("income")?.setFilterValue(value)
+            }
+            label="جستجو بر اساس دریافت کننده"
+            type={"company-bank"}
           />
 
           <RangeDatePickerWithPresets

@@ -50,6 +50,7 @@ import { SelectInput } from "@/components/myUI/select";
 import { DetailsModal } from "@/components/myUI/DetailsModal";
 import { DepotInventoryModal } from "./DepotInventoryModal";
 import { useReactToPrint } from "react-to-print";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 export const columns = [
   {
@@ -336,14 +337,15 @@ export function DataTableDepotInventory({ data, count }) {
     <div className="w-full" ref={prientRef}>
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-4">
-          <Input
-            placeholder="  جستجو با عنوان مصرف....."
+          <AutoCompleteV2
             value={table.getColumn("product")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table.getColumn("product")?.setFilterValue(event.target.value)
+            onChange={(value) =>
+              table.getColumn("product")?.setFilterValue(value)
             }
-            className="max-w-sm"
+            label="جستجو بر اساس محصول"
+            dataType={"product"}
           />
+
           <RangeDatePickerWithPresets
             date={table.getColumn("date")?.getFilterValue() ?? ""}
             onDate={(event) => table.getColumn("date")?.setFilterValue(event)}

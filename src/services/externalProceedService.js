@@ -33,6 +33,12 @@ export const createExternalProceed = catchAsync(async (data) => {
 });
 
 export const getAllExternalProceed = catchAsync(async (filter) => {
+  if (filter.externalProceedTitle) {
+    filter.externalProceedTitle = filter.externalProceedTitle.split("_")[1];
+  }
+  if (filter.income) {
+    filter.income = filter.income.split("_")[1];
+  }
   const count = await ExternalProceed.countDocuments();
   const features = new APIFeatures(ExternalProceed.find(), filter)
     .filter()

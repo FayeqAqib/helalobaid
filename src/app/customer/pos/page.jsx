@@ -178,6 +178,7 @@ const Page = () => {
         income: "68426436f40989bb6a60bf55",
         lendAmount: totalAmount - discount - cashAmount || 0,
         buyer: buyer.split("_")[1] || "691c06c3580b7f2182cc4e66",
+        date: new Date(),
       });
 
       if (!result.err) {

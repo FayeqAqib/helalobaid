@@ -59,14 +59,12 @@ export const createBuy = catchAsync(async (data) => {
       await Items.findByIdAndUpdate(up._id, {
         $inc: { count: item.count },
         $set: {
-          aveUnitAmount: Math.round(
+          aveUnitAmount:
             (up.aveUnitAmount * up.count + item.aveUnitAmount * item.count) /
-              totalCount
-          ),
-          saleAmount: Math.round(
+            totalCount,
+          saleAmount:
             (up.saleAmount * up.count + item.saleAmount * item.count) /
-              totalCount
-          ),
+            totalCount,
         },
       });
     } else {
@@ -172,14 +170,12 @@ export const deleteBuy = catchAsync(async (data) => {
       await Items.findByIdAndUpdate(up._id, {
         $inc: { count: -item.count },
         $set: {
-          aveUnitAmount: Math.round(
+          aveUnitAmount:
             (up.aveUnitAmount * up.count - item.aveUnitAmount * item.count) /
-              totalCount
-          ),
-          saleAmount: Math.round(
+            totalCount,
+          saleAmount:
             (up.saleAmount * up.count - item.saleAmount * item.count) /
-              totalCount
-          ),
+            totalCount,
         },
       });
     }
@@ -279,14 +275,12 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
       await Items.findByIdAndUpdate(up._id, {
         $inc: { count: -item.count },
         $set: {
-          aveUnitAmount: Math.round(
+          aveUnitAmount:
             (up.aveUnitAmount * up.count - item.aveUnitAmount * item.count) /
-              totalCount
-          ),
-          saleAmount: Math.round(
+            totalCount,
+          saleAmount:
             (up.saleAmount * up.count - item.saleAmount * item.count) /
-              totalCount
-          ),
+            totalCount,
         },
       });
     }
@@ -307,14 +301,12 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
       await Items.findByIdAndUpdate(up._id, {
         $inc: { count: item.count },
         $set: {
-          aveUnitAmount: Math.round(
+          aveUnitAmount:
             (up.aveUnitAmount * up.count + item.aveUnitAmount * item.count) /
-              totalCount
-          ),
-          saleAmount: Math.round(
+            totalCount,
+          saleAmount:
             (up.saleAmount * up.count + item.saleAmount * item.count) /
-              totalCount
-          ),
+            totalCount,
         },
       });
     } else {

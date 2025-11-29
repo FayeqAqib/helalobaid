@@ -267,11 +267,13 @@ export function DataTableTransfer({ data, count }) {
           <AutoCompleteV2
             value={table.getColumn("from")?.getFilterValue() ?? ""}
             onChange={(value) => table.getColumn("from")?.setFilterValue(value)}
+            label="جستجو بر اساس پرداخت کننده"
             type={"bank-company"}
           />
           <AutoCompleteV2
             value={table.getColumn("to")?.getFilterValue() ?? ""}
             onChange={(value) => table.getColumn("to")?.setFilterValue(value)}
+            label="جستجو بر اساس دریافت کننده"
             type={"bank-company"}
           />
 

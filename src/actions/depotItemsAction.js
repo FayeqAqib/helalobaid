@@ -27,8 +27,8 @@ export default async function createDepotItemsAction(data) {
 }
 
 /////////////////////////////////////// UPDATE /////////////////////////////////////////////
-export async function updateDepotItemsAction(data) {
-  const result = await updateDepotItems(data);
+export async function updateDepotItemsAction(oldData, newData) {
+  const result = await updateDepotItems({ oldData, newData });
 
   if (!result.err) {
     revalidatePath("depotInventory");

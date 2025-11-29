@@ -34,12 +34,12 @@ const itemsSchema = new mongoose.Schema(
     unitAmount: {
       type: Number,
       required: true,
-      min: [1, "مقدار رسید باید 1 یا یک عدد مثبت باشد"],
+      min: [0, "مقدار رسید باید 1 یا یک عدد مثبت باشد"],
     },
     aveUnitAmount: {
       type: Number,
       required: true,
-      min: [1, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
+      min: [0, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
     },
     saleAmount: {
       type: Number,

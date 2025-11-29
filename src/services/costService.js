@@ -37,6 +37,12 @@ export const createCost = catchAsync(async (data) => {
 });
 
 export const getAllCost = catchAsync(async (filter) => {
+  if (filter.costTital) {
+    filter.costTital = filter.costTital.split("_")[1];
+  }
+  if (filter.income) {
+    filter.income = filter.income.split("_")[1];
+  }
   const count = await Cost.countDocuments();
   const features = new APIFeatures(Cost.find(), filter)
     .filter()

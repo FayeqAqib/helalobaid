@@ -58,6 +58,9 @@ export const getAllPay = catchAsync(async (filter) => {
   if (filter.type) {
     filter.type = filter.type.split("_")[1];
   }
+  if (filter.income) {
+    filter.income = filter.income.split("_")[1];
+  }
   const count = await Pay.countDocuments();
   const features = new APIFeatures(Pay.find(), filter)
     .filter()

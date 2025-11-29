@@ -21,14 +21,14 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { toast } from "sonner";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
-import { SwitchDemo } from "@/components/myUI/Switch";
+
 import { createUserAction } from "@/actions/user";
 import { Label } from "@/components/ui/label";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
-const RoleEnum = z.enum(["vendee", "admin", "employe"]);
+const RoleEnum = z.enum(["admin", "employe"]);
 const signupSchema = z
   .object({
     username: z.string().min(3, "حداقل 3 کاراکتر وارد کنید"),
@@ -172,10 +172,6 @@ export function UserModal({ children, data = {}, open, onOpen }) {
                     fullwidth={true}
                     lable2={"نقش کار بر را انتخاب کنین"}
                     options={[
-                      {
-                        value: "vendee",
-                        label: "مشتری",
-                      },
                       {
                         value: "employe",
                         label: "کارمند",

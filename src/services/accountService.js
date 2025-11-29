@@ -7,6 +7,7 @@ import { Sale } from "@/models/Sale";
 import { Pay } from "@/models/pay";
 import { Receive } from "@/models/receive";
 import { uploadImage } from "@/lib/uploadImage";
+import { User } from "@/models/User";
 
 export const createAccount = catchAsync(async (data) => {
   const { path, err } = await uploadImage(data.image);
@@ -72,11 +73,12 @@ export const deleteAccount = catchAsync(async (data) => {
   let company;
 
   const sale = await Sale.findOne({ buyer: data._id }, { _id: 1 });
+  const user = await User.findOne({ owner: data._id }, { _id: 1 });
   const buy = await Buy.findOne({ saller: data._id }, { _id: 1 });
   const pay = await Pay.findOne({ type: data._id }, { _id: 1 });
   const receive = await Receive.findOne({ type: data._id }, { _id: 1 });
 
-  if (sale || buy || pay || receive) {
+  if (sale || buy || pay || receive || user) {
     return {
       message:
         "حساب ذیل با شرکت معاملاتی انجام داده لذا حذف این حساب ممکن نیست",
@@ -88,6 +90,7 @@ export const deleteAccount = catchAsync(async (data) => {
     lend: 1,
     balance: 1,
   });
+
   if (data.borrow > company.balance) {
     return {
       message: "برای پرداخت قرض این کاربر پول کافی ندارین",

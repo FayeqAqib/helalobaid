@@ -37,7 +37,7 @@ export const getAllUsers = catchAsync(async (filter) => {
     filter.owner = filter.owner.split("_")[1];
   }
 
-  const count = await User.countDocuments(filter);
+  const count = await User.countDocuments();
 
   const features = new APIFeatures(User.find(), filter)
     .filter()

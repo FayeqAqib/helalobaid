@@ -50,6 +50,7 @@ import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
 import { SelectInput } from "@/components/myUI/select";
 import { DetailsModal } from "@/components/myUI/DetailsModal";
 import { useReactToPrint } from "react-to-print";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
 export const columns = [
   {
@@ -293,18 +294,25 @@ export function DataTableExternalProceed({ data, count }) {
       <div className="flex  flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex flex-col md:flex-row gap-2 ">
           <div className="flex gap-4 w-full ">
-            <Input
-              className={" flex-1"}
-              placeholder="  جستجو با عنوان عواید....."
+            <AutoCompleteV2
               value={
                 table.getColumn("externalProceedTitle")?.getFilterValue() ?? ""
               }
-              onChange={(event) =>
-                table
-                  .getColumn("externalProceedTitle")
-                  ?.setFilterValue(event.target.value)
+              onChange={(value) =>
+                table.getColumn("externalProceedTitle")?.setFilterValue(value)
               }
+              label=" جستجو بر اساس عنوان عاید"
+              dataType={"proceed"}
             />
+            <AutoCompleteV2
+              value={table.getColumn("income")?.getFilterValue() ?? ""}
+              onChange={(value) =>
+                table.getColumn("income")?.setFilterValue(value)
+              }
+              label="جستجو بر اساس دریافت کننده"
+              type={"company-bank"}
+            />
+
             <RangeDatePickerWithPresets
               date={table.getColumn("date")?.getFilterValue() ?? ""}
               onDate={(event) => table.getColumn("date")?.setFilterValue(event)}

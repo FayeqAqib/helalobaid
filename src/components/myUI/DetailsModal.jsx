@@ -60,6 +60,18 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
             <Separator />
           </>
         )}
+        {data?.badgeNumber && (
+          <>
+            <div className="flex gap-6 items-center justify-between pe-4">
+              <DialogTitle className={"text-right"}>بج نمبر </DialogTitle>
+              <DialogDescription className={"text-lg"}>
+                {data.badgeNumber}
+              </DialogDescription>
+            </div>
+
+            <Separator />
+          </>
+        )}
         {data?.income && (
           <>
             <div className="flex gap-6 items-center justify-between pe-4">
@@ -146,7 +158,51 @@ export function DetailsModal({ data = {}, open, onChange, children }) {
               <div className="flex gap-6 items-center justify-between pe-4">
                 <DialogTitle className={"text-right"}>محصول</DialogTitle>
                 <DialogDescription className={"text-lg"}>
-                  {data.product}
+                  {data.product?.name || data.product}
+                </DialogDescription>
+              </div>
+              <Separator />
+            </>
+          )}
+          {data?.unit && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>واحد</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {data.unit?.name || data.unit}
+                </DialogDescription>
+              </div>
+              <Separator />
+            </>
+          )}
+          {data?.depot && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>گدام</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {data.depot?.name || data.depot}
+                </DialogDescription>
+              </div>
+              <Separator />
+            </>
+          )}
+          {data?.unitAmount && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>قیمت فی واحد</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {formatCurrency(data.unitAmount)}
+                </DialogDescription>
+              </div>
+              <Separator />
+            </>
+          )}
+          {data?.saleAmount && (
+            <>
+              <div className="flex gap-6 items-center justify-between pe-4">
+                <DialogTitle className={"text-right"}>قیمت فروش</DialogTitle>
+                <DialogDescription className={"text-lg"}>
+                  {formatCurrency(data.saleAmount)}
                 </DialogDescription>
               </div>
               <Separator />

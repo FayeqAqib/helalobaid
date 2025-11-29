@@ -292,7 +292,16 @@ export function DataTablePay({ data, count }) {
           <AutoCompleteV2
             value={table.getColumn("type")?.getFilterValue() ?? ""}
             onChange={(value) => table.getColumn("type")?.setFilterValue(value)}
+            label="جستجو براساس  دریافت کننده"
             type={"saller-buyer"}
+          />
+          <AutoCompleteV2
+            value={table.getColumn("income")?.getFilterValue() ?? ""}
+            onChange={(value) =>
+              table.getColumn("income")?.setFilterValue(value)
+            }
+            label="جستجو براساس در پرداخت  کننده"
+            type={"company-bank"}
           />
           <RangeDatePickerWithPresets
             date={table.getColumn("date")?.getFilterValue() ?? ""}

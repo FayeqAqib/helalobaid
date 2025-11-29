@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db"; // اگر اتصال لازم باشد
 import { format } from "date-fns";
 import { Bill } from "@/models/billHeaderAndFooter";
+import moment from "moment-jalaali";
+import { fromatDate } from "@/lib/utils";
 
 export async function GET(req) {
   await connectDB(); // اگر از Mongoose استفاده می‌کنی
@@ -53,7 +55,7 @@ th, td {
   </header>
 
   <div class="info">
-    <div>تاریخ: ${format(sale.date, "PPPP")}</div>
+    <div>تاریخ: ${fromatDate(new Date(sale.date))}</div>
     <div>شماره بل: ${sale.billNumber}</div>
     
     </div>

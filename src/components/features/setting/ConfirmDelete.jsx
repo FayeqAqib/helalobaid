@@ -28,7 +28,7 @@ export default function ConfirmDelete({ children, data, open, onOpen }) {
           "در حذف فروش شما مشکلی به وجود آمده لطفا بعدا دوباره تلاش کنید"
         );
       }
-      onOpen(false); // close dialog after delete
+      onOpen(false);
     });
   };
   return (

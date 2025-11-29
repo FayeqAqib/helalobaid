@@ -75,8 +75,8 @@ export function ProductModal({
     const newFormData = {
       ...formData,
       name: cleanSymbols(formData.name),
-      brand: cleanSymbols(formData.brand),
-      companyName: cleanSymbols(formData.companyName),
+      brand: cleanSymbols(formData?.brand),
+      companyName: cleanSymbols(formData?.companyName),
       image: formData.image?.[0],
     };
     startTransition(async () => {

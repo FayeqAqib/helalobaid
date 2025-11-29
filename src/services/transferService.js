@@ -51,9 +51,11 @@ export const getAllTransfer = catchAsync(async (filter) => {
   if (filter.from) {
     filter.from = filter.from.split("_")[1];
   }
-  if (filter.from) {
+  if (filter.to) {
     filter.to = filter.to.split("_")[1];
   }
+
+  // console.log(filter, "gggggggggggggggggggggggg");
   const count = await Transfer.countDocuments();
   const features = new APIFeatures(Transfer.find(), filter)
     .filter()

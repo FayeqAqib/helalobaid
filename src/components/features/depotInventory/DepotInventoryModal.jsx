@@ -45,10 +45,13 @@ const schema = z.object({
   unitAmount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
     .min(1, "مقدار پول الزامی است"),
-  aveUnitAmount: z
-    .number({ invalid_type_error: "مقدار اوسط الزامی می باشد" })
-    .min(0, "مقدار پول الزامی است"),
-  transportCost: z.number().min(0, "مقدار پول الزامی است").default(0),
+  saleAmount: z
+    .number({ required_error: "قیمت فروش الزامی است." })
+    .min(0, "قیمت فروش باید بزرکتر از 0 باشد"),
+  // aveUnitAmount: z
+  //   .number({ invalid_type_error: "مقدار اوسط الزامی می باشد" })
+  //   .min(0, "مقدار پول الزامی است"),
+  // transportCost: z.number().min(0, "مقدار پول الزامی است").default(0),
   depot: z.string({ required_error: "محل دپو الزامی می‌باشد" }),
   expirationDate: z.date().optional(),
   image: z
@@ -89,6 +92,7 @@ export function DepotInventoryModal({
   function submiteForm(newData) {
     const myNewData = {
       ...newData,
+      aveUnitAmount: newData.unitAmount,
       product: newData.product.split("_")[1],
       unit: newData.unit.split("_")[1],
       depot: newData.depot.split("_")[1],
@@ -114,7 +118,7 @@ export function DepotInventoryModal({
       }
 
       if (type === "update") {
-        const result = await updateDepotItemsAction({
+        const result = await updateDepotItemsAction(data, {
           ...myNewData,
           _id: data._id,
         });
@@ -133,14 +137,7 @@ export function DepotInventoryModal({
       }
     });
   }
-  const count = form.watch("count") || 0;
-  const unitAmount = form.watch("unitAmount") || 0;
-  const transportCost = form.watch("transportCost") || 0;
 
-  useEffect(() => {
-    const ave = transportCost / count + unitAmount;
-    form.setValue("aveUnitAmount", ave, { shouldValidate: true });
-  }, [count, unitAmount, transportCost]);
   return (
     <Dialog open={open} onOpenChange={onOpen}>
       {children}
@@ -272,13 +269,12 @@ export function DepotInventoryModal({
                 />
                 <FormField
                   control={form.control}
-                  name="aveUnitAmount"
+                  name="saleAmount"
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
-                      <FormLabel>اوسط قیمت </FormLabel>
+                      <FormLabel> قیمت فروش </FormLabel>
                       <Input
                         type={"number"}
-                        disabled
                         value={field.value}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -291,25 +287,6 @@ export function DepotInventoryModal({
                 />
               </div>
               <div className=" flex flex-row gap-4">
-                <FormField
-                  control={form.control}
-                  name="transportCost"
-                  render={({ field }) => (
-                    <FormItem className={"flex-1"}>
-                      <FormLabel> مصرف انتقال</FormLabel>
-                      <Input
-                        type={"number"}
-                        className={"w-full"}
-                        value={field.value}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.onChange(value === "" ? "" : Number(value));
-                        }}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <FormField
                   control={form.control}
                   name="depot"
