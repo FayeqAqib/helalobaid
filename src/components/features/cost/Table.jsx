@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -20,7 +20,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -40,7 +39,6 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
 import { CostModal } from "./CostModal";
-import { DatePickerWithPresets } from "@/components/myUI/datePacker";
 import { usePathname, useRouter } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";
 import { DialogTrigger } from "@radix-ui/react-dialog";
@@ -122,13 +120,31 @@ export const columns = [
     },
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
-
-      // Format the amount as a dollar amount
+      const currency = row.getValue("currency");
 
       return (
-        <div className="text-right font-medium">{formatCurrency(amount)}</div>
+        <div className="text-right font-medium">
+          {formatCurrency(amount / currency?.rate, currency?.code)}
+        </div>
       );
     },
+  },
+  {
+    accessorKey: "currency",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          واحد پولی
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("currency")?.name}</div>
+    ),
   },
   {
     accessorKey: "details",

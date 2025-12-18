@@ -39,6 +39,7 @@ const schemaA = z.object({
     .default(() => new Date()),
   income: z.string({ required_error: "دریافت کننده الزامی میباشد" }),
   buyer: z.string({ required_error: "نام خریدار الزامی می‌باشد" }),
+  currency: z.string({ required_error: " الزامی میباشد" }),
   totalAmount: z
     .number({ invalid_type_error: "مجموع پول الزامی می باشد" })
     .min(1, { required_error: "مجموع پول الزامی می باشد" }),
@@ -110,8 +111,20 @@ export function SaleModal({
         ? {
             ...data,
             date: new Date(data.date),
+            currency:
+              data.currency?.name +
+              "_" +
+              data?.currency?._id +
+              "," +
+              data.currency?.rate,
             buyer: data.buyer?.name + "_" + data.buyer?._id,
             income: data.income.name + "_" + data.income._id,
+            totalAmount: data.totalAmount / data.currency?.rate,
+            cashAmount: data.cashAmount / data.currency?.rate,
+            lendAmount: data.lendAmount / data.currency?.rate,
+            totalProfit: data.totalProfit / data.currency?.rate,
+            totalAmountBeforDiscount:
+              data.totalAmountBeforDiscount / data.currency?.rate,
           }
         : {},
   });
@@ -137,6 +150,7 @@ export function SaleModal({
     const myNewData = {
       ...newData,
       buyer: newData.buyer.split("_")[1],
+      currency: newData.currency.split("_")[1].split(",")[0],
       income: newData.income.split("_")[1],
       image: newData.image?.[0],
       items: newSaleList,
@@ -194,6 +208,7 @@ export function SaleModal({
   const count = formB.watch("count") || 0;
   const aveUnitAmount = formB.watch("aveUnitAmount") || 0;
   const cashAmount = formA.watch("cashAmount") || 0;
+  const rate = formA.watch("currency")?.split(",")?.[1] || 1;
   const discount = formB.watch("discount") || 0;
 
   async function getProduct() {
@@ -202,11 +217,18 @@ export function SaleModal({
     const aveUnitAmount = _ids[1].split("-")[1];
     const saleAmount = product.split(",")?.[3]?.split("#")[0];
     formB.setValue("unit", unit, { shouldValidate: true });
-    formB.setValue("aveUnitAmount", Math.round(aveUnitAmount * 10) / 10, {
-      shouldValidate: true,
-    });
+    formB.setValue(
+      "aveUnitAmount",
+      Math.round((aveUnitAmount / Number(rate)) * 10) / 10,
+      {
+        shouldValidate: true,
+      }
+    );
 
-    formB.setValue("saleAmount", Math.round(saleAmount * 10) / 10);
+    formB.setValue(
+      "saleAmount",
+      Math.round((saleAmount / Number(rate)) * 10) / 10
+    );
   }
 
   const { total, totalBeforDiscount, totalProfit } = useMemo(() => {
@@ -233,16 +255,20 @@ export function SaleModal({
     );
 
     return { total, totalBeforDiscount, totalProfit };
-  }, [saleList]);
+  }, [saleList, rate]);
 
   useEffect(() => {
-    formA.setValue("totalAmountBeforDiscount", totalBeforDiscount, {
+    formA.setValue(
+      "totalAmountBeforDiscount",
+      totalBeforDiscount / Number(rate),
+      {
+        shouldValidate: true,
+      }
+    );
+    formA.setValue("totalAmount", total / Number(rate), {
       shouldValidate: true,
     });
-    formA.setValue("totalAmount", total, {
-      shouldValidate: true,
-    });
-    formA.setValue("totalProfit", totalProfit, {
+    formA.setValue("totalProfit", totalProfit / Number(rate), {
       shouldValidate: true,
     });
 
@@ -256,7 +282,7 @@ export function SaleModal({
       formB.setValue("profit", myProfit, { shouldValidate: true });
     }
 
-    const lend = total - cashAmount;
+    const lend = total / Number(rate) - cashAmount;
     formA.setValue("lendAmount", lend, { shouldValidate: true });
   }, [
     total,
@@ -266,6 +292,7 @@ export function SaleModal({
     product,
     discount,
     count,
+    rate,
     saleList.length,
   ]);
 
@@ -280,7 +307,7 @@ export function SaleModal({
         formB.clearErrors("count");
       }
     }
-  }, [product]);
+  }, [rate, product]);
 
   useEffect(() => {
     if (type !== "create") {
@@ -316,17 +343,23 @@ export function SaleModal({
       ?.split("(")[0];
 
     const pro = data.product.split("_")[1].split("-");
+
     const myData = {
       ...data,
       amountBeforDiscount:
-        data.saleAmount * data.count -
-        (data.saleAmount * data.count * data?.discount) / 100,
+        (data.saleAmount * data.count -
+          (data.saleAmount * data.count * data?.discount) / 100) *
+        Number(rate),
       product: {
         name,
         brand,
         companyName,
         _id: pro[0],
       },
+      aveUnitAmount: data.aveUnitAmount * Number(rate),
+      saleAmount: data.saleAmount * Number(rate),
+
+      profit: data.profit * Number(rate),
       depot: { name: pro[2].split(",")[1], _id: pro[2].split(",")[0] },
       unit: { name: pro[3].split(",")[1], _id: pro[3].split(",")[0] },
       id: product.split("#")[1],
@@ -506,7 +539,11 @@ export function SaleModal({
             </div>
           </form>
         </Form>
-        <ModalTable data={saleList} onDelete={handleDeleteItem} />
+        <ModalTable
+          data={saleList}
+          onDelete={handleDeleteItem}
+          currencyRate={rate}
+        />
         <Form key={open.toString()} {...formA}>
           <form
             onSubmit={formA.handleSubmit(submiteForm)}
@@ -514,6 +551,23 @@ export function SaleModal({
           >
             <div className="flex flex-col gap-3">
               <div className="flex flex-row gap-4">
+                <FormField
+                  control={formA.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>واحد پول</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        dataType="currency"
+                        currency2={true}
+                        label=" واحد پولی را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={formA.control}
                   name="totalAmountBeforDiscount"
@@ -551,7 +605,9 @@ export function SaleModal({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                />{" "}
+              </div>
+              <div className="flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="totalProfit"
@@ -571,8 +627,6 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="cashAmount"
@@ -591,7 +645,6 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={formA.control}
                   name="lendAmount"
@@ -611,7 +664,6 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={formA.control}
                   name="date"
@@ -628,7 +680,7 @@ export function SaleModal({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                />{" "}
               </div>
               <div className=" flex flex-row gap-4">
                 <FormField
@@ -647,7 +699,6 @@ export function SaleModal({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={formA.control}
                   name="income"
@@ -663,7 +714,7 @@ export function SaleModal({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                />{" "}
                 <FormField
                   control={formA.control}
                   name="image"
@@ -680,23 +731,23 @@ export function SaleModal({
                   )}
                 />
               </div>
-              <div className=" flex flex-row gap-4">
-                <FormField
-                  control={formA.control}
-                  name="details"
-                  render={({ field }) => (
-                    <FormItem className={"flex-1"}>
-                      <FormLabel> تفصیلات</FormLabel>
-                      <Textarea
-                        className={"w-auto max-h-[60px]"}
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+            </div>
+            <div className=" flex flex-row gap-4">
+              <FormField
+                control={formA.control}
+                name="details"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel> تفصیلات</FormLabel>
+                    <Textarea
+                      className={"w-auto max-h-[60px]"}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <div className="flex justify-end gap-2.5">
               <DialogClose asChild>

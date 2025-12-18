@@ -22,8 +22,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState, useTransition } from "react";
-import CreateBuyAction, { updateBuyAction } from "@/actions/buyAction";
+import { useState, useTransition } from "react";
+
 import { toast } from "sonner";
 import { Loader2Icon } from "lucide-react";
 import { SwitchDemo } from "@/components/myUI/Switch";
@@ -44,14 +44,11 @@ const schema = z.object({
   unit: z.string({ required_error: "مشخص بودن واحد جنس الزامی می‌باشد" }),
   unitAmount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
-    .min(1, "مقدار پول الزامی است"),
+    .min(0, "مقدار پول الزامی است"),
   saleAmount: z
     .number({ required_error: "قیمت فروش الزامی است." })
     .min(0, "قیمت فروش باید بزرکتر از 0 باشد"),
-  // aveUnitAmount: z
-  //   .number({ invalid_type_error: "مقدار اوسط الزامی می باشد" })
-  //   .min(0, "مقدار پول الزامی است"),
-  // transportCost: z.number().min(0, "مقدار پول الزامی است").default(0),
+  currency: z.string({ required_error: " الزامی میباشد" }),
   depot: z.string({ required_error: "محل دپو الزامی می‌باشد" }),
   expirationDate: z.date().optional(),
   image: z
@@ -83,15 +80,19 @@ export function DepotInventoryModal({
         ? {
             ...data,
             date: new Date(data.date),
+            currency: data.currency?.name + "_" + data?.currency?._id,
             product: data.product.name + "_" + data.product._id,
             unit: data.unit.name + "_" + data.unit._id,
             depot: data.depot.name + "_" + data.depot._id,
+            unitAmount: data.unitAmount / data.currency?.rate,
+            saleAmount: data.saleAmount / data.currency?.rate,
           }
         : {},
   });
   function submiteForm(newData) {
     const myNewData = {
       ...newData,
+      currency: newData.currency.split("_")[1],
       aveUnitAmount: newData.unitAmount,
       product: newData.product.split("_")[1],
       unit: newData.unit.split("_")[1],
@@ -287,6 +288,23 @@ export function DepotInventoryModal({
                 />
               </div>
               <div className=" flex flex-row gap-4">
+                {" "}
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>واحد پول</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        dataType="currency"
+                        label=" واحد پولی را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="depot"

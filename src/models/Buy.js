@@ -59,12 +59,12 @@ const buySchema = new mongoose.Schema(
         unitAmount: {
           type: Number,
           required: true,
-          min: [1, "مقدار رسید باید 1 یا یک عدد مثبت باشد"],
+          min: [0, "مقدار رسید باید 1 یا یک عدد مثبت باشد"],
         },
         aveUnitAmount: {
           type: Number,
           required: true,
-          min: [1, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
+          min: [0, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
         },
         saleAmount: {
           type: Number,
@@ -84,7 +84,7 @@ const buySchema = new mongoose.Schema(
     totalAmount: {
       type: Number,
       required: true,
-      min: [1, "مقدار مجموع پول باید یک عدد مثبت باشد"],
+      min: [0, "مقدار مجموع پول باید یک عدد مثبت باشد"],
     },
     transportCost: {
       type: Number,
@@ -104,6 +104,12 @@ const buySchema = new mongoose.Schema(
       type: Number,
       required: false,
       min: [0, "مقدار باقی باید 0 یا یک عدد مثبت باشد"],
+    },
+    currency: {
+      _id: String,
+      name: String,
+      code: String,
+      rate: Number,
     },
 
     image: { type: String },

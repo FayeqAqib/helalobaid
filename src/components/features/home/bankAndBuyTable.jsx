@@ -32,104 +32,109 @@ import { useState } from "react";
 
 import { formatCurrency } from "@/lib/utils";
 
-export const columns = [
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          حساب کاربری
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const name = row.getValue("name");
-
-      // Format the buy as a dollar buy
-
-      return <div className="text-right font-medium">{name}</div>;
-    },
-  },
-  {
-    accessorKey: "receive",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          دریافت
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const borrow = parseFloat(row.getValue("receive"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {borrow ? formatCurrency(borrow) : 0}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "pay",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          پرداخت
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const pay = parseFloat(row.getValue("pay"));
-
-      return (
-        <div className="text-right font-medium">
-          {pay ? formatCurrency(pay) : 0}
-        </div>
-      );
-    },
-  },
-
-  {
-    accessorKey: "balance",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          بیلانس
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const balance = parseFloat(row.getValue("balance"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {balance ? formatCurrency(balance) : 0}
-        </div>
-      );
-    },
-  },
-];
-
-export function DataTableBankAndBuy({ data, count }) {
+export function DataTableBankAndBuy({ data, count, currency }) {
+  console.log(data, "fayeq");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
+
+  const columns = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            حساب کاربری
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const name = row.getValue("name");
+
+        // Format the buy as a dollar buy
+
+        return <div className="text-right font-medium">{name}</div>;
+      },
+    },
+    {
+      accessorKey: "receive",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            دریافت
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const borrow = parseFloat(row.getValue("receive"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {borrow
+              ? formatCurrency(borrow / currency?.rate, currency.code)
+              : 0}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "pay",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            پرداخت
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const pay = parseFloat(row.getValue("pay"));
+
+        return (
+          <div className="text-right font-medium">
+            {pay ? formatCurrency(pay / currency?.rate, currency.code) : 0}
+          </div>
+        );
+      },
+    },
+
+    {
+      accessorKey: "balance",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            بیلانس
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const balance = parseFloat(row.getValue("balance"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {balance
+              ? formatCurrency(balance / currency?.rate, currency.code)
+              : 0}
+          </div>
+        );
+      },
+    },
+  ];
 
   const table = useReactTable({
     data,

@@ -7,14 +7,15 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-export const formatCurrency = (value) => {
+export const formatCurrency = (value, code = "AFN") => {
   const formatted = new Intl.NumberFormat("en-AF", {
-    style: "currency",
-    currency: "AFG",
+    style: "decimal",
+    minimumFractionDigits: 2,
   }).format(value);
 
-  return formatted;
+  return `${formatted} ${code}`; // اضافه کردن نماد دلخواه
 };
+
 export const formatNumber = (value) => {
   const formatted = new Intl.NumberFormat("en-US", {
     style: "decimal",

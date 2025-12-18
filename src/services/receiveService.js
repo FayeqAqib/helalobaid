@@ -3,6 +3,7 @@ import { catchAsync } from "@/lib/catchAsync";
 import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
+import { Currency } from "@/models/Currency";
 import { Receive } from "@/models/receive";
 
 export const createReceive = catchAsync(async (data) => {
@@ -11,10 +12,13 @@ export const createReceive = catchAsync(async (data) => {
     lend: 1,
     balance: 1,
   });
+  const currency = await Currency.findById(newData.currency);
 
+  newData.amount = newData.amount * currency.rate;
+  newData.currency = currency;
   if (buyer.lend < newData.amount) {
     return {
-      message: `پول درج شده بیشر از مقدار پول مورد نظر میباشد، لطفا نموده در درج مقدار پول توجه بیشتر به خرچ دهید. طلب  شما از  مشتری   ${buyer.lent} می باشد`,
+      message: `پول درج شده بیشر از مقدار پول مورد نظر میباشد، لطفا نموده در درج مقدار پول توجه بیشتر به خرچ دهید. طلب  شما از  مشتری   ${buyer.lend} می باشد`,
     };
   }
   const { path, err } = await uploadImage(data.image);
@@ -99,6 +103,11 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
     balance: 1,
     _id: 0,
   });
+
+  const currency = await Currency.findById(myNewData.currency);
+
+  myNewData.amount = myNewData.amount * currency.rate;
+  myNewData.currency = currency;
 
   if (newBuyer.lend < myNewData.amount - currentData.amount)
     return {

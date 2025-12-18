@@ -35,6 +35,7 @@ const schema = z.object({
     .date({ required_error: "تاریخ الزامی میباشد" })
     .default(() => new Date()),
   income: z.string({ required_error: "پرداخت کننده الزامی میباشد" }),
+  currency: z.string({ required_error: " الزامی میباشد" }),
   type: z.string({ required_error: "اضافه کردن فروشنده الزامی می باشد" }),
   amount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
@@ -71,7 +72,9 @@ export function PayModal({
             ...data,
             date: new Date(data.date),
             type: data.type.name + "_" + data.type._id,
+            currency: data.currency?.name + "_" + data?.currency?._id,
             income: data.income.name + "_" + data.income._id,
+            amount: data.amount / data.currency.rate,
           }
         : {},
   });
@@ -80,6 +83,7 @@ export function PayModal({
     const myNewData = {
       ...newData,
       type: newData.type.split("_")[1],
+      currency: newData.currency.split("_")[1],
       income: newData.income.split("_")[1],
       image: newData.image?.[0],
     };
@@ -195,6 +199,22 @@ export function PayModal({
                         onChange={field.onChange}
                         type="company-bank"
                         label="پرداخت کننده را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>واحد پول</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        dataType="currency"
+                        label=" واحد پولی را انتخاب کنید.."
                       />
                       <FormMessage />
                     </FormItem>

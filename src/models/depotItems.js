@@ -41,7 +41,7 @@ const depotItemsSchema = new mongoose.Schema(
     aveUnitAmount: {
       type: Number,
       required: true,
-      min: [1, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
+      min: [0, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
     },
     saleAmount: {
       type: Number,
@@ -50,6 +50,12 @@ const depotItemsSchema = new mongoose.Schema(
     expirationDate: {
       type: Date,
       required: false,
+    },
+    currency: {
+      _id: String,
+      name: String,
+      code: String,
+      rate: Number,
     },
     depot: {
       type: mongoose.Schema.Types.ObjectId,

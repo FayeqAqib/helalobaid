@@ -10,11 +10,8 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
 import { Trash } from "lucide-react";
-import monent from "moment-jalaali";
 
-export function ModalTable({ data, onDelete }) {
-  const x = "";
-  x.length;
+export function ModalTable({ data, onDelete, currencyRate }) {
   return (
     <div className={"max-h-[170px] w-full overflow-y-auto"}>
       <Table>
@@ -52,14 +49,28 @@ export function ModalTable({ data, onDelete }) {
               <TableCell>{item.count}</TableCell>
               <TableCell>{item.unit.name}</TableCell>
               <TableCell>{item.depot.name}</TableCell>
-              <TableCell>{formatCurrency(item.aveUnitAmount)}</TableCell>
-              <TableCell>{formatCurrency(item.saleAmount)}</TableCell>
-              <TableCell>{item.discount}%</TableCell>
-              <TableCell>{formatCurrency(item.profit)}</TableCell>
               <TableCell>
-                {formatCurrency(item.saleAmount * item.count)}
+                {formatCurrency(item.aveUnitAmount / Number(currencyRate), "")}
               </TableCell>
-              <TableCell>{formatCurrency(item.amountBeforDiscount)}</TableCell>
+              <TableCell>
+                {formatCurrency(item.saleAmount / Number(currencyRate), "")}
+              </TableCell>
+              <TableCell>{item.discount}%</TableCell>
+              <TableCell>
+                {formatCurrency(item.profit / Number(currencyRate), "")}
+              </TableCell>
+              <TableCell>
+                {formatCurrency(
+                  (item.saleAmount * item.count) / Number(currencyRate),
+                  ""
+                )}
+              </TableCell>
+              <TableCell>
+                {formatCurrency(
+                  item.amountBeforDiscount / Number(currencyRate),
+                  ""
+                )}
+              </TableCell>
               <TableCell>
                 <Button onClick={() => onDelete(item.uId)} variant="ghost">
                   <Trash className="text-red-400" />

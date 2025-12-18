@@ -36,6 +36,7 @@ const schema = z.object({
     required_error: " ذکر عنوان عاید الزامی است",
   }),
   income: z.string({ required_error: "دریافت کننده الزامی میباشد" }),
+  currency: z.string({ required_error: " الزامی میباشد" }),
   amount: z
     .number({ invalid_type_error: "ذکر مقدار پول الزامی می باشد" })
     .min(1, " مقدار پول نمیتواند کمتر از 1 باشد"),
@@ -68,11 +69,13 @@ export function ExternalProceedModal({
         ? {
             ...data,
             date: new Date(data.date),
+            currency: data.currency?.name + "_" + data?.currency?._id,
             income: data.income.name + "_" + data.income._id,
             externalProceedTitle:
               data.externalProceedTitle.name +
               "_" +
               data.externalProceedTitle._id,
+            amount: data.amount / data.currency?.rate,
           }
         : {},
   });
@@ -81,6 +84,7 @@ export function ExternalProceedModal({
       ...newData,
       image: newData.image?.[0],
       income: newData.income.split("_")[1],
+      currency: newData.currency.split("_")[1],
       externalProceedTitle: newData.externalProceedTitle.split("_")[1],
     };
     startTransition(async () => {
@@ -191,6 +195,22 @@ export function ExternalProceedModal({
                       onChange={field.onChange}
                       type="company-bank"
                       label="دریافت کننده را انتخاب کنید.."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>واحد پول</FormLabel>
+                    <AutoCompleteV2
+                      value={field.value}
+                      onChange={field.onChange}
+                      dataType="currency"
+                      label=" واحد پولی را انتخاب کنید.."
                     />
                     <FormMessage />
                   </FormItem>

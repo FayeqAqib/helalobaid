@@ -3,6 +3,7 @@ import { catchAsync } from "@/lib/catchAsync";
 import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
+import { Currency } from "@/models/Currency";
 import { Transfer } from "@/models/transfer";
 
 ///////////////////////////////////////////CREATE TRANSFER ////////////////////////////////////////////////////
@@ -16,6 +17,10 @@ export const createTransfer = catchAsync(async (data) => {
     balance: 1,
     name: 1,
   });
+
+  const currency = await Currency.findById(data.currency);
+  newData.amount = currency.rate * newData.amount;
+  newData.currency = currency;
 
   if (from.balance < newData.amount)
     return {

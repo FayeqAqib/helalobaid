@@ -49,7 +49,12 @@ import { useTheme } from "next-themes";
 import moment from "moment-jalaali";
 import { useEffect, useState } from "react";
 
-export function RangeDatePickerWithPresets({ date, onDate, size = "md" }) {
+export function RangeDatePickerWithPresets({
+  date,
+  onDate,
+  size = "md",
+  className,
+}) {
   const { theme: initialTheme } = useTheme();
   const [theme, setTheme] = useState(initialTheme);
   const [open, setOpen] = useState(false);
@@ -66,7 +71,8 @@ export function RangeDatePickerWithPresets({ date, onDate, size = "md" }) {
           className={cn(
             size == "sm" ? "max-w-[220px]" : "w-[270px]",
             "justify-start text-left font-normal text-xs",
-            !date && "text-muted-foreground"
+            !date && "text-muted-foreground",
+            className
           )}
         >
           <CalendarIcon className="mr-2 h-5 w-4" />

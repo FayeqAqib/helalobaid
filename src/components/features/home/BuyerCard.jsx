@@ -9,7 +9,7 @@ import { formatCurrency } from "@/lib/utils";
 import { getBiggestSeller } from "@/services/saleService";
 import React, { use } from "react";
 
-export const BuyerCard = ({ date }) => {
+export const BuyerCard = ({ date, currency }) => {
   const result = use(getBiggestSeller(date));
 
   return (
@@ -62,7 +62,7 @@ export const BuyerCard = ({ date }) => {
               مجموع خرید
             </CardDescription>
             <CardTitle className={"text-xs font-bold"}>
-              {formatCurrency(item?.totalAmount)}
+              {formatCurrency(item?.totalAmount / currency.rate, currency.code)}
             </CardTitle>
           </div>
         ))}

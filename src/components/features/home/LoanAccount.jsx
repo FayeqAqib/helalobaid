@@ -9,7 +9,7 @@ import { formatCurrency } from "@/lib/utils";
 import { getTopThreeAccountsBylend } from "@/services/accountService";
 import { use } from "react";
 
-function LoanAccount({ company }) {
+function LoanAccount({ company, currency }) {
   const bigestLend = use(getTopThreeAccountsBylend());
 
   return (
@@ -41,7 +41,10 @@ function LoanAccount({ company }) {
             </CardTitle>
             <CardDescription className={"text-center text-md font-bold"}>
               {" "}
-              {formatCurrency(company?.borrow)}{" "}
+              {formatCurrency(
+                company?.borrow / currency.rate,
+                currency.code
+              )}{" "}
             </CardDescription>
           </div>
           <div className="flex flex-row items-center justify-around bg-[var(--background)] rounded-2xl shadow-2xl shadow-[#9c9c9c] dark:shadow-black p-4 w-full">
@@ -55,7 +58,10 @@ function LoanAccount({ company }) {
             </CardTitle>
             <CardDescription className={"text-center text-md font-bold"}>
               {" "}
-              {formatCurrency(company?.lend)}{" "}
+              {formatCurrency(
+                company?.lend / currency.rate,
+                currency.code
+              )}{" "}
             </CardDescription>
           </div>
         </CardContent>
@@ -90,8 +96,7 @@ function LoanAccount({ company }) {
                 {item.name}
               </CardTitle>
               <CardDescription className={"text-center text-md font-bold"}>
-                {" "}
-                {formatCurrency(item.lend)}{" "}
+                {formatCurrency(item.lend / currency.rate, currency.code)}
               </CardDescription>
             </div>
           ))}

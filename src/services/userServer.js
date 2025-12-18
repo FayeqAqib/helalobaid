@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 export const createUser = catchAsync(async (data) => {
   const { username, password, owner, role } = data;
 
-  const user = await User.find();
+  // const user = await User.find();
 
   if (!username || !password) {
     return { message: "نام یا رمز عبور وجود ندارد" };

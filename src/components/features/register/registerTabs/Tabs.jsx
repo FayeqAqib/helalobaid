@@ -10,6 +10,8 @@ import { DataTableCostTital } from "../costTital/Table";
 import { DataTableProceedTital } from "../proceedTital/Table";
 import { getAllCostTital } from "@/services/costTitalService";
 import { getAllProceedTital } from "@/services/proceedTitalService";
+import { DataTableCurrency } from "../currency/Table";
+import { findCurrency } from "@/services/currencyServices";
 
 async function AccountTabs({ filter }) {
   const account = await getAllAccount(filter, {
@@ -27,6 +29,12 @@ async function AccountTabs({ filter }) {
   const proceedTital = await getAllProceedTital(filter, {
     next: { tags: ["proceedTital"] },
   });
+  const currency = await findCurrency(
+    {},
+    {
+      next: { tags: ["currency"] },
+    }
+  );
 
   return (
     <Tabs defaultValue="account" className="w-full " dir="rtl">
@@ -36,6 +44,7 @@ async function AccountTabs({ filter }) {
         <TabsTrigger value="unit">واحدات </TabsTrigger>
         <TabsTrigger value="costTital"> کتگوری مصارف</TabsTrigger>
         <TabsTrigger value="proceedTital">کتگوری عواید </TabsTrigger>
+        <TabsTrigger value="currency">واحد پولی</TabsTrigger>
       </TabsList>
       <TabsContent value="account">
         <Card className={"p-5 shadow-xl gap-0"}>
@@ -93,6 +102,15 @@ async function AccountTabs({ filter }) {
             data={proceedTital.result?.result || []}
             count={proceedTital.result?.count}
           />
+        </Card>
+      </TabsContent>
+      <TabsContent value="currency">
+        {" "}
+        <Card className={"p-5 shadow-xl gap-0"}>
+          <CardHeader className={"text-right "}>
+            <h2 className={"text-2xl font-bold"}>واحد های پولی</h2>
+          </CardHeader>
+          <DataTableCurrency data={currency.result || []} />
         </Card>
       </TabsContent>
     </Tabs>

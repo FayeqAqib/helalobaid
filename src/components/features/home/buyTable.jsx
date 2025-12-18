@@ -125,6 +125,7 @@ export const columns = [
 ];
 
 export function DataTableTransferBuy({ data, count }) {
+  console.log(data, "data");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});

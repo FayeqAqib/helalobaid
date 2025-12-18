@@ -20,10 +20,17 @@ const costSchema = new mongoose.Schema({
     ref: "CostTital",
     required: true,
   },
+
   amount: {
     type: Number,
     required: true,
-    min: [1, "مقدار باید بزرگ تر از 0 باشد"],
+    min: [0, "مقدار باید بزرگ تر از 0 باشد"],
+  },
+  currency: {
+    _id: String,
+    name: String,
+    code: String,
+    rate: Number,
   },
   image: String,
   details: {

@@ -2,14 +2,25 @@ import { DataTableAbridgedReportage } from "@/components/features/abridgedReport
 import { DataTableExecuttiveReportage } from "@/components/features/executtiveReportage/Table";
 import { Card, CardHeader } from "@/components/ui/card";
 import { getAllAccount } from "@/services/accountService";
+import { findCurrency } from "@/services/currencyServices";
 
 import React from "react";
 
 export default async function Page({ searchParams }) {
   const filter = await searchParams;
 
-  const data = await getAllAccount(filter);
+  const crre = filter?.currency?.split("_")[1];
 
+  const data = await getAllAccount({ name: filter.name });
+  const currency = await findCurrency(
+    crre
+      ? {
+          _id: crre,
+        }
+      : {}
+  );
+
+  console.log(currency);
   return (
     <Card className={"p-5 shadow-xl size-full gap-0"}>
       <CardHeader className={"text-right "}>
@@ -19,6 +30,7 @@ export default async function Page({ searchParams }) {
       <DataTableAbridgedReportage
         data={data.result?.result || []}
         count={data.result?.count}
+        currencies={currency?.result?.[0]}
       />
     </Card>
   );

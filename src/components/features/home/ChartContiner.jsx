@@ -6,22 +6,14 @@ import { getCostInThisMonth } from "@/services/costService";
 import { Card } from "@/components/ui/card";
 import { DataTableBankAndBuy } from "./bankAndBuyTable";
 import { DataTableTransferBuy } from "./buyTable";
-import {
-  getAllTransferBank,
-  getAllTransferMoneySeller,
-} from "@/services/ledgarServer";
 import jalaliMoment from "moment-jalaali";
 
-function ChartContiner({ data = [], totalProfit, date }) {
-  const banks = use(getAllTransferBank(date));
-
-  const buy = use(getAllTransferMoneySeller(date));
+function ChartContiner({ data = [], totalProfit, currency, buy, bank, date }) {
   const allCost = use(getCostInThisMonth(date));
 
-  const totalCost = allCost.result?.reduce(
-    (acc, cur) => acc + cur.totalAmount,
-    0
-  );
+  const totalCost =
+    allCost.result?.reduce((acc, cur) => acc + cur.totalAmount, 0) /
+    currency.rate;
 
   const firstDayOfLastMonth = jalaliMoment()
     .subtract(1, "jMonth") // یک ماه کم می‌کنیم
@@ -61,12 +53,14 @@ function ChartContiner({ data = [], totalProfit, date }) {
           <ShowCard
             tital={"مفاد سرمایه"}
             cent={UsanceCent}
-            amount={totalProfit}
+            amount={totalProfit / currency.rate}
+            code={currency.code}
             chart="../candlestick-chart.png"
           />
           <ShowCard
             tital={"مفاد خالص سرمایه"}
-            amount={currentROI}
+            amount={currentROI / currency.rate}
+            code={currency.code}
             chart="../candlestick-chart.png"
           />
         </div>
@@ -75,10 +69,10 @@ function ChartContiner({ data = [], totalProfit, date }) {
         <ChartAreaGradient data={data} />
         <div className="flex flex-col gap-5 w-full md:flex-row">
           <Card className={"p-0 m-0 w-full"}>
-            <DataTableBankAndBuy data={banks || []} />
+            <DataTableBankAndBuy data={bank || []} currency={currency} />
           </Card>
           <Card className={"p-0 m-0 w-full"}>
-            <DataTableTransferBuy data={buy || []} />
+            <DataTableTransferBuy data={buy || []} currency={currency} />
           </Card>
         </div>
       </div>

@@ -10,117 +10,345 @@ import { Sale } from "@/models/Sale";
 import { Transfer } from "@/models/transfer";
 import moment from "moment-jalaali";
 import momentT from "moment-timezone";
+import mongoose from "mongoose";
 
-async function getAPIFeatures(query, queryString, pupulateField) {
-  const count = await query.countDocuments();
-  const features = new APIFeatures(query.find(), queryString)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const result = await features.query.populate(pupulateField, "name");
+// async function getAPIFeatures(query, queryString, pupulateField) {
+//   const count = await query.countDocuments();
+//   const features = new APIFeatures(query.find(), queryString)
+//     .filter()
+//     .sort()
+//     .limitFields()
+//     .paginate();
+//   const result = await features.query.populate(pupulateField, "name");
 
-  return [result, count];
-}
+//   return [result, count];
+// }
 
 export const getaccountAlltransactions = catchAsync(async (filter) => {
-  const myFilter = {
-    page: filter?.page || 0,
-    limit: filter?.limit || 0,
-    date: filter?.date || undefined,
-  };
+  const myFilter = {};
+
+  const page = parseInt(filter?.page) || 0;
+  const limit = parseInt(filter?.limit) || 10;
+  const skip = page * limit;
+
+  if (filter.date) {
+    const dates = filter.date.split(",");
+
+    const start = momentT(dates[0]).format("jYYYY/jMM/jDD");
+    const end = momentT(dates[1] || dates[0]).format("jYYYY/jMM/jDD");
+
+    const startDate = momentT
+      .tz(start, "jYYYY/jMM/jDD", "Asia/Kabul")
+      .startOf("day")
+      .toDate();
+
+    const endDate = momentT
+      .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
+      .endOf("day")
+      .toDate();
+
+    myFilter.date = {
+      $gte: startDate,
+      $lte: endDate,
+    };
+  }
 
   const name = filter?.name?.split("_")?.[1] || null;
 
   let account;
   if (name) {
-    account = await Account.findById(filter?.name?.split("_")?.[1] || "");
+    account = await Account.findById(name);
   } else {
     account = null;
   }
 
-  if (account?.accountType === "buyer") {
-    myFilter.buyer = filter?.name?.split("_")?.[1] || "";
+  const create_id = (id) => mongoose.Types.ObjectId.createFromHexString(id);
+
+  if (filter.currency) {
+    myFilter["currency._id"] = filter.currency.split("_")[1];
   }
 
-  if (account?.accountType === "saller") {
-    myFilter.saller = filter?.name?.split("_")?.[1] || "";
-  }
-  const { buyer, saller, ...newFilter } = myFilter;
-  if (account?.accountType === "saller" || account?.accountType === "buyr") {
-    newFilter.type = filter?.name?.split("_")?.[1];
-  }
-  if (account?.accountType === "bank" || account?.accountType === "company") {
-    newFilter.income = filter?.name?.split("_")?.[1];
-    myFilter.income = filter?.name?.split("_")?.[1] || "";
-  }
+  console.log(myFilter, filter);
+  const transactions = await Sale.aggregate([
+    { $match: { ...(name ? { buyer: create_id(name) } : {}), ...myFilter } }, // فیلتر اولیه برای Sale
+    {
+      $lookup: {
+        from: "accounts",
+        localField: "buyer",
+        foreignField: "_id",
+        as: "buyerInfo",
+      },
+    },
+    { $unionWith: "$buyerInfo" },
+    {
+      $project: {
+        saleCashAmount: "$cashAmount",
+        lendAmount: 1,
+        date: 1,
+        name: "$buyerInfo.name",
+        currency: 1,
+      },
+    },
+    {
+      $unionWith: {
+        coll: "buys",
+        pipeline: [
+          {
+            $match: {
+              ...(name ? { saller: create_id(name) } : {}),
+              ...myFilter,
+            },
+          },
+          {
+            $lookup: {
+              from: "accounts",
+              localField: "saller",
+              foreignField: "_id",
+              as: "sallerInfo",
+            },
+          },
+          { $unionWith: "$salerInfo" },
+          {
+            $project: {
+              buyCashAmount: "$cashAmount",
+              borrowAmount: 1,
+              date: 1,
+              name: "$sallerInfo.name",
+              currency: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unionWith: {
+        coll: "receives",
+        pipeline: [
+          {
+            $match: { ...(name ? { type: create_id(name) } : {}), ...myFilter },
+          },
+          {
+            $lookup: {
+              from: "accounts",
+              localField: "type",
+              foreignField: "_id",
+              as: "receiveType",
+            },
+          },
+          { $unionWith: "$receiveType" },
+          {
+            $project: {
+              receiveAmount: "$amount",
+              date: 1,
+              name: "$receiveType.name",
+              currency: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unionWith: {
+        coll: "pays",
+        pipeline: [
+          {
+            $match: { ...(name ? { type: create_id(name) } : {}), ...myFilter },
+          },
+          {
+            $lookup: {
+              from: "accounts",
+              localField: "type",
+              foreignField: "_id",
+              as: "payType",
+            },
+          },
+          {
+            $unionWith: "$payType",
+          },
+          {
+            $project: {
+              payAmount: "$amount",
+              date: 1,
+              name: "$payType.name",
+              currency: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unionWith: {
+        coll: "transfers",
+        pipeline: [
+          {
+            $match: { ...(name ? { from: create_id(name) } : {}), ...myFilter },
+          },
+          {
+            $lookup: {
+              from: "accounts",
+              localField: "from",
+              foreignField: "_id",
+              as: "fromInfo",
+            },
+          },
+          {
+            $unionWith: "$fromInfo",
+          },
+          {
+            $project: {
+              payAmount: "$amount",
+              date: 1,
+              name: "$fromInfo.name",
+              currency: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unionWith: {
+        coll: "transfers",
+        pipeline: [
+          { $match: { ...(name ? { to: create_id(name) } : {}), ...myFilter } },
+          {
+            $lookup: {
+              from: "accounts",
+              localField: "to",
+              foreignField: "_id",
+              as: "toInfo",
+            },
+          },
+          { $unionWith: "$toInfo" },
+          {
+            $project: {
+              receiveAmount: "$amount",
+              date: 1,
+              name: "$toInfo.name",
+              currency: 1,
+            },
+          },
+        ],
+      },
+    },
 
-  const [sales, salesCount] = await getAPIFeatures(Sale, myFilter, "buyer");
-  const [buys, buysCount] = await getAPIFeatures(Buy, myFilter, "saller");
-  const [receives, receivesCount] = await getAPIFeatures(
-    Receive,
-    newFilter,
-    "type"
-  );
-  const [pays, paysCount] = await getAPIFeatures(Pay, newFilter, "type");
+    {
+      $facet: {
+        data: [{ $sort: { date: -1 } }, { $skip: skip }, { $limit: limit }],
+        count: [{ $count: "total" }],
+      },
+    },
+  ]);
 
-  const result = [...sales, ...buys, ...receives, ...pays]
-    .map((transaction) => {
-      if (transaction.constructor.modelName === "Sale") {
-        return {
-          ...transaction.toObject(),
-          saleCashAmount: transaction.cashAmount,
-          name: transaction.buyer.name,
-        };
-      }
-      if (transaction.constructor.modelName === "Buy") {
-        return {
-          ...transaction.toObject(),
-          buyCashAmount: transaction.cashAmount,
-          name: transaction.saller.name,
-        };
-      }
-      if (transaction.constructor.modelName === "Receive") {
-        return {
-          ...transaction.toObject(),
-          receiveAmount: transaction.amount,
-          name: transaction.type.name,
-        };
-      }
-      if (transaction.constructor.modelName === "Pay") {
-        return {
-          ...transaction.toObject(),
-          payAmount: transaction.amount,
-          name: transaction.type.name,
-        };
-      }
-      return transaction;
-    })
-    .sort((a, b) => b.date - a.date);
-  const count = salesCount + buysCount + receivesCount + paysCount;
-
+  console.log(transactions);
   return {
-    result,
+    result: transactions[0].data,
     account,
-    count,
+    count: transactions[0].count[0]?.total || 0,
   };
 });
 
-export const getMetuLedger = catchAsync(async ({ date }) => {
-  const month = moment(date || new Date()).format("jYYYY/jM");
+// export const getMetuLedger = catchAsync(async ({ date }) => {
+//   const month = moment(date || new Date()).format("jYYYY/jM");
+//   const saleTransactions = await Sale.aggregate([
+//     {
+//       $match: {
+//         afgDate: `${month}`,
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: {
+//           $dateToString: { format: "%Y-%m-%d", date: "$date" },
+//         },
+//         saleMetuAmount: { $sum: "$metuAmount" },
+//         count: { $sum: 1 },
+//       },
+//     },
+//     {
+//       $sort: {
+//         _id: 1,
+//       },
+//     },
+//   ]);
+
+//   const buyTransactions = await Buy.aggregate([
+//     {
+//       $match: {
+//         afgDate: `${month}`,
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: {
+//           $dateToString: { format: "%Y-%m-%d", date: "$date" },
+//         },
+//         buyMetuAmount: { $sum: "$metuAmount" },
+//         count: { $sum: 1 },
+//       },
+//     },
+//     {
+//       $sort: {
+//         _id: 1,
+//       },
+//     },
+//   ]);
+//   const allTransactions = {};
+
+//   saleTransactions.forEach((sale) => {
+//     allTransactions[sale._id] = {
+//       date: sale._id,
+//       saleMetuAmount: sale.saleMetuAmount || 0,
+//       buyMetuAmount: 0,
+//     };
+//   });
+
+//   buyTransactions.forEach((buy) => {
+//     if (allTransactions[buy._id]) {
+//       allTransactions[buy._id].buyMetuAmount = buy.buyMetuAmount || 0;
+//     } else {
+//       allTransactions[buy._id] = {
+//         date: buy._id,
+//         saleMetuAmount: 0,
+//         buyMetuAmount: buy.buyMetuAmount || 0,
+//       };
+//     }
+//   });
+
+//   const allTransactionsArray = Object.values(allTransactions);
+
+//   return {
+//     allTransactionsArray,
+//   };
+// });
+
+export const getLedgar = catchAsync(async ({ date, currency }) => {
+  let filter = { afgDate: `${moment(date).format("jYYYY/jM")}` };
+
+  if (currency) {
+    filter["currency._id"] = currency;
+  }
+
   const saleTransactions = await Sale.aggregate([
     {
       $match: {
-        afgDate: `${month}`,
+        ...filter,
       },
     },
     {
       $group: {
         _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$date" },
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$date",
+            timezone: "Asia/Kabul",
+          },
         },
-        saleMetuAmount: { $sum: "$metuAmount" },
-        count: { $sum: 1 },
+        saleCashAmount: currency
+          ? { $sum: { $divide: ["$cashAmount", "$currency.rate"] } }
+          : { $sum: "$cashAmount" },
+        saleLendAmount: currency
+          ? { $sum: { $divide: ["$lendAmount", "$currency.rate"] } }
+          : { $sum: "$lendAmount" },
       },
     },
     {
@@ -133,91 +361,26 @@ export const getMetuLedger = catchAsync(async ({ date }) => {
   const buyTransactions = await Buy.aggregate([
     {
       $match: {
-        afgDate: `${month}`,
+        ...filter,
       },
     },
     {
       $group: {
         _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$date" },
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$date",
+            timezone: "Asia/Kabul",
+          },
         },
-        buyMetuAmount: { $sum: "$metuAmount" },
-        count: { $sum: 1 },
-      },
-    },
-    {
-      $sort: {
-        _id: 1,
-      },
-    },
-  ]);
-  const allTransactions = {};
-
-  saleTransactions.forEach((sale) => {
-    allTransactions[sale._id] = {
-      date: sale._id,
-      saleMetuAmount: sale.saleMetuAmount || 0,
-      buyMetuAmount: 0,
-    };
-  });
-
-  buyTransactions.forEach((buy) => {
-    if (allTransactions[buy._id]) {
-      allTransactions[buy._id].buyMetuAmount = buy.buyMetuAmount || 0;
-    } else {
-      allTransactions[buy._id] = {
-        date: buy._id,
-        saleMetuAmount: 0,
-        buyMetuAmount: buy.buyMetuAmount || 0,
-      };
-    }
-  });
-
-  const allTransactionsArray = Object.values(allTransactions);
-
-  return {
-    allTransactionsArray,
-  };
-});
-
-export const getLedgar = catchAsync(async ({ date }) => {
-  const month = moment(date).format("jYYYY/jM");
-
-  const saleTransactions = await Sale.aggregate([
-    {
-      $match: {
-        afgDate: `${month}`,
-      },
-    },
-    {
-      $group: {
-        _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$date" },
-        },
-        saleCashAmount: { $sum: "$cashAmount" },
-        saleLendAmount: { $sum: "$lendAmount" },
-      },
-    },
-    {
-      $sort: {
-        _id: 1,
-      },
-    },
-  ]);
-
-  const buyTransactions = await Buy.aggregate([
-    {
-      $match: {
-        afgDate: `${month}`,
-      },
-    },
-    {
-      $group: {
-        _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$date" },
-        },
-        buyCashAmount: { $sum: "$cashAmount" },
-        buyBorrowAmount: { $sum: "$borrowAmount" },
+        buyCashAmount: currency
+          ? { $sum: { $divide: ["$cashAmount", "$currency.rate"] } }
+          : { $sum: "$cashAmount" },
+        buyBorrowAmount: currency
+          ? {
+              $sum: { $divide: ["$borrowAmount", "$currency.rate"] },
+            }
+          : { $sum: "$borrowAmount" },
       },
     },
     {
@@ -230,15 +393,21 @@ export const getLedgar = catchAsync(async ({ date }) => {
   const receiveTransactions = await Receive.aggregate([
     {
       $match: {
-        afgDate: `${month}`,
+        ...filter,
       },
     },
     {
       $group: {
         _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$date" },
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$date",
+            timezone: "Asia/Kabul",
+          },
         },
-        receiveAmount: { $sum: "$amount" },
+        receiveAmount: currency
+          ? { $sum: { $divide: ["$amount", "$currency.rate"] } }
+          : { $sum: "$amount" },
       },
     },
     {
@@ -251,15 +420,21 @@ export const getLedgar = catchAsync(async ({ date }) => {
   const payTransactions = await Pay.aggregate([
     {
       $match: {
-        afgDate: `${month}`,
+        ...filter,
       },
     },
     {
       $group: {
         _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$date" },
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$date",
+            timezone: "Asia/Kabul",
+          },
         },
-        payAmount: { $sum: "$amount" },
+        payAmount: currency
+          ? { $sum: { $divide: ["$amount", "$currency.rate"] } }
+          : { $sum: "$amount" },
       },
     },
     {
@@ -336,7 +511,8 @@ export const getLedgar = catchAsync(async ({ date }) => {
     allTransactionsArray,
   };
 });
-export async function getAllTransferMoneySeller(date = "") {
+
+export async function getAllTransferMoneySeller({ date = "", currency }) {
   const [startD, endD] = date?.split(",");
   const start = momentT(startD || new Date()).format("jYYYY/jMM/jDD");
   const end = momentT(endD || new Date()).format("jYYYY/jMM/jDD");
@@ -351,9 +527,16 @@ export async function getAllTransferMoneySeller(date = "") {
     .endOf("day")
     .toDate();
 
+  console.log(currency, "currency");
+
   const aggregateData = async (model, sumField, group) => {
     return model.aggregate([
-      { $match: { date: { $gte: startDate, $lte: endDate } } },
+      {
+        $match: {
+          date: { $gte: startDate, $lte: endDate },
+          ...(currency ? { "currency._id": currency.split("_")[1] } : {}),
+        },
+      },
       {
         $group: {
           _id: `$${group}`,
@@ -364,11 +547,11 @@ export async function getAllTransferMoneySeller(date = "") {
   };
 
   // اجرای کوئری‌ها به صورت موازی
-  const [buy, receive] = await Promise.all([
+  const [buy, pay] = await Promise.all([
     aggregateData(Buy, "cashAmount", "saller"), // خرید = پرداخت
-    aggregateData(Receive, "amount", "type"), // دریافت وجه
+    aggregateData(Pay, "amount", "type"), // دریافت وجه
   ]);
-  const allData = [...buy, ...receive];
+  const allData = [...buy, ...pay];
 
   // ترکیب نتایج برای هر فروشنده
   const combinedResults = allData.reduce((acc, curr) => {
@@ -421,7 +604,7 @@ export async function getAllTransferMoneySeller(date = "") {
   return resultArray;
 }
 
-export async function getAllTransferBank(date = "") {
+export async function getAllTransferBank({ date = "", currency }) {
   const [startD, endD] = date?.split(",");
   const start = momentT(startD || new Date()).format("jYYYY/jMM/jDD");
   const end = momentT(endD || new Date()).format("jYYYY/jMM/jDD");
@@ -440,7 +623,12 @@ export async function getAllTransferBank(date = "") {
     // تابع کمکی برای اجرای aggregate
     const aggregateData = async (model, sumField, type) => {
       return model.aggregate([
-        { $match: { date: { $gte: startDate, $lte: endDate } } },
+        {
+          $match: {
+            date: { $gte: startDate, $lte: endDate },
+            ...(currency ? { "currency._id": currency.split("_")[1] } : {}),
+          },
+        },
         {
           $group: {
             _id: "$income",
@@ -552,6 +740,7 @@ export async function getAllTransferBank(date = "") {
       name: accountMap.get(item._id.toString()).name || "نامشخص",
       balance: accountMap.get(item._id.toString()).balance || "نامشخص",
     }));
+
     // تبدیل به آرایه نهایی
     return resultArray;
   } catch (err) {

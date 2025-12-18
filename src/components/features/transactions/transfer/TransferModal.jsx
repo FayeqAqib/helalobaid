@@ -35,6 +35,7 @@ const schema = z.object({
   date: z
     .date({ required_error: "تاریخ الزامی میباشد" })
     .default(() => new Date()),
+  currency: z.string({ required_error: " الزامی میباشد" }),
   from: z.string({ required_error: " الزامی میباشد" }),
   to: z.string({ required_error: " الزامی میباشد" }),
   amount: z
@@ -63,6 +64,7 @@ export function TransferModal({ children, open, onOpen }) {
   async function submiteForm(newData) {
     const myNewData = {
       ...newData,
+      currency: newData.currency.split("_")[1],
       from: newData.from.split("_")[1],
       to: newData.to.split("_")[1],
       image: newData.image?.[0],
@@ -121,6 +123,22 @@ export function TransferModal({ children, open, onOpen }) {
                         type={dateType ? "gregorian" : "jalali"}
                       />
 
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />{" "}
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>واحد پول</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        dataType="currency"
+                        label=" واحد پولی را انتخاب کنید.."
+                      />
                       <FormMessage />
                     </FormItem>
                   )}

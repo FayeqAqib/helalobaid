@@ -5,12 +5,18 @@ import APIFeatures from "@/lib/apiFeatues";
 import { uploadImage } from "@/lib/uploadImage";
 import { deleteFile } from "@/lib/deleteImage";
 import { ProceedTital } from "@/models/ProceedTital";
+import { Currency } from "@/models/Currency";
 
 export const createExternalProceed = catchAsync(async (data) => {
   const newData = { ...data };
   const company = await Account.findById(newData.income, {
     balance: 1,
   });
+
+  const currency = await Currency.findById(newData.currency);
+
+  newData.amount = newData.amount * currency.rate;
+  newData.currency = currency;
 
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
@@ -76,6 +82,11 @@ export const deleteExternalProceed = catchAsync(async (data) => {
 export const updateExternalProceed = catchAsync(
   async ({ currentData, newData }) => {
     const myNewData = { ...newData };
+
+    const currency = await Currency.findById(myNewData.currency);
+
+    myNewData.amount = myNewData.amount * currency.rate;
+    myNewData.currency = currency;
 
     if (typeof newData.image === "object") {
       const { path, err } = await uploadImage(data.image);

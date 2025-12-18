@@ -3,6 +3,7 @@ import { catchAsync } from "@/lib/catchAsync";
 import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
+import { Currency } from "@/models/Currency";
 import { Pay } from "@/models/pay";
 
 export const createPay = catchAsync(async (data) => {
@@ -14,6 +15,11 @@ export const createPay = catchAsync(async (data) => {
   const saller = await Account.findById(newData.type, {
     borrow: 1,
   });
+
+  const currency = await Currency.findById(newData.currency);
+
+  newData.amount = newData.amount * currency.rate;
+  newData.currency = currency;
 
   if (company.balance < newData.amount)
     return {
@@ -101,19 +107,24 @@ export const updatePay = catchAsync(async ({ currentData, newData }) => {
     _id: 0,
   });
 
+  const currency = await Currency.findById(myNewData.currency);
+
+  myNewData.amount = myNewData.amount * currency.rate;
+  myNewData.currency = currency;
+
   if (newSaller.borrow < myNewData.amount - currentData.amount)
     return {
       message: ` پرداخت بیشر از قرض مشتری است لطفا در پرداخت خود بازنگری نمایید در حساب  قرض مشتری   ${
         currentData.type === myNewData.type
-          ? currentData.amount + newBuyer.borrow
-          : newBuyer.borrow
+          ? currentData.amount + newSaller.borrow
+          : newSaller.borrow
       } می باشد`,
     };
 
   if (currentData.type !== myNewData.type) {
     if (newSaller.borrow < myNewData.amount)
       return {
-        message: ` پرداخت بیشر از قرض مشتری است لطفا در پرداخت خود بازنگری نمایید در حساب  قرض مشتری   ${newBuyer.borrow} می باشد`,
+        message: ` پرداخت بیشر از قرض مشتری است لطفا در پرداخت خود بازنگری نمایید در حساب  قرض مشتری   ${newSaller.borrow} می باشد`,
       };
 
     await Account.findByIdAndUpdate(myNewData.type, {

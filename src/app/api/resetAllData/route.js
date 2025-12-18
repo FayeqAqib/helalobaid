@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { Account } from "@/models/account";
+import { Currency } from "@/models/Currency";
 
 import { createUser } from "@/services/userServer";
 
@@ -38,6 +39,12 @@ export async function GET(req, { params }) {
       _id: "691c06c3580b7f2182cc4e66",
       accountType: "buyer",
       name: "pos",
+    });
+
+    await Currency.create({
+      name: "افغانی",
+      code: "AFN",
+      rate: 1,
     });
 
     await createUser({

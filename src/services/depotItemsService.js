@@ -1,6 +1,7 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
 import { uploadImage } from "@/lib/uploadImage";
+import { Currency } from "@/models/Currency";
 import { Depot } from "@/models/depot";
 import { DepotItems } from "@/models/depotItems";
 import { Items } from "@/models/items";
@@ -8,6 +9,13 @@ import { Items } from "@/models/items";
 //////////////////////////// CREATE ///////////////////////////////////////
 export const createDepotItems = catchAsync(async (data) => {
   const newData = { ...data };
+
+  const currency = await Currency.findById(newData.currency);
+  newData.unitAmount = newData.unitAmount * currency.rate;
+  newData.aveUnitAmount = newData.aveUnitAmount * currency.rate;
+  newData.saleAmount = newData.saleAmount * currency.rate;
+  newData.currency = currency;
+
   if (typeof data.image === "object") {
     const { path, err } = await uploadImage(data.image);
     newData.image = path;
@@ -76,6 +84,11 @@ export const getAllDepotItems = catchAsync(async (filter) => {
 
 //////////////////////////// UPDATE ///////////////////////////////
 export const updateDepotItems = catchAsync(async ({ oldData, newData }) => {
+  const currency = await Currency.findById(newData.currency);
+  newData.aveUnitAmount = newData.aveUnitAmount * currency.rate;
+  newData.saleAmount = newData.saleAmount * currency.rate;
+  newData.currency = currency;
+
   if (typeof newData.image === "object") {
     const { path, err } = await uploadImage(data.image);
     newData.image = path;
@@ -98,7 +111,6 @@ export const updateDepotItems = catchAsync(async ({ oldData, newData }) => {
     badgeNumber: oldData.badgeNumber,
   });
   if (up) {
-    console.log(typeof up, up, "null", null);
     const totalCount =
       up.count - oldData.count === 0 ? 1 : up.count - oldData.count;
     await Items.findByIdAndUpdate(up._id, {

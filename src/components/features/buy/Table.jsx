@@ -126,6 +126,23 @@ export const columns = [
     ),
   },
   {
+    accessorKey: "currency",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          واحد پولی
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("currency")?.name}</div>
+    ),
+  },
+  {
     accessorKey: "totalAmount",
     header: ({ column }) => {
       return (
@@ -140,14 +157,16 @@ export const columns = [
     },
     cell: ({ row }) => {
       const totalAmount = parseFloat(row.getValue("totalAmount"));
+      const currency = row.getValue("currency");
 
       return (
         <div className="text-right font-medium">
-          {formatCurrency(totalAmount)}
+          {formatCurrency(totalAmount / currency?.rate, currency?.code)}
         </div>
       );
     },
   },
+
   {
     accessorKey: "cashAmount",
     header: ({ column }) => {
@@ -163,10 +182,11 @@ export const columns = [
     },
     cell: ({ row }) => {
       const cashAmount = parseFloat(row.getValue("cashAmount"));
+      const currency = row.getValue("currency");
 
       return (
         <div className="text-right font-medium">
-          {formatCurrency(cashAmount)}
+          {formatCurrency(cashAmount / currency?.rate, currency?.code)}
         </div>
       );
     },
@@ -186,10 +206,11 @@ export const columns = [
     },
     cell: ({ row }) => {
       const borrowAmount = parseFloat(row.getValue("borrowAmount"));
+      const currency = row.getValue("currency");
 
       return (
         <div className="text-right font-medium">
-          {formatCurrency(borrowAmount)}
+          {formatCurrency(borrowAmount / currency?.rate, currency?.code)}
         </div>
       );
     },
@@ -210,10 +231,11 @@ export const columns = [
 
     cell: ({ row }) => {
       const transportCost = parseFloat(row.getValue("transportCost"));
+      const currency = row.getValue("currency");
 
       return (
         <div className="text-right font-medium">
-          {formatCurrency(transportCost)}
+          {formatCurrency(transportCost / currency?.rate, currency?.code)}
         </div>
       );
     },

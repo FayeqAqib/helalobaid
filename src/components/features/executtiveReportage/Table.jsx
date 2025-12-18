@@ -89,12 +89,14 @@ export const columns = [
     },
     cell: ({ row }) => {
       const buyCashAmount = parseFloat(row.getValue("buyCashAmount"));
-
+      const currency = row.getValue("currency");
       // Format the buy as a dollar buy
 
       return (
         <div className="text-right font-medium">
-          {buyCashAmount ? formatCurrency(buyCashAmount) : 0}
+          {buyCashAmount
+            ? formatCurrency(buyCashAmount / currency?.rate, currency?.code)
+            : 0}
         </div>
       );
     },
@@ -113,12 +115,15 @@ export const columns = [
     },
     cell: ({ row }) => {
       const saleCashAmount = parseFloat(row.getValue("saleCashAmount"));
+      const currency = row.getValue("currency");
 
       // Format the buy as a dollar buy
 
       return (
         <div className="text-right font-medium">
-          {saleCashAmount ? formatCurrency(saleCashAmount) : 0}
+          {saleCashAmount
+            ? formatCurrency(saleCashAmount / currency?.rate, currency?.code)
+            : 0}
         </div>
       );
     },
@@ -137,12 +142,14 @@ export const columns = [
     },
     cell: ({ row }) => {
       const borrowAmount = parseFloat(row.getValue("borrowAmount"));
-
+      const currency = row.getValue("currency");
       // Format the buy as a dollar buy
 
       return (
         <div className="text-right font-medium">
-          {borrowAmount ? formatCurrency(borrowAmount) : 0}
+          {borrowAmount
+            ? formatCurrency(borrowAmount / currency?.rate, currency?.code)
+            : 0}
         </div>
       );
     },
@@ -162,12 +169,14 @@ export const columns = [
     },
     cell: ({ row }) => {
       const lendAmount = parseFloat(row.getValue("lendAmount"));
-
+      const currency = row.getValue("currency");
       // Format the buy as a dollar buy
 
       return (
         <div className="text-right font-medium">
-          {lendAmount ? formatCurrency(lendAmount) : 0}
+          {lendAmount
+            ? formatCurrency(lendAmount / currency?.rate, currency?.code)
+            : 0}
         </div>
       );
     },
@@ -181,18 +190,20 @@ export const columns = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          پرداخت قرض
+          پرداخت
         </Button>
       );
     },
     cell: ({ row }) => {
       const payAmount = parseFloat(row.getValue("payAmount"));
-
+      const currency = row.getValue("currency");
       // Format the buy as a dollar buy
 
       return (
         <div className="text-right font-medium">
-          {payAmount ? formatCurrency(payAmount) : 0}
+          {payAmount
+            ? formatCurrency(payAmount / currency?.rate, currency?.code)
+            : 0}
         </div>
       );
     },
@@ -205,21 +216,28 @@ export const columns = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          دربافت قرض
+          دربافت
         </Button>
       );
     },
     cell: ({ row }) => {
       const receiveAmount = parseFloat(row.getValue("receiveAmount"));
-
+      const currency = row.getValue("currency");
       // Format the buy as a dollar buy
 
       return (
         <div className="text-right font-medium">
-          {receiveAmount ? formatCurrency(receiveAmount) : 0}
+          {receiveAmount
+            ? formatCurrency(receiveAmount / currency?.rate, currency?.code)
+            : 0}
         </div>
       );
     },
+  },
+  {
+    accessorKey: "currency",
+    header: "",
+    cell: "",
   },
   {
     accessorKey: "details",
@@ -236,7 +254,9 @@ export function DataTableExecuttiveReportage({ data, count, account = {} }) {
   const [name, setName] = useState("");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState({
+    currency: false,
+  });
   const router = useRouter();
   const pathname = usePathname();
 
@@ -292,7 +312,19 @@ export function DataTableExecuttiveReportage({ data, count, account = {} }) {
     <div className="w-full" ref={prientRef}>
       <div className="flex flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-4">
-          <AutoCompleteV2 value={name} onChange={setName} />
+          <AutoCompleteV2
+            value={name}
+            onChange={setName}
+            label="جستجو با نام"
+          />
+          <AutoCompleteV2
+            value={table.getColumn("currency")?.getFilterValue() ?? ""}
+            onChange={(event) =>
+              table.getColumn("currency")?.setFilterValue(event)
+            }
+            dataType="currency"
+            label=" واحد پولی را انتخاب کنید.."
+          />
           <RangeDatePickerWithPresets
             date={table.getColumn("date")?.getFilterValue() ?? ""}
             onDate={(event) => table.getColumn("date")?.setFilterValue(event)}

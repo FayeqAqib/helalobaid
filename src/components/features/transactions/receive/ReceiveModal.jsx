@@ -38,6 +38,7 @@ const schema = z.object({
     .default(() => new Date()),
   type: z.string({ required_error: "پرداخت کننده الزامی میباشد" }),
   income: z.string({ required_error: "دریافت کننده الزامی میباشد" }),
+  currency: z.string({ required_error: " الزامی میباشد" }),
   amount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
     .min(1, "مقدار پول الزامی است"),
@@ -71,8 +72,10 @@ export function ReceiveModal({
         ? {
             ...data,
             date: new Date(data.date),
+            currency: data.currency?.name + "_" + data?.currency?._id,
             type: data.type.name + "_" + data.type._id,
             income: data.income.name + "_" + data.income._id,
+            amount: data.amount / data.currency?.rate,
           }
         : {},
   });
@@ -80,6 +83,7 @@ export function ReceiveModal({
   async function submiteForm(newData) {
     const myNewData = {
       ...newData,
+      currency: newData.currency.split("_")[1],
       type: newData.type.split("_")[1],
       income: newData.income.split("_")[1],
       image: newData.image?.[0],
@@ -198,6 +202,22 @@ export function ReceiveModal({
                         onChange={field.onChange}
                         type="company-bank"
                         label="دریافت کننده را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />{" "}
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>واحد پول</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        dataType="currency"
+                        label=" واحد پولی را انتخاب کنید.."
                       />
                       <FormMessage />
                     </FormItem>

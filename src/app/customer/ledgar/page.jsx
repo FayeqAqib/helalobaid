@@ -1,12 +1,19 @@
 import { DataTableLedger } from "@/components/features/ledgar/Table";
 import { Card, CardHeader } from "@/components/ui/card";
 import { getCompanyAccount } from "@/services/accountService";
+import { findCurrency } from "@/services/currencyServices";
 import { getLedgar } from "@/services/ledgarServer";
 import React from "react";
 
 export default async function Page({ searchParams }) {
   const filter = await searchParams;
-  const data = await getLedgar({ date: filter?.date });
+  const curr = filter?.currency?.split("_")[1];
+  const data = await getLedgar({
+    date: filter?.date,
+    currency: curr,
+  });
+
+  const currency = await findCurrency(curr ? { _id: curr } : {});
   const metuBalance = await getCompanyAccount();
 
   return (
@@ -18,6 +25,7 @@ export default async function Page({ searchParams }) {
       <DataTableLedger
         data={data.result?.allTransactionsArray || []}
         metuBalance={metuBalance?.result?.[0]?.balance}
+        currency={currency?.result?.[0]}
       />
     </Card>
   );

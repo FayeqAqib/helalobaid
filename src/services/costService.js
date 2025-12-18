@@ -5,6 +5,7 @@ import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
 import { CostTital } from "@/models/constTital";
 import { Cost } from "@/models/cost";
+import { Currency } from "@/models/Currency";
 import momentT from "moment-timezone";
 
 export const createCost = catchAsync(async (data) => {
@@ -12,10 +13,18 @@ export const createCost = catchAsync(async (data) => {
   const company = await Account.findById(newData.income, {
     balance: 1,
   });
+
+  const currency = await Currency.findById(newData.currency);
+
+  newData.amount = newData.amount * currency.rate;
+  newData.currency = currency;
+
   if (company.balance <= 0)
     return { message: "به دلیل نبود پول نقد در حساب شرکت پرداخت ممکن نیست" };
   if (company.balance < newData.amount)
-    return { message: "به دلیل کمبود پول نقد در حساب شرکت پرداخت ممکن نیست" };
+    return {
+      message: `به دلیل کمبود پول نقد در حساب شرکت پرداخت ممکن نیست مقدار موجود در حساب ${company.balance} است`,
+    };
 
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
@@ -72,6 +81,11 @@ export const deleteCost = catchAsync(async (data) => {
 
 export const updateCost = catchAsync(async ({ currentData, newData }) => {
   const myNewData = { ...newData };
+
+  const currency = await Currency.findById(myNewData.currency);
+
+  myNewData.amount = myNewData.amount * currency.rate;
+  myNewData.currency = currency;
 
   if (typeof newData.image === "object") {
     const { path, err } = await uploadImage(myNewData.image);

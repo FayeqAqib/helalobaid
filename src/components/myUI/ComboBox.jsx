@@ -27,6 +27,7 @@ import { getAllUnitAction } from "@/actions/unitAction";
 import { getAllDepotAction } from "@/actions/depotAction";
 import { getListOfDepotItemsAction } from "@/actions/depotItemsAction";
 import { getListOfItemsActions } from "@/actions/itemsAction";
+import { findAllCurrencyAction } from "@/actions/currencyAction";
 
 // const optionslist = [
 //   { label: "ایران", value: "68426436f40989bb6a60bf55" },
@@ -44,6 +45,7 @@ export function AutoCompleteV2({
   borrow = false,
   filter = "",
   className,
+  currency2 = false,
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState([]);
@@ -56,6 +58,8 @@ export function AutoCompleteV2({
         result = await getAllSallerAndBuyerAction(type, lend, borrow);
       } else if (dataType === "cost") {
         result = await getAllCostTitalAction();
+      } else if (dataType === "currency") {
+        result = await findAllCurrencyAction();
       } else if (dataType === "proceed") {
         result = await getAllProceedTitalAction();
       } else if (dataType === "product") {
@@ -70,7 +74,11 @@ export function AutoCompleteV2({
 
       if (!["customer", "items", "product"].includes(dataType)) {
         const data = result.result.map((item) => {
-          return { value: item._id, label: item.name };
+          if (currency2) {
+            return { value: item._id + "," + item.rate, label: item.name };
+          } else {
+            return { value: item._id, label: item.name };
+          }
         });
         setOptions(data);
         if (dataType === "depot") onChange(`${data[0].label}_${data[0].value}`);

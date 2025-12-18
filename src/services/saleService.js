@@ -4,6 +4,7 @@ import { catchAsync } from "@/lib/catchAsync";
 import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
+import { Currency } from "@/models/Currency";
 import { Items } from "@/models/items";
 import { Sale } from "@/models/Sale";
 import moment from "moment-jalaali";
@@ -11,6 +12,18 @@ import moment from "moment-jalaali";
 export const createSale = catchAsync(async (data) => {
   const newData = { ...data };
 
+  const currency = await Currency.findById(newData.currency);
+
+  if (!currency || typeof currency.rate !== "number") {
+    throw new Error("Invalid currency or currency rate");
+  }
+  newData.totalAmount = (newData.totalAmount || 0) * currency.rate;
+  newData.totalAmountBeforDiscount =
+    (newData.totalAmountBeforDiscount || 0) * currency.rate;
+  newData.cashAmount = (newData.cashAmount || 0) * currency.rate;
+  newData.lendAmount = (newData.lendAmount || 0) * currency.rate;
+  newData.totalProfit = (newData.totalProfit || 0) * currency.rate;
+  newData.currency = currency;
   //////////////////////////////// GENERATE BILL //////////////////////////////////
 
   newData.billNumber = await generateBillNumber(Sale);
@@ -144,11 +157,22 @@ export const deleteSale = catchAsync(async (data) => {
 
 export const updateSale = catchAsync(async ({ currentData, newData }) => {
   const myNewData = { ...newData, image: currentData.image };
+
+  const currency = await Currency.findById(newData.currency);
+
+  if (!currency || typeof currency.rate !== "number") {
+    throw new Error("Invalid currency or currency rate");
+  }
+  myNewData.totalAmount = (myNewData.totalAmount || 0) * currency.rate;
+  myNewData.totalAmountBeforDiscount =
+    (myNewData.totalAmountBeforDiscount || 0) * currency.rate;
+  myNewData.cashAmount = (myNewData.cashAmount || 0) * currency.rate;
+  myNewData.lendAmount = (myNewData.lendAmount || 0) * currency.rate;
+  myNewData.totalProfit = (myNewData.totalProfit || 0) * currency.rate;
+  myNewData.currency = currency;
+
   const company = await Account.findById(currentData.income, {
     balance: 1,
-  });
-  const company_id = await Account.findById(process.env.COMPANY_ID, {
-    lend: 1,
   });
 
   if (company.METUbalance < myNewData.metuAmount)
@@ -201,7 +225,7 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
 
   //////////////////////////////////// ADD NEW VERSION OF ITEMS ///////////////////////////////////////
 
-  for (const item of newData.items) {
+  for (const item of myNewData.items) {
     await Items.findByIdAndUpdate(item._id, { $inc: { count: -item.count } });
   }
 

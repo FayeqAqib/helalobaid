@@ -25,6 +25,12 @@ const externalProceedSchema = new mongoose.Schema({
     required: true,
     min: [1, "Amount must be greater than 0"],
   },
+  currency: {
+    _id: String,
+    name: String,
+    code: String,
+    rate: Number,
+  },
   image: String,
   details: {
     type: String,

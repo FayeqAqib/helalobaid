@@ -180,152 +180,174 @@ export const getExpiration = catchAsync(async (filter) => {
   return { Expired, Expiring };
 });
 
-export const getSalesPurchaseSummary = catchAsync(async (date = "") => {
-  const [startD, endD] = date?.split(",");
-  const start = momentT(startD || new Date()).format("jYYYY/jMM/jDD");
-  const end = momentT(endD || new Date()).format("jYYYY/jMM/jDD");
+export const getSalesPurchaseSummary = catchAsync(
+  async ({ date = "", currency }) => {
+    const currency_id = currency?.split("_")[1];
+    const [startD, endD] = date?.split(",");
+    const start = momentT(startD || new Date()).format("jYYYY/jMM/jDD");
+    const end = momentT(endD || new Date()).format("jYYYY/jMM/jDD");
 
-  const startDate = momentT
-    .tz(start, "jYYYY/jMM/jDD", "Asia/Kabul")
-    .startOf("day")
-    .toDate();
+    const startDate = momentT
+      .tz(start, "jYYYY/jMM/jDD", "Asia/Kabul")
+      .startOf("day")
+      .toDate();
+    console.log(currency);
 
-  const endDate = momentT
-    .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
-    .endOf("day")
-    .toDate();
+    const endDate = momentT
+      .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
+      .endOf("day")
+      .toDate();
 
-  // const today = new Date();
+    // const today = new Date();
 
-  // // تاریخ چهار ماه قبل
-  // const fourMonthsAgo = new Date();
-  // fourMonthsAgo.setMonth(today.getMonth() - 4);
+    // // تاریخ چهار ماه قبل
+    // const fourMonthsAgo = new Date();
+    // fourMonthsAgo.setMonth(today.getMonth() - 4);
 
-  const result = await Buy.aggregate([
-    // ==================== مرحله ۱: فیلتر کردن خریدها بر اساس تاریخ ====================
-    { $match: { date: { $gte: startDate, $lte: endDate } } },
-    // {
-    //   $match: {
-    //     date: {
-    //       $gte: fourMonthsAgo,
-    //       $lte: today,
-    //     },
-    //   },
-    // },
-
-    // ==================== مرحله ۲: گروه‌بندی خریدها بر اساس تاریخ میلادی ====================
-    {
-      $group: {
-        _id: {
-          $dateToString: {
-            format: "%Y-%m-%d",
-            date: "$date",
-            timezone: "+04:30", // زمان تهران (افغانستان)
-          },
+    const result = await Buy.aggregate([
+      // ==================== مرحله ۱: فیلتر کردن خریدها بر اساس تاریخ ====================
+      {
+        $match: {
+          date: { $gte: startDate, $lte: endDate },
+          ...(currency_id ? { "currency._id": currency_id } : {}),
         },
-        totalBuy: { $sum: "$totalAmount" },
-        buyCount: { $sum: "$totalCount" }, // اضافه کردن buyCount
-        transactionBuy: { $sum: 1 },
       },
-    },
+      // {
+      //   $match: {
+      //     date: {
+      //       $gte: fourMonthsAgo,
+      //       $lte: today,
+      //     },
+      //   },
+      // },
 
-    // ==================== مرحله ۳: شکل‌دهی داده‌های خرید ====================
-    {
-      $project: {
-        date: "$_id",
-        totalBuy: 1,
-        buyCount: 1, // اضافه کردن buyCount
-        totalSale: { $literal: 0 },
-        totalProfit: { $literal: 0 },
-        saleCount: { $literal: 0 }, // مقدار پیش‌فرض برای saleCount
-        transactionBuy: 1,
-        type: { $literal: "buy" },
-        _id: 0,
+      // ==================== مرحله ۲: گروه‌بندی خریدها بر اساس تاریخ میلادی ====================
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$date",
+              timezone: "+04:30", // زمان تهران (افغانستان)
+            },
+          },
+          totalBuy: currency_id
+            ? { $sum: { $divide: ["$totalAmount", "$currency.rate"] } }
+            : { $sum: "$totalAmount" },
+          buyCount: { $sum: "$totalCount" }, // اضافه کردن buyCount
+          transactionBuy: { $sum: 1 },
+        },
       },
-    },
 
-    // ==================== مرحله ۴: ادغام با داده‌های فروش ====================
-    {
-      $unionWith: {
-        coll: "sales",
-        pipeline: [
-          // فیلتر کردن فروش‌ها بر اساس تاریخ
-          { $match: { date: { $gte: startDate, $lte: endDate } } },
+      // ==================== مرحله ۳: شکل‌دهی داده‌های خرید ====================
+      {
+        $project: {
+          date: "$_id",
+          totalBuy: 1,
+          buyCount: 1, // اضافه کردن buyCount
+          totalSale: { $literal: 0 },
+          totalProfit: { $literal: 0 },
+          saleCount: { $literal: 0 }, // مقدار پیش‌فرض برای saleCount
+          transactionBuy: 1,
+          type: { $literal: "buy" },
+          _id: 0,
+        },
+      },
 
-          // گروه‌بندی فروش‌ها بر اساس تاریخ میلادی
-          {
-            $group: {
-              _id: {
-                $dateToString: {
-                  format: "%Y-%m-%d",
-                  date: "$date",
-                  timezone: "+04:30", // زمان تهران (افغانستان)
-                },
+      // ==================== مرحله ۴: ادغام با داده‌های فروش ====================
+      {
+        $unionWith: {
+          coll: "sales",
+          pipeline: [
+            // فیلتر کردن فروش‌ها بر اساس تاریخ
+            {
+              $match: {
+                date: { $gte: startDate, $lte: endDate },
+                ...(currency_id ? { "currency._id": currency_id } : {}),
               },
-              totalSale: { $sum: "$totalAmount" },
-              totalProfit: { $sum: "$totalProfit" }, // اضافه کردن saleCount
-              saleCount: { $sum: "$totalCount" }, // اضافه کردن saleCount
-              transactionSale: { $sum: 1 },
             },
-          },
 
-          // شکل‌دهی داده‌های فروش
-          {
-            $project: {
-              date: "$_id",
-              totalSale: 1,
-              totalProfit: 1, // اضافه کردن totalProfit
-              saleCount: 1, // اضافه کردن saleCount
-              totalBuy: { $literal: 0 }, // تغییر از 0 به { $literal: 0 }
-
-              buyCount: { $literal: 0 }, // مقدار پیش‌فرض برای buyCount
-              transactionSale: 1,
-              type: { $literal: "sale" },
-              _id: 0,
+            // گروه‌بندی فروش‌ها بر اساس تاریخ میلادی
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: "%Y-%m-%d",
+                    date: "$date",
+                    timezone: "+04:30", // زمان تهران (افغانستان)
+                  },
+                },
+                totalSale: currency_id
+                  ? {
+                      $sum: { $divide: ["$totalAmount", "$currency.rate"] },
+                    }
+                  : { $sum: "$totalAmount" },
+                totalProfit: currency_id
+                  ? { $sum: { $divide: ["$totalProfit", "$currency.rate"] } }
+                  : { $sum: "$totalProfit" }, // اضافه کردن saleCount
+                saleCount: { $sum: "$totalCount" }, // اضافه کردن saleCount
+                transactionSale: { $sum: 1 },
+              },
             },
-          },
-        ],
+
+            // شکل‌دهی داده‌های فروش
+            {
+              $project: {
+                date: "$_id",
+                totalSale: 1,
+                totalProfit: 1, // اضافه کردن totalProfit
+                saleCount: 1, // اضافه کردن saleCount
+                totalBuy: { $literal: 0 }, // تغییر از 0 به { $literal: 0 }
+
+                buyCount: { $literal: 0 }, // مقدار پیش‌فرض برای buyCount
+                transactionSale: 1,
+                type: { $literal: "sale" },
+                _id: 0,
+              },
+            },
+          ],
+        },
       },
-    },
 
-    // ==================== مرحله ۵: گروه‌بندی نهایی بر اساس تاریخ ====================
-    {
-      $group: {
-        _id: "$date",
-        totalBuy: { $sum: "$totalBuy" },
-        buyCount: { $sum: "$buyCount" }, // اضافه کردن buyCount
-        totalSale: { $sum: "$totalSale" },
-        totalProfit: { $sum: "$totalProfit" },
-        saleCount: { $sum: "$saleCount" }, // اضافه کردن saleCount
-        transactionBuy: { $sum: "$transactionBuy" },
-        transactionSale: { $sum: "$transactionSale" },
+      // ==================== مرحله ۵: گروه‌بندی نهایی بر اساس تاریخ ====================
+      {
+        $group: {
+          _id: "$date",
+          totalBuy: { $sum: "$totalBuy" },
+          buyCount: { $sum: "$buyCount" }, // اضافه کردن buyCount
+          totalSale: { $sum: "$totalSale" },
+          totalProfit: { $sum: "$totalProfit" },
+          saleCount: { $sum: "$saleCount" }, // اضافه کردن saleCount
+          transactionBuy: { $sum: "$transactionBuy" },
+          transactionSale: { $sum: "$transactionSale" },
+        },
       },
-    },
 
-    // ==================== مرحله ۷: شکل‌دهی نهایی خروجی ====================
-    {
-      $project: {
-        date: "$_id",
-        totalBuy: 1,
-        buyCount: 1, // اضافه کردن buyCount
-        totalSale: 1,
-        saleCount: 1, // اضافه کردن saleCount
-        totalProfit: 1,
-        transactionBuy: 1,
-        transactionSale: 1,
-        totalTransactions: 1,
-        _id: 0,
+      // ==================== مرحله ۷: شکل‌دهی نهایی خروجی ====================
+      {
+        $project: {
+          date: "$_id",
+          totalBuy: 1,
+          buyCount: 1, // اضافه کردن buyCount
+          totalSale: 1,
+          saleCount: 1, // اضافه کردن saleCount
+          totalProfit: 1,
+          transactionBuy: 1,
+          transactionSale: 1,
+          totalTransactions: 1,
+          _id: 0,
+        },
       },
-    },
 
-    // ==================== مرحله ۸: مرتب‌سازی بر اساس تاریخ ====================
-    {
-      $sort: { date: 1 },
-    },
-  ]);
+      // ==================== مرحله ۸: مرتب‌سازی بر اساس تاریخ ====================
+      {
+        $sort: { date: 1 },
+      },
+    ]);
 
-  return result;
-});
+    return result;
+  }
+);
 
 // ==================== نحوه استفاده از تابع ====================
 // const summary = await getSalesPurchaseSummary(

@@ -25,6 +25,11 @@ const transferSchema = new mongoose.Schema({
     required: false,
     min: [0, "مقدار رسید باید 0 یا یک عدد مثبت باشد"],
   },
+  currency: {
+    name: String,
+    code: String,
+    rate: Number,
+  },
   image: String,
   details: {
     type: String,

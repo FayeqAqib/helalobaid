@@ -37,6 +37,7 @@ const schema = z.object({
   amount: z
     .number({ invalid_type_error: "ذکر مقدار پول الزامی می باشد" })
     .min(1, " مقدار پول نمیتواند کمتر از 1 باشد"),
+  currency: z.string({ required_error: " الزامی میباشد" }),
   image: z
     .any()
 
@@ -67,8 +68,10 @@ export function CostModal({
         ? {
             ...data,
             date: new Date(data.date),
+            currency: data.currency?.name + "_" + data?.currency?._id,
             income: data.income.name + "_" + data.income._id,
             costTital: data.costTital.name + "_" + data.costTital._id,
+            amount: data.amount / data.currency?.rate,
           }
         : {},
   });
@@ -77,6 +80,7 @@ export function CostModal({
     const myNewData = {
       ...newData,
       image: newData.image?.[0],
+      currency: newData.currency.split("_")[1],
       income: newData.income.split("_")[1],
       costTital: newData.costTital.split("_")[1],
       createBy: "cost",
@@ -190,6 +194,22 @@ export function CostModal({
                       onChange={field.onChange}
                       type="company-bank"
                       label="پرداخت کننده را انتخاب کنید.."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />{" "}
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem className={"flex-1"}>
+                    <FormLabel>واحد پول</FormLabel>
+                    <AutoCompleteV2
+                      value={field.value}
+                      onChange={field.onChange}
+                      dataType="currency"
+                      label=" واحد پولی را انتخاب کنید.."
                     />
                     <FormMessage />
                   </FormItem>

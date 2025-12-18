@@ -55,7 +55,7 @@ const saleSchema = new mongoose.Schema({
       aveUnitAmount: {
         type: Number,
         required: true,
-        min: [1, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
+        min: [0, "مقدار قیمت اوسط باید 1 یا یک عدد مثبت باشد"],
       },
       saleAmount: {
         type: Number,
@@ -98,6 +98,12 @@ const saleSchema = new mongoose.Schema({
     type: Number,
     required: false,
     min: [0, "مقدار باقی باید 0 یا یک عدد مثبت باشد"],
+  },
+  currency: {
+    _id: String,
+    name: String,
+    code: String,
+    rate: Number,
   },
   totalProfit: {
     type: Number,

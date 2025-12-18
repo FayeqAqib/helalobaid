@@ -10,11 +10,28 @@ import { generateBillNumber } from "@/lib/billNumberGenerator";
 import { Cost } from "@/models/cost";
 import { CostTital } from "@/models/constTital";
 import { Items } from "@/models/items";
+import { Currency } from "@/models/Currency";
 
 ////////////////////////////////////////////////// create ////////////////////////////////////////////////
 
 export const createBuy = catchAsync(async (data) => {
   const newData = { ...data };
+
+  const currency = await Currency.findById(newData.currency);
+
+  newData.totalAmount = newData.totalAmount * currency.rate;
+  newData.transportCost = newData.transportCost * currency.rate;
+  newData.cashAmount = newData.cashAmount * currency.rate;
+  newData.borrowAmount = newData.borrowAmount * currency.rate;
+
+  newData.items = newData.items.map((item) => ({
+    ...item,
+    unitAmount: item.unitAmount * currency.rate,
+    aveUnitAmount: item.aveUnitAmount * currency.rate,
+    saleAmount: item.saleAmount * currency.rate,
+  }));
+
+  newData.currency = currency;
 
   //////////////////////////////// GENERATE BILL //////////////////////////////////
 
@@ -88,6 +105,7 @@ export const createBuy = catchAsync(async (data) => {
     income: newData.income,
     costTital: costTital._id,
     amount: newData.transportCost,
+    currency: newData.currency,
     createBy: "buy",
     details: `مصارف از درک ترانسپورت  خرید  با بل نمبر ${newData.billNumber} صورت گرفته.`,
   };
@@ -221,6 +239,22 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
     image: currentData.image,
   };
 
+  const currency = await Currency.findById(myNewData.currency);
+
+  myNewData.totalAmount = myNewData.totalAmount * currency.rate;
+  myNewData.transportCost = myNewData.transportCost * currency.rate;
+  myNewData.cashAmount = myNewData.cashAmount * currency.rate;
+  myNewData.borrowAmount = myNewData.borrowAmount * currency.rate;
+
+  myNewData.items = myNewData.items.map((item) => ({
+    ...item,
+    unitAmount: item.unitAmount * currency.rate,
+    aveUnitAmount: item.aveUnitAmount * currency.rate,
+    saleAmount: item.saleAmount * currency.rate,
+  }));
+
+  myNewData.currency = currency;
+
   const company = await Account.findById(myNewData.income, {
     balance: 1,
   });
@@ -288,7 +322,7 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
 
   ////////////////////////////////////////////////////    ADD NEW iTEMS /////////////////////////////////////////////
 
-  for (const item of newData.items) {
+  for (const item of myNewData.items) {
     const up = await Items.findOne({
       depot: item.depot,
       product: item.product,
@@ -320,6 +354,7 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
   ////////////////////////////////////////////// CREATE COST ////////////////////////////////////////////
   await Cost.findByIdAndUpdate(currentData.cost, {
     amount: newData.transportCost,
+    currency: newData.currency,
   });
 
   ////////////////////////////////////////////////// CALCULATE ACOUNTS ////////////////////////////////

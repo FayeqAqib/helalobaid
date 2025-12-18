@@ -8,7 +8,14 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import React from "react";
 
-export const ShowCard = ({ tital, count, amount, cent = 1, chart = "" }) => {
+export const ShowCard = ({
+  tital,
+  count,
+  amount,
+  cent = 1,
+  chart = "",
+  code,
+}) => {
   return (
     <Card className={"p-3 shadow-lg flex gap-1  w-full max-w-lg  "}>
       <CardHeader
@@ -27,7 +34,7 @@ export const ShowCard = ({ tital, count, amount, cent = 1, chart = "" }) => {
       >
         <div className="flex flex-col gap-2 m-x-1 mt-3">
           <CardTitle className={"text-xl font-bold"}>
-            {formatCurrency(amount || 0)}
+            {formatCurrency(amount || 0, code)}
           </CardTitle>
           {cent != 1 && (
             <CardDescription className={"flex flex-row text-xs gap-2"}>

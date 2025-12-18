@@ -126,7 +126,23 @@ export const columns = [
       <div className="lowercase">{row.getValue("buyer")?.name}</div>
     ),
   },
-
+  {
+    accessorKey: "currency",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          واحد پولی
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("currency")?.name}</div>
+    ),
+  },
   {
     accessorKey: "totalAmount",
     header: ({ column }) => {
@@ -142,14 +158,15 @@ export const columns = [
     },
     cell: ({ row }) => {
       const totalAmount = parseFloat(row.getValue("totalAmount"));
-
+      const currency = row.getValue("currency");
       return (
         <div className="text-right font-medium">
-          {formatCurrency(totalAmount)}
+          {formatCurrency(totalAmount / currency?.rate, currency?.code)}
         </div>
       );
     },
   },
+
   {
     accessorKey: "cashAmount",
     header: ({ column }) => {
@@ -165,10 +182,10 @@ export const columns = [
     },
     cell: ({ row }) => {
       const cashAmount = parseFloat(row.getValue("cashAmount"));
-
+      const currency = row.getValue("currency");
       return (
         <div className="text-right font-medium">
-          {formatCurrency(cashAmount)}
+          {formatCurrency(cashAmount / currency?.rate, currency?.code)}
         </div>
       );
     },
@@ -188,10 +205,10 @@ export const columns = [
     },
     cell: ({ row }) => {
       const lendAmount = parseFloat(row.getValue("lendAmount"));
-
+      const currency = row.getValue("currency");
       return (
         <div className="text-right font-medium">
-          {formatCurrency(lendAmount)}
+          {formatCurrency(lendAmount / currency?.rate, currency?.code)}
         </div>
       );
     },
@@ -211,10 +228,10 @@ export const columns = [
     },
     cell: ({ row }) => {
       const totalProfit = parseFloat(row.getValue("totalProfit"));
-
+      const currency = row.getValue("currency");
       return (
         <div className="text-right font-medium">
-          {formatCurrency(totalProfit)}
+          {formatCurrency(totalProfit / currency?.rate, currency?.code)}
         </div>
       );
     },

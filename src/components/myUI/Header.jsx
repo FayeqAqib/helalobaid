@@ -1,25 +1,13 @@
-"use client";
-import React, { useEffect, useState } from "react";
+// "use client";
+import React from "react";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
-import { RangeDatePickerWithPresets } from "./rangeDatePacker";
 
 const Header = ({ width }) => {
   const { setTheme } = useTheme();
-
-  const [date, setDate] = useState([new Date(), new Date()]);
-  const router = useRouter();
-  const path = usePathname();
-
-  useEffect(() => {
-    if (date.toString().split(",")[1]) {
-      router.push(`${path}?date=${date}`);
-    }
-  }, [date]);
   return (
     <header
       className={cn(
@@ -28,9 +16,7 @@ const Header = ({ width }) => {
       )}
     >
       <SidebarTrigger />
-      {path === "/customer/home" && (
-        <RangeDatePickerWithPresets date={date} onDate={setDate} />
-      )}
+
       <Button
         variant="outline"
         size="icon"

@@ -47,6 +47,7 @@ const schemaA = z.object({
     .min(0, "مقدار پول الزامی است")
     .default(0),
   transportCost: z.number().min(0, "مقدار پول الزامی است").default(0),
+  currency: z.string({ required_error: " الزامی میباشد" }),
 
   image: z
     .any()
@@ -95,8 +96,13 @@ export function BuyModal({
         ? {
             ...data,
             date: new Date(data.date),
+            currency: data.currency?.name + "_" + data?.currency?._id,
             saller: data.saller.name + "_" + data.saller._id,
             income: data.income.name + "_" + data.income._id,
+            totalAmount: data.totalAmount / data.currency?.rate,
+            cashAmount: data.cashAmount / data.currency?.rate,
+            borrowAmount: data.borrowAmount / data.currency?.rate,
+            transportCost: data.transportCost / data.currency?.rate,
           }
         : {},
   });
@@ -107,6 +113,7 @@ export function BuyModal({
   function handleAddToList(data) {
     const myData = {
       ...data,
+
       product: {
         name: data.product.split("_")[0],
         _id: data.product.split("_")[1],
@@ -138,6 +145,7 @@ export function BuyModal({
     const myNewData = {
       ...newData,
       saller: newData.saller.split("_")[1],
+      currency: newData.currency.split("_")[1],
       income: newData.income.split("_")[1],
       image: newData.image?.[0] || "",
       items: buyLists,
@@ -196,7 +204,6 @@ export function BuyModal({
   // const finalPrice = formA.watch("finalPrice") || 0;
   const cashAmount = formA.watch("cashAmount") || 0;
   const transportCost = formA.watch("transportCost") || 0;
-
   ////////////////////////////////// CALCULATE TOTAL FROM LIST ///////////////////////////////////
   const total = useMemo(
     () => buyList.reduce((acc, item) => acc + item.count * item.unitAmount, 0),
@@ -244,6 +251,9 @@ export function BuyModal({
             name: item?.depot?.name,
             _id: item?.depot?._id,
           },
+          unitAmount: item.unitAmount / data.currency?.rate,
+          aveUnitAmount: item.aveUnitAmount / data.currency?.rate,
+          saleAmount: item.saleAmount / data.currency?.rate,
           id: item.id,
         };
       });
@@ -428,7 +438,11 @@ export function BuyModal({
             </div>
           </form>
         </Form>
-        <ModalTable data={buyList} onDelete={handleDeleteItem} />
+        <ModalTable
+          data={buyList}
+          onDelete={handleDeleteItem}
+          currency={type === "update" ? data.currency?.rate : 1}
+        />
         <Form key={open.toString()} {...formA}>
           <form onSubmit={formA.handleSubmit(submiteForm)} className="w-ful  ">
             <div className="flex flex-col gap-3 mb-3">
@@ -486,8 +500,9 @@ export function BuyModal({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
-
+                />{" "}
+              </div>
+              <div className=" flex flex-row gap-4">
                 <FormField
                   control={formA.control}
                   name="borrowAmount"
@@ -507,8 +522,7 @@ export function BuyModal({
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className=" flex flex-row gap-4">
+
                 <FormField
                   control={formA.control}
                   name="transportCost"
@@ -545,7 +559,25 @@ export function BuyModal({
                     </FormItem>
                   )}
                 />
-
+              </div>
+              <div className=" flex flex-row gap-4">
+                {" "}
+                <FormField
+                  control={formA.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel>واحد پول</FormLabel>
+                      <AutoCompleteV2
+                        value={field.value}
+                        onChange={field.onChange}
+                        dataType="currency"
+                        label=" واحد پولی را انتخاب کنید.."
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={formA.control}
                   name="income"
@@ -564,7 +596,6 @@ export function BuyModal({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={formA.control}
                   name="image"

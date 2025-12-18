@@ -135,15 +135,31 @@ export const columns = [
     },
     cell: ({ row }) => {
       const unitAmount = parseFloat(row.getValue("unitAmount"));
-
-      // Format the amount as a dollar amount
+      const currency = row.getValue("currency");
 
       return (
         <div className="text-right font-medium">
-          {formatCurrency(unitAmount)}
+          {formatCurrency(unitAmount / currency?.rate, currency?.code)}
         </div>
       );
     },
+  },
+  {
+    accessorKey: "currency",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          واحد پولی
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="lowercase">{row.getValue("currency")?.name}</div>
+    ),
   },
 
   {

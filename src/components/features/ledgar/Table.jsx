@@ -34,180 +34,12 @@ import { DatePickerWithPresets } from "@/components/myUI/datePacker";
 import { usePathname, useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { useReactToPrint } from "react-to-print";
+import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 
-export const columns = [
-  {
-    accessorKey: "date",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          تاریخ
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="capitalize">{row.getValue("date")}</div>,
-  },
-  {
-    accessorKey: "buyCashAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          خرید نقد
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const buyCashAmount = parseFloat(row.getValue("buyCashAmount"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(buyCashAmount)}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "saleCashAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          فروش نقد
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const saleCashAmount = parseFloat(row.getValue("saleCashAmount"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(saleCashAmount)}
-        </div>
-      );
-    },
-  },
-
-  {
-    accessorKey: "buyBorrowAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          خرید قرض
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const buyBorrowAmount = parseFloat(row.getValue("buyBorrowAmount"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(buyBorrowAmount)}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "saleLendAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          فروش قرض
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const saleLendAmount = parseFloat(row.getValue("saleLendAmount"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(saleLendAmount)}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "payAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          پرداخت قرض
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const payAmount = parseFloat(row.getValue("payAmount"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(payAmount)}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "receiveAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          دربافت قرض
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const receiveAmount = parseFloat(row.getValue("receiveAmount"));
-
-      // Format the buy as a dollar buy
-
-      return (
-        <div className="text-right font-medium">
-          {formatCurrency(receiveAmount)}
-        </div>
-      );
-    },
-  },
-];
-
-export function DataTableLedger({ data, metuBalance }) {
+export function DataTableLedger({ data, metuBalance, currency }) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState({ currency: false });
   const router = useRouter();
   const pathname = usePathname();
 
@@ -231,6 +63,195 @@ export function DataTableLedger({ data, metuBalance }) {
   //  useEffect(() => {
   //     setFilter();
   //   }, [sorting ,getPaginationRowModel().pagination.pageIndex]);
+
+  const columns = [
+    {
+      accessorKey: "date",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            تاریخ
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("date")}</div>
+      ),
+    },
+    {
+      accessorKey: "buyCashAmount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            خرید نقد
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const buyCashAmount = parseFloat(row.getValue("buyCashAmount"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {formatCurrency(buyCashAmount, currency.code)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "saleCashAmount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            فروش نقد
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const saleCashAmount = parseFloat(row.getValue("saleCashAmount"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {formatCurrency(saleCashAmount, currency.code)}
+          </div>
+        );
+      },
+    },
+
+    {
+      accessorKey: "buyBorrowAmount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            خرید قرض
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const buyBorrowAmount = parseFloat(row.getValue("buyBorrowAmount"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {formatCurrency(buyBorrowAmount, currency.code)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "saleLendAmount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            فروش قرض
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const saleLendAmount = parseFloat(row.getValue("saleLendAmount"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {formatCurrency(saleLendAmount, currency.code)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "payAmount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            پرداخت قرض
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const payAmount = parseFloat(row.getValue("payAmount"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {formatCurrency(payAmount, currency.code)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "receiveAmount",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            دربافت قرض
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const receiveAmount = parseFloat(row.getValue("receiveAmount"));
+
+        // Format the buy as a dollar buy
+
+        return (
+          <div className="text-right font-medium">
+            {formatCurrency(receiveAmount, currency.code)}
+          </div>
+        );
+      },
+    },
+
+    {
+      accessorKey: "currency",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            واحد پولی
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue("currency")?.name}</div>
+      ),
+    },
+  ];
 
   const table = useReactTable({
     data,
@@ -265,6 +286,16 @@ export function DataTableLedger({ data, metuBalance }) {
             onDate={(event) => table.getColumn("date")?.setFilterValue(event)}
             onlyMonthPicker={true}
           />
+
+          <AutoCompleteV2
+            value={table.getColumn("currency")?.getFilterValue() ?? ""}
+            onChange={(event) =>
+              table.getColumn("currency")?.setFilterValue(event)
+            }
+            dataType="currency"
+            label=" واحد پولی را انتخاب کنید.."
+          />
+
           <Button onClick={() => setFilter()}>جستجو</Button>
         </div>
         <div className="flex gap-4">
@@ -298,7 +329,7 @@ export function DataTableLedger({ data, metuBalance }) {
 
           <Button variant={"outline"}>
             <span> موجودی :</span>
-            {formatCurrency(metuBalance)}
+            {formatCurrency(metuBalance / currency.rate, currency.code)}
           </Button>
         </div>
       </div>
@@ -376,7 +407,8 @@ export function DataTableLedger({ data, metuBalance }) {
                             (sum, row) =>
                               sum + (parseFloat(row.getValue(footer.id)) || 0),
                             0
-                          )
+                          ),
+                        currency.code
                       )
                     : "مجموع"}
                 </TableCell>
