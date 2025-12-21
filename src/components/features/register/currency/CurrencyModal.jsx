@@ -36,6 +36,7 @@ import {
   createCurrencyAction,
   updateCurrencyAction,
 } from "@/actions/currencyAction";
+import { CardTitle } from "@/components/ui/card";
 
 const schema = z.object({
   name: z.string({ required_error: '" ذکر نام محصول الزامی است "' }),
@@ -106,8 +107,11 @@ export function CurrencyModal({
             لطف نموده در درج اطلاعات دقت نمایید.
           </DialogDescription>
         </DialogHeader>
+        <CardTitle>
+          لطفا برای استفاده از مولتی کرنسی سیستم خود ره آپ گرید کنید.
+        </CardTitle>
 
-        <Form {...form}>
+        {/* <Form {...form}>
           <form
             onSubmit={form.handleSubmit(submiteForm)}
             className=" space-y-6"
@@ -183,7 +187,7 @@ export function CurrencyModal({
               </Button>
             </div>
           </form>
-        </Form>
+        </Form> */}
       </DialogContent>
     </Dialog>
   );
