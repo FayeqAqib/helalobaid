@@ -25,12 +25,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { toast } from "sonner";
 
-import { useState, useTransition } from "react";
-import { SwitchDemo } from "@/components/myUI/Switch";
+import { useTransition } from "react";
+
 import { Loader2Icon } from "lucide-react";
-import createProductAction, {
-  updateProductAction,
-} from "@/actions/productAction";
+
 import { cleanSymbols } from "@/lib/utils";
 import {
   createCurrencyAction,
@@ -107,11 +105,11 @@ export function CurrencyModal({
             لطف نموده در درج اطلاعات دقت نمایید.
           </DialogDescription>
         </DialogHeader>
-        <CardTitle>
+        {/* <CardTitle>
           لطفا برای استفاده از مولتی کرنسی سیستم خود ره آپ گرید کنید.
-        </CardTitle>
+        </CardTitle> */}
 
-        {/* <Form {...form}>
+        <Form {...form}>
           <form
             onSubmit={form.handleSubmit(submiteForm)}
             className=" space-y-6"
@@ -187,7 +185,7 @@ export function CurrencyModal({
               </Button>
             </div>
           </form>
-        </Form> */}
+        </Form>
       </DialogContent>
     </Dialog>
   );
