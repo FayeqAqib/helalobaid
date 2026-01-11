@@ -49,7 +49,7 @@ const saleSchema = new mongoose.Schema({
       },
       count: {
         type: Number,
-        min: [1, "تعداد باید بزرگتر از 0 باشد"],
+        min: [0, "تعداد باید بزرگتر از 0 باشد"],
         required: true,
       },
       aveUnitAmount: {

@@ -76,7 +76,7 @@ const schemaB = z.object({
   product: z.string({ required_error: "مشخص بودن جنس الزامی می‌باشد" }),
   count: z
     .number({ invalid_type_error: " تعداد جنس الزامی می باشد" })
-    .min(1, "حد اقل یک دانه")
+    .min(0, "حد اقل یک دانه")
     .default(1),
   unit: z.string({ required_error: "مشخص بودن واحد جنس الزامی می‌باشد" }),
   aveUnitAmount: z

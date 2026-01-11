@@ -70,7 +70,7 @@ const schemaB = z.object({
   unit: z.string({ required_error: "مشخص بودن واحد جنس الزامی می‌باشد" }),
   count: z
     .number({ invalid_type_error: " تعداد جنس الزامی می باشد" })
-    .min(1, "یک یا بزرگتر  قابل قبول است"),
+    .min(0, "یک یا بزرگتر  قابل قبول است"),
   unitAmount: z
     .number({ invalid_type_error: "مقدار پول الزامی می باشد" })
     .min(0, "مقدار پول باید بزرگتر از صفر باشد است"),

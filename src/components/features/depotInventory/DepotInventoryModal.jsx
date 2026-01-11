@@ -41,7 +41,7 @@ const schema = z.object({
   product: z.string({ required_error: "مشخص بودن جنس الزامی می‌باشد" }),
   count: z
     .number({ invalid_type_error: " تعداد جنس الزامی می باشد" })
-    .min(1, "مقدار پول الزامی است")
+    .min(0, "مقدار پول الزامی است")
     .default(1),
   unit: z.string({ required_error: "مشخص بودن واحد جنس الزامی می‌باشد" }),
   unitAmount: z

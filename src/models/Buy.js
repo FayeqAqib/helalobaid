@@ -49,7 +49,7 @@ const buySchema = new mongoose.Schema(
         count: {
           type: Number,
           required: true,
-          min: [1, "مقدار رسید باید 1 یا یک عدد مثبت باشد"],
+          min: [0, "مقدار رسید باید 1 یا یک عدد مثبت باشد"],
         },
         unit: {
           type: mongoose.Schema.Types.ObjectId,
