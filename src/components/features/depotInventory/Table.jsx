@@ -51,6 +51,8 @@ import { DetailsModal } from "@/components/myUI/DetailsModal";
 import { DepotInventoryModal } from "./DepotInventoryModal";
 import { useReactToPrint } from "react-to-print";
 import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
+import { useInventory } from "./context";
+import { AutoCompleteV3 } from "@/components/myUI/NewComboBox";
 
 export const columns = [
   {
@@ -301,6 +303,8 @@ export function DataTableDepotInventory({ data, count }) {
   const prientRef = useRef();
   const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
 
+  const { product } = useInventory();
+
   function setFilter() {
     router.push(
       `${pathname}?${
@@ -353,13 +357,13 @@ export function DataTableDepotInventory({ data, count }) {
     <div className="w-full" ref={prientRef}>
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-4">
-          <AutoCompleteV2
+          <AutoCompleteV3
             value={table.getColumn("product")?.getFilterValue() ?? ""}
             onChange={(value) =>
               table.getColumn("product")?.setFilterValue(value)
             }
             label="جستجو بر اساس محصول"
-            dataType={"product"}
+            data={product}
           />
 
           <RangeDatePickerWithPresets

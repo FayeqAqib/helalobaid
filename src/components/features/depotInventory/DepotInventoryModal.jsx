@@ -32,6 +32,8 @@ import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 import createDepotItemsAction, {
   updateDepotItemsAction,
 } from "@/actions/depotItemsAction";
+import { useInventory } from "./context";
+import { AutoCompleteV3 } from "@/components/myUI/NewComboBox";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -73,6 +75,9 @@ export function DepotInventoryModal({
 }) {
   const [dateType, setDateType] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  const { depot, product, unit, currency } = useInventory();
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues:
@@ -89,6 +94,7 @@ export function DepotInventoryModal({
           }
         : {},
   });
+
   function submiteForm(newData) {
     const myNewData = {
       ...newData,
@@ -202,10 +208,10 @@ export function DepotInventoryModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>محصول</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         value={field.value}
                         onChange={field.onChange}
-                        dataType="product"
+                        data={product}
                         label=" محصول را انتخاب کنید.."
                       />
                       <FormMessage />
@@ -220,10 +226,10 @@ export function DepotInventoryModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>واحد</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         value={field.value}
                         onChange={field.onChange}
-                        dataType="unit"
+                        data={unit}
                         label="واحد را انتخاب کنید.."
                       />
                       <FormMessage />
@@ -295,10 +301,10 @@ export function DepotInventoryModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>واحد پول</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         value={field.value}
                         onChange={field.onChange}
-                        dataType="currency"
+                        data={currency}
                         label=" واحد پولی را انتخاب کنید.."
                       />
                       <FormMessage />
@@ -311,10 +317,10 @@ export function DepotInventoryModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>گدام</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         value={field.value}
                         onChange={field.onChange}
-                        dataType="depot"
+                        data={depot}
                         label=" گدام را انتخاب کنید.."
                       />
                       <FormMessage />

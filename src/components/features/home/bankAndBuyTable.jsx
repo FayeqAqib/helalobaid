@@ -33,7 +33,6 @@ import { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 
 export function DataTableBankAndBuy({ data, count, currency }) {
-  console.log(data, "fayeq");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});

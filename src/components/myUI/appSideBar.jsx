@@ -5,6 +5,7 @@ import {
   BanknoteArrowDown,
   BanknoteArrowUp,
   BanknoteX,
+  BookA,
   BookUp,
   BookUp2,
   Boxes,
@@ -22,6 +23,7 @@ import {
   ShoppingBasket,
   ShoppingCart,
 } from "lucide-react";
+import { HiBookmarkSlash, HiBookOpen } from "react-icons/hi2";
 
 const list = [
   {
@@ -118,14 +120,25 @@ const list = [
     ],
   },
   {
-    title: "گزارشات مختصر",
-    url: "/customer/abridgedReportage",
-    icon: <BookUp />,
-  },
-  {
-    title: "گزارشات مفصل ",
-    url: "/customer/executtiveReportage",
-    icon: <BookUp2 />,
+    title: "گزارشات",
+    icon: <HiBookOpen size={26} />,
+    child: [
+      {
+        title: "گزارش مختصر",
+        url: "/customer/abridgedReportage",
+        icon: <BookUp />,
+      },
+      {
+        title: "گزارش مفصل ",
+        url: "/customer/executtiveReportage",
+        icon: <BookUp2 />,
+      },
+      {
+        title: "بیلانس شیت ",
+        url: "/customer/financial",
+        icon: <BookA />,
+      },
+    ],
   },
 ];
 

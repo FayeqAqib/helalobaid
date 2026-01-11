@@ -68,7 +68,6 @@ export const getaccountAlltransactions = catchAsync(async (filter) => {
     myFilter["currency._id"] = filter.currency.split("_")[1];
   }
 
-  console.log(myFilter, filter);
   const transactions = await Sale.aggregate([
     { $match: { ...(name ? { buyer: create_id(name) } : {}), ...myFilter } }, // فیلتر اولیه برای Sale
     {
@@ -239,7 +238,6 @@ export const getaccountAlltransactions = catchAsync(async (filter) => {
     },
   ]);
 
-  console.log(transactions);
   return {
     result: transactions[0].data,
     account,
@@ -526,8 +524,6 @@ export async function getAllTransferMoneySeller({ date = "", currency }) {
     .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
     .endOf("day")
     .toDate();
-
-  console.log(currency, "currency");
 
   const aggregateData = async (model, sumField, group) => {
     return model.aggregate([

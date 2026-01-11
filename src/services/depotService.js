@@ -1,7 +1,10 @@
 import APIFeatures from "@/lib/apiFeatues";
 import { catchAsync } from "@/lib/catchAsync";
 import { uploadImage } from "@/lib/uploadImage";
+import { Buy } from "@/models/Buy";
 import { Depot } from "@/models/depot";
+import { DepotItems } from "@/models/depotItems";
+import { Sale } from "@/models/Sale";
 
 //////////////////////////// CREATE ///////////////////////////////////////
 export const createDepot = catchAsync(async (data) => {
@@ -58,6 +61,15 @@ export const updateDepot = catchAsync(async (data) => {
 
 ////////////////////////////DELETE ////////////////////////////
 export const deleteDepot = catchAsync(async (_id) => {
+  const buy = Buy.findOne({ "items.depot": _id }, { _id: 1 });
+  const sale = Sale.findOne({ "items.depot": _id }, { _id: 1 });
+  const depot = DepotItems.findOne({ depot: _id }, { _id: 1 });
+
+  if (buy || sale || depot) {
+    return {
+      message: "حدف گدام ممکن نیست جون این گدام در معامله ای در سیستم درج شده",
+    };
+  }
   const result = await Depot.findByIdAndDelete(_id);
   return result;
 });

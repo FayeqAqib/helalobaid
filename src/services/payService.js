@@ -4,6 +4,7 @@ import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
 import { Currency } from "@/models/Currency";
+import { FinancialAccount } from "@/models/FinancialAccount";
 import { Pay } from "@/models/pay";
 
 export const createPay = catchAsync(async (data) => {
@@ -39,6 +40,24 @@ export const createPay = catchAsync(async (data) => {
         "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
     };
   }
+
+  const saller2 = await Account.findByIdAndUpdate(
+    newData.type,
+    {
+      $inc: { borrow: -Number(newData.amount) },
+    },
+    { new: true }
+  );
+
+  const { _id } = await FinancialAccount.create({
+    name: newData.type,
+    credit: newData.amount,
+    debit: 0,
+    balance: saller2.borrow - saller2.lend,
+  });
+
+  newData.financial = _id;
+
   const result = await Pay.create(newData);
 
   if (result?._id) {
@@ -50,7 +69,7 @@ export const createPay = catchAsync(async (data) => {
         lend: -Number(newData.amount),
       },
     });
-
+  } else {
     await Account.findByIdAndUpdate(newData.type, {
       $inc: { borrow: -Number(newData.amount) },
     });
@@ -78,8 +97,10 @@ export const getAllPay = catchAsync(async (filter) => {
 });
 
 //////////////////////////////////////// DELETE //////////////////////////////////////////////
+
 export const deletePay = catchAsync(async (data) => {
   const result = await Pay.findByIdAndDelete(data._id);
+  await FinancialAccount.findByIdAndDelete(data.financial);
   await deleteFile(data.image);
 
   if (result?._id) {
@@ -107,6 +128,8 @@ export const updatePay = catchAsync(async ({ currentData, newData }) => {
     _id: 0,
   });
 
+  ///////////////////////////////////////// CHENGE CURRENCY ////////////////////////////////////////////////
+
   const currency = await Currency.findById(myNewData.currency);
 
   myNewData.amount = myNewData.amount * currency.rate;
@@ -121,27 +144,65 @@ export const updatePay = catchAsync(async ({ currentData, newData }) => {
       } می باشد`,
     };
 
+  //////////////////////////////////////////////////////// UPDATE TYPE:SALLER //////////////////////////////
+
   if (currentData.type !== myNewData.type) {
     if (newSaller.borrow < myNewData.amount)
       return {
         message: ` پرداخت بیشر از قرض مشتری است لطفا در پرداخت خود بازنگری نمایید در حساب  قرض مشتری   ${newSaller.borrow} می باشد`,
       };
 
-    await Account.findByIdAndUpdate(myNewData.type, {
-      $inc: { borrow: -Number(myNewData.amount) },
-    });
+    const type2 = await Account.findByIdAndUpdate(
+      myNewData.type,
+      {
+        $inc: { borrow: -Number(myNewData.amount) },
+      },
+      { new: true }
+    );
     await Account.findByIdAndUpdate(currentData.type, {
       $inc: { borrow: +Number(currentData.amount) },
     });
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        date: new Date(),
+        name: myNewData.type,
+        credit: myNewData.amount,
+        debit: 0,
+        balance: type2.borrow - type2.lend,
+      }
+    );
+
+    myNewData.financial = _id;
   } else {
     await Account.findByIdAndUpdate(myNewData.type, {
       $inc: {
         borrow: -(Number(myNewData.amount) - Number(currentData.amount)),
       },
     });
+
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        $set: {
+          name: myNewData.type,
+          credit: myNewData.amount,
+          debit: 0,
+        },
+        $inc: {
+          balance: myNewData.amount - currentData.amount,
+        },
+      }
+    );
+
+    myNewData.financial = _id;
   }
 
+  ////////////////////////////////////////////////// UPDATE PAY ////////////////////////////////////////////
+
   const result = await Pay.findByIdAndUpdate(currentData._id, myNewData);
+
+  //////////////////////////////////////// UPDATE ACCOUNT /////////////////////////////////////////////////
 
   if (result?._id) {
     await Account.findByIdAndUpdate(currentData.income, {

@@ -31,6 +31,7 @@ const receiveSchema = new mongoose.Schema({
     code: String,
     rate: Number,
   },
+  financial: String,
   image: String,
   details: {
     type: String,

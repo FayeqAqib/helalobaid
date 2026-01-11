@@ -41,19 +41,21 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
 import { SaleModal } from "./SaleModal";
-import { DatePickerWithPresets } from "@/components/myUI/datePacker";
 import { usePathname, useRouter } from "next/navigation";
 import ConfirmDelete from "./ConfirmDelete";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 
-import { formatCurrency, formatNumber, handlePrintReceipt } from "@/lib/utils";
+import { formatCurrency, handlePrintReceipt } from "@/lib/utils";
 import moment from "moment-jalaali";
 import { RangeDatePickerWithPresets } from "@/components/myUI/rangeDatePacker";
-import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
+
 import { SelectInput } from "@/components/myUI/select";
 import { DetailsModal } from "@/components/myUI/DetailsModal";
 import { HiEye } from "react-icons/hi2";
 import { useReactToPrint } from "react-to-print";
+
+import { AutoCompleteV3 } from "@/components/myUI/NewComboBox";
+import { useSale } from "./context";
 
 export const columns = [
   {
@@ -343,6 +345,7 @@ export function DataTableSale({ data, count }) {
   const prientRef = useRef();
   const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
 
+  const { buyer } = useSale();
   function setFilter() {
     router.push(
       `${pathname}?${
@@ -396,12 +399,12 @@ export function DataTableSale({ data, count }) {
     <div className="w-full" ref={prientRef}>
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex gap-2 gap-y-4 flex-wrap">
-          <AutoCompleteV2
+          <AutoCompleteV3
             value={table.getColumn("buyer")?.getFilterValue() ?? ""}
             onChange={(value) =>
               table.getColumn("buyer")?.setFilterValue(value)
             }
-            type={"buyer"}
+            data={buyer}
           />
           <RangeDatePickerWithPresets
             date={table.getColumn("date")?.getFilterValue() ?? ""}

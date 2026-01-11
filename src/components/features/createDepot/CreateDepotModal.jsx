@@ -22,12 +22,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import createcostAction, { updateCostAction } from "@/actions/costAction";
 import { toast } from "sonner";
 import { useState, useTransition } from "react";
 import { Loader2Icon } from "lucide-react";
 import { SwitchDemo } from "@/components/myUI/Switch";
 import createDepotAction, { updateDepotAction } from "@/actions/depotAction";
+import { cleanSymbols } from "@/lib/utils";
 
 const schema = z.object({
   date: z.date({ required_error: "تاریخ الزامی میباشد" }).default(new Date()),
@@ -72,6 +72,7 @@ export function CreateDepotModal({
   function submiteForm(newData) {
     const myNewData = {
       ...newData,
+      name: cleanSymbols(newData.name),
       image: newData.image?.[0],
     };
     startTransition(async () => {

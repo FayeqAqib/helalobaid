@@ -11,6 +11,7 @@ import { Cost } from "@/models/cost";
 import { CostTital } from "@/models/constTital";
 import { Items } from "@/models/items";
 import { Currency } from "@/models/Currency";
+import { FinancialAccount } from "@/models/FinancialAccount";
 
 ////////////////////////////////////////////////// create ////////////////////////////////////////////////
 
@@ -115,11 +116,28 @@ export const createBuy = catchAsync(async (data) => {
     cost = await Cost.create(costData);
   }
 
-  ////////////////////////////////////// CREATE BUY //////////////////////////////////////////////////////////////////////
-
   if (newData.transportCost > 0) {
     newData.cost = cost._id;
   }
+
+  ////////////////////////////////////// CREATE BUY //////////////////////////////////////////////////////////////////////
+  const saller = await Account.findByIdAndUpdate(
+    newData.saller,
+    {
+      $inc: { borrow: newData.borrowAmount },
+    },
+    { new: true }
+  );
+
+  const { _id } = await FinancialAccount.create({
+    name: newData.saller,
+    debit: newData.borrowAmount,
+    credit: 0,
+    balance: saller.borrow - saller.lend,
+  });
+
+  newData.financial = _id;
+
   newData.totalCount = newData.items.reduce((acc, item) => item.count + acc, 0);
   const result = await Buy.create(newData);
   /////////////////////////////////////////////////// UPDATE ACCOUNT DATA /////////////////////////////////////////////////
@@ -130,9 +148,9 @@ export const createBuy = catchAsync(async (data) => {
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
       $inc: { lend: newData.borrowAmount },
     });
-
+  } else {
     await Account.findByIdAndUpdate(newData.saller, {
-      $inc: { borrow: newData.borrowAmount },
+      $inc: { borrow: -newData.borrowAmount },
     });
   }
   return result;
@@ -162,17 +180,6 @@ export const getAllbuy = catchAsync(async (filter) => {
 // ////////////////////////////////////////////////// DELETE  ////////////////////////////////////////////////
 
 export const deleteBuy = catchAsync(async (data) => {
-  const company = await Account.findById(data.income, {
-    balance: 1,
-  });
-  const company_id = await Account.findById(process.env.COMPANY_ID, {
-    lend: 1,
-  });
-
-  const saller = await Account.findById(data.saller._id, {
-    borrow: 1,
-  });
-
   ////////////////////////////////////////////// DELETE ITEMS ////////////////////////////////////////////////////
   for (const item of data.items) {
     const up = await Items.findOne({
@@ -203,6 +210,10 @@ export const deleteBuy = catchAsync(async (data) => {
   const result = await Buy.findByIdAndDelete(data._id);
   await deleteFile(data.image);
 
+  //////////////////////////////////////////// DELETE FINANCIAL ///////////////////////////////////////
+
+  await FinancialAccount.findByIdAndDelete(data.financial);
+
   //////////////////////////////////////////// DELETE COST ///////////////////////////////////////
 
   await Cost.findByIdAndDelete(data.cost);
@@ -210,23 +221,15 @@ export const deleteBuy = catchAsync(async (data) => {
   /////////////////////////////////////////// UPDATE ACCOUNT ///////////////////////////////////////
 
   if (result?._id) {
-    const newCompanyData = {
-      balance:
-        Number(company.balance) +
-        Number(data.cashAmount) +
-        Number(data.transportCost),
-    };
-    const newCompany_idData = {
-      lend: Number(company_id.lend) - Number(data.borrowAmount),
-    };
-    await Account.findByIdAndUpdate(data.income, newCompanyData);
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
-    if (data.borrowAmount >= 1) {
-      const newSallerData = {
-        borrow: Number(saller.borrow) - Number(data.borrowAmount),
-      };
-      await Account.findByIdAndUpdate(data.saller, newSallerData);
-    }
+    await Account.findByIdAndUpdate(data.income, {
+      $inc: { balance: data?.cashAmount + data.transportCost },
+    });
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
+      $inc: { lend: -Number(data.borrowAmount) },
+    });
+    await Account.findByIdAndUpdate(data.saller, {
+      $inc: { borrow: -Number(data.borrowAmount) },
+    });
   }
   return result;
 });
@@ -258,9 +261,6 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
   const company = await Account.findById(myNewData.income, {
     balance: 1,
   });
-  const company_id = await Account.findById(process.env.COMPANY_ID, {
-    lend: 1,
-  });
 
   if (company.balance < myNewData.cashAmount - currentData.cashAmount)
     return {
@@ -268,30 +268,50 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
     };
 
   if (currentData.saller !== myNewData.saller) {
-    const newSaller = await Account.findById(myNewData.saller, {
-      borrow: 1,
-      _id: 0,
+    const saller = await Account.findByIdAndUpdate(
+      myNewData.saller,
+      {
+        $inc: { borrow: Number(myNewData.borrowAmount) },
+      },
+      { new: true }
+    );
+    await Account.findByIdAndUpdate(currentData.saller, {
+      $inc: { borrow: -Number(currentData.borrowAmount) },
     });
-    const currentSaller = await Account.findById(currentData.saller, {
-      borrow: 1,
-      _id: 0,
-    });
-    currentSaller.borrow =
-      Number(currentSaller.borrow) - Number(currentData.borrowAmount);
-    newSaller.borrow =
-      Number(newSaller.borrow) + Number(myNewData.borrowAmount);
 
-    await Account.findByIdAndUpdate(myNewData.saller, newSaller);
-    await Account.findByIdAndUpdate(currentData.saller, currentSaller);
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        date: new Date(),
+        name: myNewData.saller,
+        debit: myNewData.borrowAmount,
+        balance: saller.borrow - saller.lend,
+      }
+    );
+    myNewData.financial = _id;
   } else {
-    const saller = await Account.findById(myNewData.saller, {
-      borrow: 1,
-      _id: 0,
+    Account.findByIdAndUpdate(myNewData.saller, {
+      $inc: {
+        borrow: -(
+          Number(currentData.borrowAmount) - Number(myNewData.borrowAmount)
+        ),
+      },
     });
-    saller.borrow =
-      Number(saller.borrow) -
-      (Number(currentData.borrowAmount) - Number(myNewData.borrowAmount));
-    await Account.findByIdAndUpdate(myNewData.saller, saller);
+
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        $set: {
+          name: myNewData.saller,
+          debit: myNewData.borrowAmount,
+          credit: 0,
+        },
+        $inc: {
+          balance: -(myNewData.borrowAmount - currentData.borrowAmount),
+        },
+      }
+    );
+    myNewData.financial = _id;
   }
 
   ////////////////////////////////////////////////////   REMOVE OLD iTEMS /////////////////////////////////////////////
@@ -359,18 +379,20 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
 
   ////////////////////////////////////////////////// CALCULATE ACOUNTS ////////////////////////////////
   if (result?._id) {
-    const newCompanyData = {
-      balance:
-        Number(company.balance) +
-        (Number(currentData.cashAmount) - Number(myNewData.cashAmount)),
-    };
-    const newCompany_idData = {
-      lend:
-        Number(company_id.lend) -
-        (Number(currentData.borrowAmount) - Number(myNewData.borrowAmount)),
-    };
-    await Account.findByIdAndUpdate(myNewData.income, newCompanyData);
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, newCompany_idData);
+    await Account.findByIdAndUpdate(myNewData.income, {
+      $inc: {
+        balance: +(
+          Number(currentData.cashAmount) - Number(myNewData.cashAmount)
+        ),
+      },
+    });
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
+      $inc: {
+        lend: -(
+          Number(currentData.borrowAmount) - Number(myNewData.borrowAmount)
+        ),
+      },
+    });
   }
   return result;
 });

@@ -111,7 +111,7 @@ const buySchema = new mongoose.Schema(
       code: String,
       rate: Number,
     },
-
+    financial: String,
     image: { type: String },
     details: String,
   },

@@ -13,13 +13,23 @@ import { toast } from "sonner";
 const Bill = ({ bill }) => {
   const [isPending, startTransition] = useTransition();
   const [selectedHeaderFile, setSelectedHeaderFile] = useState(null);
-  const [previewHeaderUrl, setPreviewHeaderUrl] = useState(bill?.header);
+  const [previewHeaderUrl, setPreviewHeaderUrl] = useState(
+    `/api/images/upload/buy/header/header.png?${new Date()}`
+  );
   const [selectedFooterFile, setSelectedFooterFile] = useState(null);
-  const [previewFooterUrl, setPreviewFooterUrl] = useState(bill?.footer);
+  const [previewFooterUrl, setPreviewFooterUrl] = useState(
+    `/api/images/upload/buy/footer/footer.png?${new Date()}`
+  );
+  const [selectedLogoFile, setSelectedLogoFile] = useState(null);
+  const [previewLogoUrl, setPreviewLogoUrl] = useState(
+    `/api/images/upload/buy/logo/logo.png?${new Date()}`
+  );
   const [isNewHeader, setIsNewHeader] = useState(false);
   const [isNewFooter, setIsNewFooter] = useState(false);
+  const [isNewLogo, setIsNewLogo] = useState(false);
   const headerRef = useRef();
   const footerRef = useRef();
+  const logo = useRef();
 
   const handleHeaderFileChange = (e) => {
     const file = e.target.files[0];
@@ -33,15 +43,24 @@ const Bill = ({ bill }) => {
     setIsNewFooter(true);
     setPreviewFooterUrl(URL.createObjectURL(file));
   };
+  const handleLogoFileChange = (e) => {
+    const file = e.target.files[0];
+    setSelectedLogoFile(file);
+    setIsNewLogo(true);
+    setPreviewLogoUrl(URL.createObjectURL(file));
+  };
 
   function handleUpdateBill() {
     const formData = new FormData();
     formData.append("header", selectedHeaderFile);
     formData.append("footer", selectedFooterFile);
+    formData.append("logo", selectedLogoFile);
     formData.append("isNewHeader", isNewHeader);
     formData.append("isNewFooter", isNewFooter);
+    formData.append("isNewLogo", isNewLogo);
     formData.append("oldHeader", bill?.header);
     formData.append("oldFooter", bill?.footer);
+    formData.append("oldLogo", bill?.logo);
     formData.append("_id", bill?._id);
 
     startTransition(async () => {
@@ -63,9 +82,27 @@ const Bill = ({ bill }) => {
   }
   return (
     <Card>
-      <CardContent className={"flex flex-col md:flex-row gap-5 flex-1"}>
+      <CardContent className={"flex flex-col lg:flex-row gap-5 flex-1"}>
         <div
-          className=" relative min-h-[200px] min-w-[50%] aspect-video flex-1 overflow-hidden border-2 rounded-2xl"
+          className=" relative min-h-[200px] min-w-1/4 aspect-video flex-1 overflow-hidden border-2 rounded-2xl"
+          onClick={() => logo.current.click()}
+        >
+          <Image
+            src={previewLogoUrl}
+            alt="logo"
+            fill
+            className="object-cover size-full absolute"
+          />
+          <input
+            accept="amage/*"
+            className="hidden"
+            ref={logo}
+            onChange={handleLogoFileChange}
+            type="file"
+          />
+        </div>
+        <div
+          className=" relative min-h-[200px] min-w-1/4 aspect-video flex-1 overflow-hidden border-2 rounded-2xl"
           onClick={() => headerRef.current.click()}
         >
           <Image
@@ -83,7 +120,7 @@ const Bill = ({ bill }) => {
           />
         </div>
         <div
-          className=" relative aspect-video flex-1 overflow-hidden border-2 rounded-2xl"
+          className=" relative aspect-video flex-1 min-w-1/4 overflow-hidden border-2 rounded-2xl"
           onClick={() => footerRef.current.click()}
         >
           <Image
@@ -107,7 +144,7 @@ const Bill = ({ bill }) => {
           onClick={handleUpdateBill}
           disabled={isPending}
         >
-          {isPending ? <Loader2Icon /> : "آپدیت"}
+          {isPending ? <Loader2Icon className="animate-spin" /> : "آپدیت"}
         </Button>
       </CardFooter>
     </Card>

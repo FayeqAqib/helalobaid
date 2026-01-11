@@ -38,6 +38,8 @@ const accountSchema = new mongoose.Schema({
   vendeeLend: { type: Number, default: 0, min: 0 },
   balance: { type: Number, default: 0, min: 0 },
   METUbalance: { type: Number, default: 0, min: 0 },
+  initBalance: { type: Number, default: 0, min: 0 },
+  initBalanceType: { type: String, default: "lend" },
   email: {
     type: String,
     required: false,

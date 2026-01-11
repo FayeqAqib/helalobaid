@@ -53,6 +53,8 @@ import { SelectInput } from "@/components/myUI/select";
 import { DetailsModal } from "@/components/myUI/DetailsModal";
 import { HiEye } from "react-icons/hi2";
 import { useReactToPrint } from "react-to-print";
+import { useBuy } from "./context";
+import { AutoCompleteV3 } from "@/components/myUI/NewComboBox";
 
 export const columns = [
   {
@@ -339,6 +341,7 @@ export function DataTableBuy({ data, count }) {
   const prientRef = useRef();
   const reactToPrintFn = useReactToPrint({ contentRef: prientRef });
 
+  const { saller } = useBuy();
   function setFilter() {
     router.push(
       `${pathname}?${
@@ -391,12 +394,12 @@ export function DataTableBuy({ data, count }) {
     <div className="w-full" ref={prientRef}>
       <div className="flex items-stretch flex-col md:flex-row justify-between py-4 gap-3">
         <div className="flex flex-wrap gap-2">
-          <AutoCompleteV2
+          <AutoCompleteV3
             value={table.getColumn("saller")?.getFilterValue() ?? ""}
             onChange={(value) =>
               table.getColumn("saller")?.setFilterValue(value)
             }
-            type={"saller"}
+            data={saller}
           />
           <RangeDatePickerWithPresets
             date={table.getColumn("date")?.getFilterValue() ?? ""}

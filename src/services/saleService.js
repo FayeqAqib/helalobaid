@@ -5,6 +5,7 @@ import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
 import { Currency } from "@/models/Currency";
+import { FinancialAccount } from "@/models/FinancialAccount";
 import { Items } from "@/models/items";
 import { Sale } from "@/models/Sale";
 import moment from "moment-jalaali";
@@ -46,6 +47,22 @@ export const createSale = catchAsync(async (data) => {
     await Items.findByIdAndUpdate(item._id, { $inc: { count: -item.count } });
   }
 
+  const buyer = await Account.findByIdAndUpdate(
+    newData.buyer,
+    {
+      $inc: { lend: +Number(newData.lendAmount) },
+    },
+    { new: true }
+  );
+  const { _id } = await FinancialAccount.create({
+    name: newData.buyer,
+    credit: newData.lendAmount,
+    debit: 0,
+    balance: buyer.borrow - buyer.lend,
+  });
+
+  newData.financial = _id;
+
   newData.totalCount = newData.items.reduce((acc, item) => item.count + acc, 0);
 
   /////////////////////////////////////////////////// CREATE SALE ///////////////////////////////////////////////////////
@@ -58,9 +75,9 @@ export const createSale = catchAsync(async (data) => {
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
       $inc: { borrow: +Number(newData.lendAmount) },
     });
-
+  } else {
     await Account.findByIdAndUpdate(newData.buyer, {
-      $inc: { lend: +Number(newData.lendAmount) },
+      $inc: { lend: -Number(newData.lendAmount) },
     });
   }
   return result;
@@ -122,6 +139,8 @@ export const deleteSale = catchAsync(async (data) => {
     await Items.findByIdAndUpdate(item._id, { $inc: { count: item.count } });
   }
 
+  await FinancialAccount.findByIdAndDelete(data.financial);
+
   const result = await Sale.findByIdAndDelete(data._id);
   await deleteFile(data.image);
 
@@ -181,41 +200,53 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
     };
 
   if (currentData.buyer !== myNewData.buyer) {
-    const newBuyer = await Account.findById(myNewData.buyer, {
-      lend: 1,
-      _id: 0,
+    const buyer = await Account.findByIdAndUpdate(
+      myNewData.buyer,
+      { $inc: { lend: Number(myNewData.lendAmount || 0) } },
+      { new: true }
+    );
+    await Account.findByIdAndUpdate(currentData.buyer, {
+      $inc: { lend: -Number(currentData.lendAmount || 0) },
     });
-    const currentBuyer = await Account.findById(currentData.buyer, {
-      lend: 1,
-      _id: 0,
-    });
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        date: new Date(),
+        name: myNewData.buyer,
+        debit: myNewData.lendAmount,
+        credit: 0,
+        balance: buyer.borrow - buyer.lend,
+      }
+    );
 
-    const newBuyerData = {
-      lend: Number(newBuyer.lend || 0) + Number(myNewData.lendAmount || 0),
-    };
-
-    const currentBuyerData = {
-      lend:
-        Number(currentBuyer.lend || 0) - Number(currentData.lendAmount || 0),
-    };
-
-    await Account.findByIdAndUpdate(myNewData.buyer, newBuyerData);
-    await Account.findByIdAndUpdate(currentData.buyer, currentBuyerData);
+    myNewData.financial = _id;
   } else {
-    const buyer = await Account.findById(myNewData.buyer, {
-      lend: 1,
-
-      _id: 0,
-    });
-
-    const buyerData = {
-      lend:
-        Number(buyer.lend) -
-        (Number(currentData.lendAmount || 0) -
-          Number(myNewData.lendAmount || 0)),
-    };
-
-    await Account.findByIdAndUpdate(myNewData.buyer, buyerData);
+    await Account.findByIdAndUpdate(
+      myNewData.buyer,
+      {
+        $inc: {
+          lend: -(
+            Number(currentData.lendAmount || 0) -
+            Number(myNewData.lendAmount || 0)
+          ),
+        },
+      },
+      { new: true }
+    );
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        $set: {
+          name: myNewData.buyer,
+          credit: 0,
+          debit: myNewData.lendAmount,
+        },
+        $inc: {
+          balance: myNewData.lendAmount - currentData.lendAmount,
+        },
+      }
+    );
+    myNewData.financial = _id;
   }
 
   //////////////////////////////////  REMOVE OLD VERSION OF ITEMS /////////////////////////////////////

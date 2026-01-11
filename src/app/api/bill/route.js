@@ -119,9 +119,7 @@ page:A4
 </head>
 <body>
   <header>
-   <img src="${
-     headerAndFooter?.header
-   }" alt="هدر شرکت" style="width:100%; max-height:100px; object-fit:contain;" />
+     <img src="/api/images/upload/buy/header/header.png" alt="هدر شرکت" style="width:100%; max-height:100px; object-fit:cover;" />
   </header>
 
   <div class="info">
@@ -180,9 +178,7 @@ page:A4
   </div>
 
   <div class="footer">
-     <img src="${
-       headerAndFooter?.footer
-     }" alt="هدر شرکت" style="width:100%; max-height:100px; object-fit:contain;" />
+     <img src="/api/images/upload/buy/footer/footer.png" alt="هدر شرکت" style="width:100%; max-height:100px; object-fit:cover;" />
   </div>
 
   <script>

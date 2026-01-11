@@ -41,7 +41,7 @@ const schema = z.object({
   address: z.string().optional(),
   email: z.string().optional(),
   details: z.string().optional(),
-  amount: z.number().min(0).optional(),
+  initBalance: z.number().min(0).optional(),
   image: z
     .any()
 
@@ -53,7 +53,7 @@ const schema = z.object({
       "حجم عکس نباید بیشتر از ۲.۵ مگابایت باشد"
     )
     .optional(),
-  amountType: z.enum(["lend", "borrow"]),
+  initBalanceType: z.enum(["lend", "borrow"]),
 });
 
 const accountTypeOptions = [
@@ -93,7 +93,7 @@ export function RegisterModal({
             date: new Date(data.date),
           }
         : {
-            amountType: "lend",
+            initBalanceType: "lend",
           },
   });
 
@@ -101,8 +101,8 @@ export function RegisterModal({
     const newFormData = {
       ...formData,
       name: cleanSymbols(formData.name),
-      lend: formData.amountType === "lend" ? formData.amount : 0,
-      borrow: formData.amountType === "borrow" ? formData.amount : 0,
+      lend: formData.initBalanceType === "lend" ? formData.initBalance : 0,
+      borrow: formData.initBalanceType === "borrow" ? formData.initBalance : 0,
       _id: data._id,
       image: formData.image?.[0],
     };
@@ -120,7 +120,10 @@ export function RegisterModal({
         }
       }
       if (type === "update") {
-        const result = await updateAccountAction(newFormData);
+        const result = await updateAccountAction({
+          data: newFormData,
+          oldData: data,
+        });
 
         if (!result.err) {
           toast.success("حساب شما با موفقیت آپدیت شد");
@@ -205,7 +208,7 @@ export function RegisterModal({
                     <SelectInput
                       disabled={type === "update"}
                       field={field}
-                      className={" w-[200px]"}
+                      fullwidth
                       options={accountTypeOptions}
                       lable={"نوع حساب"}
                     />
@@ -287,55 +290,57 @@ export function RegisterModal({
                 </FormItem>
               )}
             />
-            {type !== "update" && (
-              <div className="dark:bg-[#003f3c] bg-[#008f88] rounded-lg shadow-lg p-3 shadow-[#000000c2] dark:shadow-[#1f1f1f] space-y-5">
-                <CardTitle className={"font-extrabold"}>
-                  رسید حسابات سابقه
-                </CardTitle>
-                <div className="flex flex-row gap-4 ">
+
+            <div className="dark:bg-[#003f3c] bg-[#008f88] rounded-lg shadow-lg p-3 shadow-[#000000c2] dark:shadow-[#1f1f1f] space-y-5">
+              <CardTitle className={"font-extrabold"}>
+                رسید حسابات سابقه
+              </CardTitle>
+              <div className="flex flex-row gap-4 ">
+                <FormField
+                  control={form.control}
+                  name="initBalance"
+                  render={({ field }) => (
+                    <FormItem className={"flex-1"}>
+                      <FormLabel> مبلغ</FormLabel>
+                      <Input
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? "" : Number(value));
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {form.watch("initBalance") > 0 && (
                   <FormField
                     control={form.control}
-                    name="amount"
+                    name="initBalanceType"
                     render={({ field }) => (
                       <FormItem className={"flex-1"}>
-                        <FormLabel> مبلغ</FormLabel>
-                        <Input
-                          value={field.value}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === "" ? "" : Number(value));
-                          }}
+                        <FormLabel> نوعیت حساب</FormLabel>
+                        <SelectInput
+                          disabled={type !== "create" && data.initBalance > 0}
+                          field={field}
+                          fullwidth
+                          lable={"نوعیت"}
+                          options={[
+                            { value: "lend", label: "از ما قرضدار است" },
+                            {
+                              value: "borrow",
+                              label: "ما از او قرضدار استیم",
+                            },
+                          ]}
                         />
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  {form.watch("amount") > 0 && (
-                    <FormField
-                      control={form.control}
-                      name="amountType"
-                      render={({ field }) => (
-                        <FormItem className={"flex-1"}>
-                          <FormLabel> نوعیت حساب</FormLabel>
-                          <SelectInput
-                            field={field}
-                            lable={"نوعیت"}
-                            options={[
-                              { value: "lend", label: "از ما قرضدار است" },
-                              {
-                                value: "borrow",
-                                label: "ما از او قرضدار استیم",
-                              },
-                            ]}
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
+                )}
               </div>
-            )}
+            </div>
+
             <div className="flex justify-end gap-2.5">
               <DialogClose asChild>
                 <Button

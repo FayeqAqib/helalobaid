@@ -45,7 +45,7 @@ export function AppSidebarContent({ list }) {
           <SidebarHeader className={"flex-col gap-2"}>
             <div className="relative w-full  h-[83px]">
               <Image
-                src="/Ajmal.png"
+                src={`/api/images/upload/buy/logo/logo.png?ts=${Date.now()}`}
                 fill
                 className="absolute object-cover size-full"
                 alt="image"

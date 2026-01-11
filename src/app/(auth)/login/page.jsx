@@ -83,7 +83,10 @@ export default function SignInPage() {
 
       <Card className={"w-md p-1 pb-8"}>
         <div className="">
-          <img src="/Ajmal.png" className="h-42 w-64 mx-auto mt-4" />
+          <img
+            src={`/api/images/upload/buy/logo/logo.png?${new Date()}`}
+            className="h-42 w-64 mx-auto mt-4"
+          />
         </div>
         <Form {...form}>
           <form

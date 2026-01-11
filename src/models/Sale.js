@@ -105,6 +105,7 @@ const saleSchema = new mongoose.Schema({
     code: String,
     rate: Number,
   },
+  financial: String,
   totalProfit: {
     type: Number,
     required: false,

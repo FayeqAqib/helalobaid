@@ -32,6 +32,8 @@ import { AutoCompleteV2 } from "@/components/myUI/ComboBox";
 import { ModalTable } from "./ModalTable";
 
 import { handlePrintReceipt } from "@/lib/utils";
+import { useSale } from "./context";
+import { AutoCompleteV3 } from "@/components/myUI/NewComboBox";
 
 const schemaA = z.object({
   date: z
@@ -103,6 +105,8 @@ export function SaleModal({
   const [dateType, setDateType] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [saleList, setSaleList] = useState([]);
+
+  const { buyer, currency, income, items } = useSale();
 
   const formA = useForm({
     resolver: zodResolver(schemaA),
@@ -406,11 +410,11 @@ export function SaleModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>محصول</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         ompleteV2
                         value={field.value}
                         onChange={field.onChange}
-                        dataType="items"
+                        data={items}
                         label=" محصول را انتخاب کنید.."
                       />
                       <FormMessage />
@@ -557,10 +561,10 @@ export function SaleModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>واحد پول</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         value={field.value}
                         onChange={field.onChange}
-                        dataType="currency"
+                        data={currency}
                         currency2={true}
                         label=" واحد پولی را انتخاب کنید.."
                       />
@@ -689,10 +693,10 @@ export function SaleModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>خریدار</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         value={field.value}
                         onChange={field.onChange}
-                        type="buyer"
+                        data={buyer}
                         label="خریدار را انتخاب کنید.."
                       />
                       <FormMessage />
@@ -705,10 +709,10 @@ export function SaleModal({
                   render={({ field }) => (
                     <FormItem className={"flex-1"}>
                       <FormLabel>دریافت گننده</FormLabel>
-                      <AutoCompleteV2
+                      <AutoCompleteV3
                         value={field.value}
                         onChange={field.onChange}
-                        type="company-bank"
+                        data={income}
                         label="دریافت کننده را انتخاب کنید.."
                       />
                       <FormMessage />

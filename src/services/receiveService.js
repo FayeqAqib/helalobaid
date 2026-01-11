@@ -4,6 +4,7 @@ import { deleteFile } from "@/lib/deleteImage";
 import { uploadImage } from "@/lib/uploadImage";
 import { Account } from "@/models/account";
 import { Currency } from "@/models/Currency";
+import { FinancialAccount } from "@/models/FinancialAccount";
 import { Receive } from "@/models/receive";
 
 export const createReceive = catchAsync(async (data) => {
@@ -12,6 +13,8 @@ export const createReceive = catchAsync(async (data) => {
     lend: 1,
     balance: 1,
   });
+
+  ////////////////////////////////////// CHANGE CURRENCY ///////////////////////////////////////////////////
   const currency = await Currency.findById(newData.currency);
 
   newData.amount = newData.amount * currency.rate;
@@ -21,6 +24,9 @@ export const createReceive = catchAsync(async (data) => {
       message: `پول درج شده بیشر از مقدار پول مورد نظر میباشد، لطفا نموده در درج مقدار پول توجه بیشتر به خرچ دهید. طلب  شما از  مشتری   ${buyer.lend} می باشد`,
     };
   }
+
+  ////////////////////////// UPLOAD IMAGE //////////////////////////////////////////////////
+
   const { path, err } = await uploadImage(data.image);
   newData.image = path;
 
@@ -31,8 +37,32 @@ export const createReceive = catchAsync(async (data) => {
     };
   }
 
+  /////////////////////////////////////////////// UPDATE TYPE //////////////////////////////////////////
+
+  const type = await Account.findByIdAndUpdate(
+    newData.type,
+    {
+      $inc: { lend: -Number(newData.amount) },
+    },
+    { new: true }
+  );
+
+  ////////////////////////////////////////////////////CREATE FINANTIAL /////////////////////////////////////
+
+  const { _id } = await FinancialAccount.create({
+    name: newData.type,
+    debit: 0,
+    credit: newData.amount,
+    balance: type.borrow - type.lend,
+  });
+
+  newData.financial = _id;
+
+  ///////////////////////////////////////////////////// CREATE RECEIVE /////////////////////////////////////
+
   const result = await Receive.create(newData);
 
+  ////////////////////////////////////////// UPDATE ACCOUNT /////////////////////////////////////
   if (result?._id) {
     await Account.findByIdAndUpdate(newData.income, {
       $inc: { balance: +Number(newData.amount) },
@@ -40,14 +70,19 @@ export const createReceive = catchAsync(async (data) => {
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
       $inc: { borrow: -Number(newData.amount) },
     });
-
+  } else {
     await Account.findByIdAndUpdate(newData.type, {
-      $inc: { lend: -Number(newData.amount) },
+      $inc: { lend: Number(newData.amount) },
     });
   }
   return result;
 });
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////    GET    ///////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
 export const getAllReceive = catchAsync(async (filter) => {
   if (filter.type) {
     filter.type = filter.type.split("_")[1];
@@ -65,6 +100,12 @@ export const getAllReceive = catchAsync(async (filter) => {
   return { result, count };
 });
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////     DELETE        ////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
 export const deleteReceive = catchAsync(async (data) => {
   const company = await Account.findById(data.income, {
     balance: 1,
@@ -75,6 +116,7 @@ export const deleteReceive = catchAsync(async (data) => {
       message: `برای پرداخت  در حساب  بیلانس کافی ندارید بیلانس شما${company.balance} می باشد`,
     };
 
+  await FinancialAccount.findByIdAndDelete(data.financial);
   const result = await Receive.findByIdAndDelete(data._id);
   await deleteFile(data.image);
 
@@ -93,7 +135,11 @@ export const deleteReceive = catchAsync(async (data) => {
   return result;
 });
 
-/////////////////////////////////////////////////// update ///////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////// UPDATE ///////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const updateReceive = catchAsync(async ({ currentData, newData }) => {
   const myNewData = { ...newData, image: currentData.image };
@@ -104,6 +150,7 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
     _id: 0,
   });
 
+  ////////////////////////////////////// CHANGE CURRENCY /////////////////////////////////////////////////
   const currency = await Currency.findById(myNewData.currency);
 
   myNewData.amount = myNewData.amount * currency.rate;
@@ -118,28 +165,69 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
       } می باشد`,
     };
 
+  ////////////////////////////////////////////// UPDATE TYPE ///////////////////////////////////////////
+
   if (currentData.type !== myNewData.type) {
     if (newBuyer.lend < myNewData.amount)
       return {
         message: `پول درج شده بیشر از مقدار پول مورد نظر میباشد، لطفا نموده در درج مقدار پول توجه بیشتر به خرچ دهید. طلب  شما از  مشتری   ${newBuyer.lend} می باشد`,
       };
 
-    await Account.findByIdAndUpdate(myNewData.type, {
-      $inc: { lend: -myNewData.amount },
-    });
+    const type = await Account.findByIdAndUpdate(
+      myNewData.type,
+      {
+        $inc: { lend: -myNewData.amount },
+      },
+      { new: true }
+    );
     await Account.findByIdAndUpdate(currentData.type, {
       $inc: { lend: currentData.amount },
     });
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        date: new Date(),
+        name: myNewData.type,
+        debit: 0,
+        credit: myNewData.amount,
+        balance: type.borrow - type.lend,
+      }
+    );
+
+    myNewData.financial = _id;
   } else {
-    await Account.findByIdAndUpdate(myNewData.type, {
-      $inc: {
-        lend: -(Number(myNewData.amount) - Number(currentData.amount)),
+    await Account.findByIdAndUpdate(
+      myNewData.type,
+      {
+        $inc: {
+          lend: -(Number(myNewData.amount) - Number(currentData.amount)),
+        },
       },
-    });
+      { new: true }
+    );
+
+    const { _id } = await FinancialAccount.findByIdAndUpdate(
+      currentData.financial,
+      {
+        $set: {
+          name: myNewData.type,
+          debit: 0,
+          credit: myNewData.amount,
+        },
+        $inc: {
+          balance: -(myNewData.amount - currentData.amount),
+        },
+      }
+    );
+
+    myNewData.financial = _id;
   }
+
+  ////////////////////////////////////////////////// UPDATE RECEIVE /////////////////////////////////////
 
   const result = await Receive.findByIdAndUpdate(currentData._id, myNewData);
 
+  ///////////////////////////////////////////// UPDATE ACCOUNT /////////////////////////////////////////////
   if (result?._id) {
     await Account.findByIdAndUpdate(currentData.income, {
       $inc: {

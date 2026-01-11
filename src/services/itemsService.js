@@ -191,7 +191,6 @@ export const getSalesPurchaseSummary = catchAsync(
       .tz(start, "jYYYY/jMM/jDD", "Asia/Kabul")
       .startOf("day")
       .toDate();
-    console.log(currency);
 
     const endDate = momentT
       .tz(end, "jYYYY/jMM/jDD", "Asia/Kabul")
@@ -354,5 +353,3 @@ export const getSalesPurchaseSummary = catchAsync(
 //   "2024-01-01", // تاریخ شروع (اختیاری)
 //   "2024-12-31" // تاریخ پایان (اختیاری)
 // );
-
-// console.log(summary);

@@ -22,12 +22,14 @@ export const createAccount = catchAsync(async (data) => {
 
   const result = await Account.create(data);
 
-  if (data.borrow >= 1 || data.lend >= 1) {
-    await Account.findByIdAndUpdate(process.env.COMPANY_ID, {
-      $inc: { lend: Number(data.borrow), borrow: Number(data.lend) },
-    });
+  if (data.initBalance > 0) {
+    const isLend = data.initBalanceType === "lend";
+    const newData = {
+      lend: !isLend ? data.initBalance : 0,
+      borrow: isLend ? data.initBalance : 0,
+    };
+    await Account.findByIdAndUpdate(process.env.COMPANY_ID, { $inc: newData });
   }
-
   return result;
 });
 //
@@ -56,6 +58,21 @@ export const getAllAccount = catchAsync(async (filter) => {
 
   return { result, count };
 });
+
+// export const getAllAccount2 = catchAsync(async (filter) => {
+//   if (filter.name) {
+//     filter.name = filter?.name?.length > 0 ? filter?.name?.split("_")?.[0] : "";
+//   }
+
+//   const count = await Account.countDocuments();
+//   const features = new APIFeatures(Account.find(), filter)
+//     .filter()
+//     .sort()
+//     .paginate();
+//   const result = await features.query;
+
+//   return { result, count };
+// });
 //
 //
 //
@@ -82,18 +99,6 @@ export const deleteAccount = catchAsync(async (data) => {
     return {
       message:
         "حساب ذیل با شرکت معاملاتی انجام داده لذا حذف این حساب ممکن نیست",
-    };
-  }
-
-  company = await Account.findById(process.env.COMPANY_ID, {
-    borrow: 1,
-    lend: 1,
-    balance: 1,
-  });
-
-  if (data.borrow > company.balance) {
-    return {
-      message: "برای پرداخت قرض این کاربر پول کافی ندارین",
     };
   }
 
@@ -158,7 +163,7 @@ export const getAllSallerAndBuyer = catchAsync(
 //
 //
 
-export const updateAccount = catchAsync(async (data) => {
+export const updateAccount = catchAsync(async ({ data, oldData }) => {
   const company = await Account.findById(process.env.COMPANY_ID, {
     borrow: 1,
     lend: 1,
@@ -168,24 +173,57 @@ export const updateAccount = catchAsync(async (data) => {
     lend: 1,
   });
 
-  if (data.borrow) {
-    company.lend =
-      Number(company.lend) - (Number(user.borrow) - Number(data.borrow));
-    if (user.lend) {
-      company.borrow = Number(company.borrow) - Number(user.lend);
+  // if (data.borrow) {
+  //   company.lend =
+  //     Number(company.lend) - (Number(user.borrow) - Number(data.borrow));
+  //   if (user.lend) {
+  //     company.borrow = Number(company.borrow) - Number(user.lend);
+  //   }
+  // }
+
+  // if (data.lend) {
+  //   company.borrow =
+  //     Number(company.borrow) - (Number(user.lend) - Number(data.lend));
+  //   if (user.borrow) {
+  //     company.lend = Number(company.lend) - Number(user.borrow);
+  //   }
+  // }
+
+  if (typeof data.image === "object") {
+    const { path, err } = await uploadImage(data.image);
+    data.image = path;
+    await deleteFile(oldData.image);
+    if (err) {
+      return {
+        message:
+          "در بارگذاری فایل مشکلی به وجود آمده لطفا بعدا دوباره تلاش کننین",
+      };
     }
+  } else {
+    delete data.image;
   }
 
-  if (data.lend) {
+  const update = {
+    ...data,
+  };
+
+  if (data.initBalanceType === "lend") {
+    update.lend = user.lend + (data.initBalance - oldData.initBalance);
     company.borrow =
-      Number(company.borrow) - (Number(user.lend) - Number(data.lend));
-    if (user.borrow) {
-      company.lend = Number(company.lend) - Number(user.borrow);
-    }
+      Number(company.borrow) +
+      (Number(data.initBalance) - Number(oldData.initBalance));
+    delete data.borrow;
   }
 
-  const result = await Account.findByIdAndUpdate(data._id, data);
+  if (data.initBalanceType === "borrow") {
+    update.borrow = user.borrow + data.initBalance - oldData.initBalance;
+    company.lend =
+      Number(company.lend) +
+      (Number(data.initBalance) - Number(oldData.initBalance));
+    delete data.lend;
+  }
 
+  const result = await Account.findByIdAndUpdate(data._id, update);
   if (result._id) {
     await Account.findByIdAndUpdate(process.env.COMPANY_ID, company);
   }

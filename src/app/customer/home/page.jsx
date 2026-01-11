@@ -32,7 +32,6 @@ export default function Page({ searchParams }) {
 
   const buy = use(getAllTransferMoneySeller(filter));
 
-  console.log(buy, banks, "buy");
   const { result: currency } = use(findOneCurrency(params?.currency));
 
   const { result } = use(getCompanyAccount());
@@ -105,8 +104,6 @@ export default function Page({ searchParams }) {
     buyAndSale.pastSale;
   const buyCent =
     ((buyAndSale.currrentBuy - buyAndSale.pastBuy) * 100) / buyAndSale.pastBuy;
-
-  console.log(buy);
 
   return (
     <div className="size-full">
