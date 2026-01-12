@@ -56,8 +56,8 @@ export const createSale = catchAsync(async (data) => {
   );
   const { _id } = await FinancialAccount.create({
     name: newData.buyer,
-    credit: newData.lendAmount,
-    debit: 0,
+    credit: 0,
+    debit: newData.lendAmount,
     balance: buyer.borrow - buyer.lend,
   });
 

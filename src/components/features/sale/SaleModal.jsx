@@ -320,9 +320,9 @@ export function SaleModal({
           ...item,
           product: {
             name: item.product?.name,
-            _id: item.product._id,
+            _id: item.product?._id,
           },
-          unit: { name: item.unit.name, _id: item.unit._id },
+          unit: { name: item.unit?.name, _id: item.unit?._id },
           depot: {
             name: item.depot?.name,
             _id: item.depot?._id,
