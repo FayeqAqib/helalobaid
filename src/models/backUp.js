@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import jalaliMoment from "moment-jalaali";
 
 const backUpSchema = new mongoose.Schema({
   date: {

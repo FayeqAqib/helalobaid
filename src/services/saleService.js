@@ -52,7 +52,7 @@ export const createSale = catchAsync(async (data) => {
     {
       $inc: { lend: +Number(newData.lendAmount) },
     },
-    { new: true }
+    { new: true },
   );
   const { _id } = await FinancialAccount.create({
     name: newData.buyer,
@@ -108,7 +108,7 @@ export const getAllSales = catchAsync(async (filter) => {
     .paginate();
   const result = await features.query.populate(
     ["buyer", "income", "items.product", "items.unit", "items.depot"],
-    "name"
+    "name",
   );
 
   return { result, count };
@@ -126,6 +126,12 @@ export const getAllSales = catchAsync(async (filter) => {
 //
 
 export const deleteSale = catchAsync(async (data) => {
+  const exsit = await Sale.findById(data._id);
+  if (!exsit)
+    return {
+      message: "فروش مورد نظر یافت نشد یا ممکن است از قبل حذف شده باشد",
+    };
+
   const company = await Account.findById(data.income, {
     balance: 1,
   });
@@ -203,7 +209,7 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
     const buyer = await Account.findByIdAndUpdate(
       myNewData.buyer,
       { $inc: { lend: Number(myNewData.lendAmount || 0) } },
-      { new: true }
+      { new: true },
     );
     await Account.findByIdAndUpdate(currentData.buyer, {
       $inc: { lend: -Number(currentData.lendAmount || 0) },
@@ -216,7 +222,7 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
         debit: myNewData.lendAmount,
         credit: 0,
         balance: buyer.borrow - buyer.lend,
-      }
+      },
     );
 
     myNewData.financial = _id;
@@ -231,7 +237,7 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
           ),
         },
       },
-      { new: true }
+      { new: true },
     );
     const { _id } = await FinancialAccount.findByIdAndUpdate(
       currentData.financial,
@@ -244,7 +250,7 @@ export const updateSale = catchAsync(async ({ currentData, newData }) => {
         $inc: {
           balance: myNewData.lendAmount - currentData.lendAmount,
         },
-      }
+      },
     );
     myNewData.financial = _id;
   }

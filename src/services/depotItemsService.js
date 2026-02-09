@@ -77,7 +77,7 @@ export const getAllDepotItems = catchAsync(async (filter) => {
     .paginate();
   const result = await features.query.populate(
     ["depot", "product", "unit"],
-    "name"
+    "name",
   );
   return { result, count };
 });
@@ -165,6 +165,10 @@ export const updateDepotItems = catchAsync(async ({ oldData, newData }) => {
 ////////////////////////////DELETE ////////////////////////////
 
 export const deleteDepotItems = catchAsync(async (data) => {
+  const exsit = await DepotItems.findById(data._id);
+  if (!exsit)
+    return { message: "مورد یافت نشد یا ممکن است از قبل حذف شده باشد" };
+
   const up = await Items.findOne({
     depot: data.depot._id,
     product: data.product._id,

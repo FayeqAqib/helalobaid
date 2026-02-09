@@ -99,7 +99,7 @@ export const createBuy = catchAsync(async (data) => {
       upsert: true, // ایجاد اگر وجود نداشت
       new: true, // بازگرداندن سند جدید
       runValidators: true, // اجرای اعتبارسنجی‌ها
-    }
+    },
   );
 
   const costData = {
@@ -126,7 +126,7 @@ export const createBuy = catchAsync(async (data) => {
     {
       $inc: { borrow: newData.borrowAmount },
     },
-    { new: true }
+    { new: true },
   );
 
   const { _id } = await FinancialAccount.create({
@@ -171,7 +171,7 @@ export const getAllbuy = catchAsync(async (filter) => {
     .paginate();
   const result = await features.query.populate(
     ["saller", "income", "items.product", "items.unit", "items.depot"],
-    "name"
+    "name",
   );
 
   return { result, count };
@@ -180,6 +180,12 @@ export const getAllbuy = catchAsync(async (filter) => {
 // ////////////////////////////////////////////////// DELETE  ////////////////////////////////////////////////
 
 export const deleteBuy = catchAsync(async (data) => {
+  const exist = await Buy.findById(data._id);
+
+  if (!exist)
+    return {
+      message: "خرید مورد نظر یافت نشد یا ممکن است از قبل حذف شده باشد",
+    };
   ////////////////////////////////////////////// DELETE ITEMS ////////////////////////////////////////////////////
   for (const item of data.items) {
     const up = await Items.findOne({
@@ -273,7 +279,7 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
       {
         $inc: { borrow: Number(myNewData.borrowAmount) },
       },
-      { new: true }
+      { new: true },
     );
     await Account.findByIdAndUpdate(currentData.saller, {
       $inc: { borrow: -Number(currentData.borrowAmount) },
@@ -286,7 +292,7 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
         name: myNewData.saller,
         debit: myNewData.borrowAmount,
         balance: saller.borrow - saller.lend,
-      }
+      },
     );
     myNewData.financial = _id;
   } else {
@@ -309,7 +315,7 @@ export const updateBuy = catchAsync(async ({ currentData, newData }) => {
         $inc: {
           balance: -(myNewData.borrowAmount - currentData.borrowAmount),
         },
-      }
+      },
     );
     myNewData.financial = _id;
   }

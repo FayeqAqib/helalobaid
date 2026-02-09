@@ -45,13 +45,17 @@ export const getAllProducttransfer = catchAsync(async (filter) => {
     .paginate();
   const result = await features.query.populate(
     ["from", "to", "product"],
-    "name"
+    "name",
   );
 
   return { result, count };
 });
 
 export const deleteProductTransfer = catchAsync(async (data) => {
+  const exsit = await ProductTransfer.findById(data._id);
+  if (!exsit)
+    return { message: "مورد نظر یافت نشد یا ممکن است از قبل حذف شده باشد" };
+
   const doc = await ProductTransfer.findById(data._id);
   const to = await Items.findOne({
     product: data.product._id,

@@ -173,22 +173,6 @@ export const updateAccount = catchAsync(async ({ data, oldData }) => {
     lend: 1,
   });
 
-  // if (data.borrow) {
-  //   company.lend =
-  //     Number(company.lend) - (Number(user.borrow) - Number(data.borrow));
-  //   if (user.lend) {
-  //     company.borrow = Number(company.borrow) - Number(user.lend);
-  //   }
-  // }
-
-  // if (data.lend) {
-  //   company.borrow =
-  //     Number(company.borrow) - (Number(user.lend) - Number(data.lend));
-  //   if (user.borrow) {
-  //     company.lend = Number(company.lend) - Number(user.borrow);
-  //   }
-  // }
-
   if (typeof data.image === "object") {
     const { path, err } = await uploadImage(data.image);
     data.image = path;

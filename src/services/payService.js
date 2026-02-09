@@ -46,7 +46,7 @@ export const createPay = catchAsync(async (data) => {
     {
       $inc: { borrow: -Number(newData.amount) },
     },
-    { new: true }
+    { new: true },
   );
 
   const { _id } = await FinancialAccount.create({
@@ -99,6 +99,12 @@ export const getAllPay = catchAsync(async (filter) => {
 //////////////////////////////////////// DELETE //////////////////////////////////////////////
 
 export const deletePay = catchAsync(async (data) => {
+  const exsit = await Pay.findById(data._id);
+  if (!exsit)
+    return {
+      message: "پرداخت مورد نظر یافت نشد یا ممکن است از قبل حذف شده باشد",
+    };
+
   const result = await Pay.findByIdAndDelete(data._id);
   await FinancialAccount.findByIdAndDelete(data.financial);
   await deleteFile(data.image);
@@ -157,7 +163,7 @@ export const updatePay = catchAsync(async ({ currentData, newData }) => {
       {
         $inc: { borrow: -Number(myNewData.amount) },
       },
-      { new: true }
+      { new: true },
     );
     await Account.findByIdAndUpdate(currentData.type, {
       $inc: { borrow: +Number(currentData.amount) },
@@ -170,7 +176,7 @@ export const updatePay = catchAsync(async ({ currentData, newData }) => {
         credit: myNewData.amount,
         debit: 0,
         balance: type2.borrow - type2.lend,
-      }
+      },
     );
 
     myNewData.financial = _id;
@@ -192,7 +198,7 @@ export const updatePay = catchAsync(async ({ currentData, newData }) => {
         $inc: {
           balance: myNewData.amount - currentData.amount,
         },
-      }
+      },
     );
 
     myNewData.financial = _id;

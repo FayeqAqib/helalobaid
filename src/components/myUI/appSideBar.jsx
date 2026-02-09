@@ -143,9 +143,5 @@ const list = [
 ];
 
 export async function AppSidebar() {
-  return (
-    <Sidebar>
-      <AppSidebarContent list={list} />
-    </Sidebar>
-  );
+  return <AppSidebarContent list={list} />;
 }

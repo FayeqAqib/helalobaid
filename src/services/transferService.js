@@ -74,6 +74,12 @@ export const getAllTransfer = catchAsync(async (filter) => {
 
 export const deleteTransfer = catchAsync(async (data) => {
   const newData = { ...data };
+
+  const exsit = await Transfer.findById(newData._id);
+
+  if (!exsit)
+    return { message: "مورد نظر یافت نشد یا ممکن است از قبل حذف شده باشد" };
+
   const to = await Account.findById(newData.to, {
     balance: 1,
     name: 1,

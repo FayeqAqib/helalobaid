@@ -62,7 +62,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
         table.getState().pagination.pageIndex +
         "&limit=" +
         table.getState().pagination.pageSize
-      }`
+      }`,
     );
   }
 
@@ -226,7 +226,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
         const today = new Date();
         const fifteenDaysLater = new Date();
         const meData = fifteenDaysLater.setDate(
-          today.getDate() + expir.expiring
+          today.getDate() + expir.expiring,
         );
 
         if (original.count <= 0) {
@@ -238,7 +238,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
         }
         if (
           original.expirationDate !== null &&
-          new Date(original.expirationDate) <= meData
+          new Date(original.expirationDate) <= fifteenDaysLater
         ) {
           return (
             <div className="text-right font-medium">
@@ -250,7 +250,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
         }
         if (
           // original.expirationDate !== null &&
-          new Date(original.expirationDate) <= fifteenDaysLater
+          new Date(original.expirationDate) <= meData
         ) {
           return (
             <div className="text-right font-medium">
@@ -326,7 +326,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -345,7 +345,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

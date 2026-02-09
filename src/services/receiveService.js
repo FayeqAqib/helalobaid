@@ -44,7 +44,7 @@ export const createReceive = catchAsync(async (data) => {
     {
       $inc: { lend: -Number(newData.amount) },
     },
-    { new: true }
+    { new: true },
   );
 
   ////////////////////////////////////////////////////CREATE FINANTIAL /////////////////////////////////////
@@ -107,6 +107,10 @@ export const getAllReceive = catchAsync(async (filter) => {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const deleteReceive = catchAsync(async (data) => {
+  const exsit = await Receive.findById(data._id);
+  if (!exsit)
+    return { message: "مورد نظر یافت نشد یا ممکن است از قبل حذف شده باشد" };
+
   const company = await Account.findById(data.income, {
     balance: 1,
   });
@@ -178,7 +182,7 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
       {
         $inc: { lend: -myNewData.amount },
       },
-      { new: true }
+      { new: true },
     );
     await Account.findByIdAndUpdate(currentData.type, {
       $inc: { lend: currentData.amount },
@@ -191,7 +195,7 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
         debit: 0,
         credit: myNewData.amount,
         balance: type.borrow - type.lend,
-      }
+      },
     );
 
     myNewData.financial = _id;
@@ -203,7 +207,7 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
           lend: -(Number(myNewData.amount) - Number(currentData.amount)),
         },
       },
-      { new: true }
+      { new: true },
     );
 
     const { _id } = await FinancialAccount.findByIdAndUpdate(
@@ -217,7 +221,7 @@ export const updateReceive = catchAsync(async ({ currentData, newData }) => {
         $inc: {
           balance: -(myNewData.amount - currentData.amount),
         },
-      }
+      },
     );
 
     myNewData.financial = _id;

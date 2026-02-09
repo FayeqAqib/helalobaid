@@ -62,6 +62,12 @@ export const getAllCost = catchAsync(async (filter) => {
 });
 
 export const deleteCost = catchAsync(async (data) => {
+  const exist = await Cost.findById(data._id);
+  if (!exist)
+    return {
+      message: "هزینه مورد نظر یافت نشد یا ممکن است از قبل حذف شده باشد",
+    };
+
   const company = await Account.findById(data.income, {
     balance: 1,
   });
@@ -120,7 +126,7 @@ export const updateCost = catchAsync(async ({ currentData, newData }) => {
       };
       await Account.findByIdAndUpdate(
         currentData.income,
-        currentCompanyBalance
+        currentCompanyBalance,
       );
       await Account.findByIdAndUpdate(myNewData.income, newCompanyBalance);
     }
