@@ -238,7 +238,7 @@ export function DataTableDepotReportage({ data, count, expir, params }) {
         }
         if (
           original.expirationDate !== null &&
-          new Date(original.expirationDate) <= fifteenDaysLater
+          new Date(original.expirationDate) >= today
         ) {
           return (
             <div className="text-right font-medium">
